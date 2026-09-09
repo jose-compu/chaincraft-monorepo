@@ -1,0 +1,39 @@
+{
+  "name": "@chaincraft/core",
+  "version": "1.0.0",
+  "description": "Chaincraft Level 0 wire protocol and Level 1 object semantics",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "keywords": [
+    "chaincraft",
+    "gossip",
+    "p2p",
+    "protocol",
+    "interop"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "features": "node src/featuresCli.ts",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.0"
+  }
+}

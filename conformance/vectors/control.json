@@ -1,0 +1,70 @@
+{
+  "feature": "wire.control",
+  "spec": "SPEC/wire-v1.md#5",
+  "description": "Constructing each control message must produce these exact bytes. Invalid cases parse as envelopes but must fail ctl.hello validation.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "now_ms": 1757430000000,
+  "valid": [
+    {
+      "name": "hello minimal",
+      "type": "ctl.hello",
+      "id": "1ed832d046f7f26ffb0755d04bd9cb7467c5142d292e8477f3ce0a81a9345e1c",
+      "canonical": "{\"data\":{\"caps\":[\"digest-sync\",\"gossip\"],\"impl\":\"py-chaincraft/1.0.0\",\"v\":1},\"id\":\"1ed832d046f7f26ffb0755d04bd9cb7467c5142d292e8477f3ce0a81a9345e1c\",\"ts\":1757430000000,\"type\":\"ctl.hello\",\"v\":1}"
+    },
+    {
+      "name": "hello with listen and caps",
+      "type": "ctl.hello",
+      "id": "4bc4637c2912b59b32c4a70a828d6bf7d0db52a119cdd3c9c1b7d06af8c4fdbd",
+      "canonical": "{\"data\":{\"caps\":[\"digest-sync\",\"gossip\",\"udp\"],\"impl\":\"py-chaincraft/1.0.0\",\"listen\":\"10.0.0.2:9735\",\"v\":1},\"id\":\"4bc4637c2912b59b32c4a70a828d6bf7d0db52a119cdd3c9c1b7d06af8c4fdbd\",\"ts\":1757430000000,\"type\":\"ctl.hello\",\"v\":1}"
+    },
+    {
+      "name": "peers request",
+      "type": "ctl.peers.request",
+      "id": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "canonical": "{\"data\":{},\"id\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\",\"ts\":1757430000000,\"type\":\"ctl.peers.request\",\"v\":1}"
+    },
+    {
+      "name": "peers response",
+      "type": "ctl.peers",
+      "id": "fb338d3a5d76f88eb24cc768bf9ebfc96b80763debdd9d3300fe92a29e56bf2e",
+      "canonical": "{\"data\":{\"peers\":[\"10.0.0.2:9735\",\"10.0.0.3:9735\"]},\"id\":\"fb338d3a5d76f88eb24cc768bf9ebfc96b80763debdd9d3300fe92a29e56bf2e\",\"ts\":1757430000000,\"type\":\"ctl.peers\",\"v\":1}"
+    },
+    {
+      "name": "digest request",
+      "type": "ctl.digest.request",
+      "id": "ea4f80e16ac1a5374672b8c7d399035784613dcd6b3bd99b2bd1e32f52f738aa",
+      "canonical": "{\"data\":{\"object\":\"BalanceLedger\"},\"id\":\"ea4f80e16ac1a5374672b8c7d399035784613dcd6b3bd99b2bd1e32f52f738aa\",\"ts\":1757430000000,\"type\":\"ctl.digest.request\",\"v\":1}"
+    },
+    {
+      "name": "digest response",
+      "type": "ctl.digest",
+      "id": "0ea2ea10236175295d2783277d46c56e68ff55c17340b6b7517cfde455ff2d3d",
+      "canonical": "{\"data\":{\"digest\":\"abababababababababababababababababababababababababababababababab\",\"frontier\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"object\":\"BalanceLedger\"},\"id\":\"0ea2ea10236175295d2783277d46c56e68ff55c17340b6b7517cfde455ff2d3d\",\"ts\":1757430000000,\"type\":\"ctl.digest\",\"v\":1}"
+    },
+    {
+      "name": "messages request",
+      "type": "ctl.messages.request",
+      "id": "2d9df99e4763d23a75d28ab0883658c8dbb6c41245531f3c1e043dff32c8f2de",
+      "canonical": "{\"data\":{\"object\":\"BalanceLedger\",\"since\":\"abababababababababababababababababababababababababababababababab\"},\"id\":\"2d9df99e4763d23a75d28ab0883658c8dbb6c41245531f3c1e043dff32c8f2de\",\"ts\":1757430000000,\"type\":\"ctl.messages.request\",\"v\":1}"
+    },
+    {
+      "name": "messages response",
+      "type": "ctl.messages",
+      "id": "57459ecee33fee4e5ae843b17d8d57e5b32345fb0e79e5effa6884538b73f108",
+      "canonical": "{\"data\":{\"messages\":[{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.t\",\"v\":1}],\"object\":\"BalanceLedger\"},\"id\":\"57459ecee33fee4e5ae843b17d8d57e5b32345fb0e79e5effa6884538b73f108\",\"ts\":1757430000000,\"type\":\"ctl.messages\",\"v\":1}"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "hello with unsupported version",
+      "envelope_json": "{\"data\":{\"caps\":[],\"impl\":\"x/1.0\",\"v\":99},\"id\":\"59c23831a6c81db0695c1d2b555fa9a839c0d1e6818c230a4a3230a29282a83e\",\"ts\":1757430000000,\"type\":\"ctl.hello\",\"v\":1}",
+      "reason": "peer speaks a protocol version we do not support"
+    },
+    {
+      "name": "hello missing impl",
+      "envelope_json": "{\"data\":{\"caps\":[],\"v\":1},\"id\":\"e3e5a4418aa42a2a3c516bfa2659a682b081f5a80e994710cd1475288906dff5\",\"ts\":1757430000000,\"type\":\"ctl.hello\",\"v\":1}",
+      "reason": "ctl.hello requires impl"
+    }
+  ]
+}

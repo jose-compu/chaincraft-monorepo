@@ -1,0 +1,54 @@
+{
+  "feature": "wire.sig-schnorr",
+  "spec": "SPEC/wire-v1.md#6",
+  "description": "The signed message is the hex-decoded id, 32 raw bytes, never hashed again. Verification returns false on malformed input.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "valid": [
+    {
+      "name": "BIP-340 reference vector 0",
+      "alg": "schnorr",
+      "secret_key": "0000000000000000000000000000000000000000000000000000000000000003",
+      "public_key": "f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "aux": "0000000000000000000000000000000000000000000000000000000000000000",
+      "message": "0000000000000000000000000000000000000000000000000000000000000000",
+      "signature": "e907831f80848d1069a5371b402410364bdf1c5f8307b0084c55f1ce2dca821525f66a4a85ea8b71e482a74f382d2ce5ebeee8fdb2172f477df4900d310536c0"
+    },
+    {
+      "name": "signed envelope",
+      "alg": "schnorr",
+      "secret_key": "0000000000000000000000000000000000000000000000000000000000000003",
+      "public_key": "f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "aux": "0000000000000000000000000000000000000000000000000000000000000000",
+      "message": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+      "signature": "73a3a5e6955170e66c30c342c1d1a41e6dc2be15f75828f2b11f35129eb04a5e1850bb1ad328c037dd2bbee54ecba59b74fc35c0e1b78a3759205242d1e5388a",
+      "canonical": "{\"alg\":\"schnorr\",\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"pk\":\"f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"sig\":\"73a3a5e6955170e66c30c342c1d1a41e6dc2be15f75828f2b11f35129eb04a5e1850bb1ad328c037dd2bbee54ecba59b74fc35c0e1b78a3759205242d1e5388a\",\"ts\":1757430000000,\"type\":\"app.test\",\"v\":1}"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "signature under the wrong key",
+      "alg": "schnorr",
+      "public_key": "abababababababababababababababababababababababababababababababab",
+      "message": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+      "signature": "73a3a5e6955170e66c30c342c1d1a41e6dc2be15f75828f2b11f35129eb04a5e1850bb1ad328c037dd2bbee54ecba59b74fc35c0e1b78a3759205242d1e5388a",
+      "reason": "verification must return false, not raise"
+    },
+    {
+      "name": "malformed signature length",
+      "alg": "schnorr",
+      "public_key": "f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+      "signature": "abababababababababab",
+      "reason": "verification must return false, not raise"
+    },
+    {
+      "name": "unknown algorithm",
+      "alg": "rsa",
+      "public_key": "f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+      "signature": "73a3a5e6955170e66c30c342c1d1a41e6dc2be15f75828f2b11f35129eb04a5e1850bb1ad328c037dd2bbee54ecba59b74fc35c0e1b78a3759205242d1e5388a",
+      "reason": "unknown algorithms verify as false"
+    }
+  ]
+}

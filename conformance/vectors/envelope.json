@@ -1,0 +1,110 @@
+{
+  "feature": "wire.envelope",
+  "spec": "SPEC/wire-v1.md#3",
+  "description": "Valid cases build then serialize. Invalid cases must be rejected on parse; now_ms fixes the clock for timestamp checks.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "now_ms": 1757430000000,
+  "valid": [
+    {
+      "name": "minimal",
+      "type": "app.test",
+      "data_json": "{}",
+      "ts": 1757430000000,
+      "id": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "canonical": "{\"data\":{},\"id\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\",\"ts\":1757430000000,\"type\":\"app.test\",\"v\":1}"
+    },
+    {
+      "name": "simple payload",
+      "type": "app.test",
+      "data_json": "{\"n\":1}",
+      "ts": 1757430000000,
+      "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+      "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.test\",\"v\":1}"
+    },
+    {
+      "name": "nested payload",
+      "type": "app.counter",
+      "data_json": "{\"by\":\"alice\",\"delta\":-3}",
+      "ts": 1757430000000,
+      "id": "719f7ecbe8f70f07918c16f718f5974a5ec315d7a0a8ef5fceeb6b259a7130c4",
+      "canonical": "{\"data\":{\"by\":\"alice\",\"delta\":-3},\"id\":\"719f7ecbe8f70f07918c16f718f5974a5ec315d7a0a8ef5fceeb6b259a7130c4\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}"
+    },
+    {
+      "name": "non-ascii payload",
+      "type": "app.chat",
+      "data_json": "{\"msg\":\"héllo 😀\"}",
+      "ts": 1757430000000,
+      "id": "86d5c0552e697745d0639fd97fbe30cff15bb6db5c905e557ca85148e7166bce",
+      "canonical": "{\"data\":{\"msg\":\"héllo 😀\"},\"id\":\"86d5c0552e697745d0639fd97fbe30cff15bb6db5c905e557ca85148e7166bce\",\"ts\":1757430000000,\"type\":\"app.chat\",\"v\":1}"
+    },
+    {
+      "name": "array payload",
+      "type": "app.batch",
+      "data_json": "[1,2,3]",
+      "ts": 1757430000000,
+      "id": "a615eeaee21de5179de080de8c3052c8da901138406ba71c38c032845f7d54f4",
+      "canonical": "{\"data\":[1,2,3],\"id\":\"a615eeaee21de5179de080de8c3052c8da901138406ba71c38c032845f7d54f4\",\"ts\":1757430000000,\"type\":\"app.batch\",\"v\":1}"
+    },
+    {
+      "name": "string payload",
+      "type": "app.ping",
+      "data_json": "\"pong\"",
+      "ts": 1757430000000,
+      "id": "1ea1381644aa60c66f490eb8f2e28fbf15ecb1ea52ba2ad6561e2c0d34e344e1",
+      "canonical": "{\"data\":\"pong\",\"id\":\"1ea1381644aa60c66f490eb8f2e28fbf15ecb1ea52ba2ad6561e2c0d34e344e1\",\"ts\":1757430000000,\"type\":\"app.ping\",\"v\":1}"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "unknown field",
+      "envelope_json": "{\"data\":{},\"extra\":1,\"id\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\",\"ts\":1757430000000,\"type\":\"app.t\",\"v\":1}",
+      "reason": "unknown envelope field"
+    },
+    {
+      "name": "missing id",
+      "envelope_json": "{\"data\":{},\"ts\":1757430000000,\"type\":\"app.t\",\"v\":1}",
+      "reason": "missing required field"
+    },
+    {
+      "name": "wrong version",
+      "envelope_json": "{\"data\":{},\"id\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\",\"ts\":1757430000000,\"type\":\"app.t\",\"v\":2}",
+      "reason": "unsupported protocol version"
+    },
+    {
+      "name": "digest mismatch",
+      "envelope_json": "{\"data\":{\"n\":1},\"id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"ts\":1757430000000,\"type\":\"app.t\",\"v\":1}",
+      "reason": "id does not match the payload digest"
+    },
+    {
+      "name": "uppercase id",
+      "envelope_json": "{\"data\":{},\"id\":\"44136FA355B3678A1146AD16F7E8649E94FB4FC21FE77E8310C060F61CAAFF8A\",\"ts\":1757430000000,\"type\":\"app.t\",\"v\":1}",
+      "reason": "id must be lowercase hex"
+    },
+    {
+      "name": "invalid type casing",
+      "envelope_json": "{\"data\":{},\"id\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\",\"ts\":1757430000000,\"type\":\"App.Test\",\"v\":1}",
+      "reason": "type must match [a-z0-9._-]{1,64}"
+    },
+    {
+      "name": "float in payload",
+      "envelope_json": "{\"data\":{\"x\":1.5},\"id\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\",\"ts\":1757430000000,\"type\":\"app.t\",\"v\":1}",
+      "reason": "floating point not permitted in v1"
+    },
+    {
+      "name": "pk without sig",
+      "envelope_json": "{\"data\":{},\"id\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\",\"pk\":\"abababababababababababababababababababababababababababababababab\",\"ts\":1757430000000,\"type\":\"app.t\",\"v\":1}",
+      "reason": "pk and alg require sig"
+    },
+    {
+      "name": "timestamp too far in the future",
+      "envelope_json": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430600000,\"type\":\"app.test\",\"v\":1}",
+      "reason": "ts more than 300000 ms in the future"
+    },
+    {
+      "name": "not an object",
+      "envelope_json": "[]",
+      "reason": "envelope must be a JSON object"
+    }
+  ]
+}

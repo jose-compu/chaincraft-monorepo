@@ -1,0 +1,165 @@
+name: Parity dispatch
+
+# Turns parity gaps into tracked, agent-ready work.
+#
+# On merge to main and daily, open a GitHub issue for every open gap and — when
+# CURSOR_API_KEY is configured — dispatch a coding agent to port it. Without the
+# secret this degrades to issue tracking only, which is still useful.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'SPEC/features.yaml'
+      - 'python/**'
+      - 'rust/**'
+      - 'typescript/**'
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      include_backfill:
+        description: 'Also open issues for Stage 8 backfill entries'
+        type: boolean
+        default: false
+      dispatch_agents:
+        description: 'Dispatch coding agents for unassigned gap issues'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync-issues:
+    name: sync gap issues
+    runs-on: ubuntu-latest
+    outputs:
+      gaps: ${{ steps.gaps.outputs.gaps }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+
+      - name: Collect gaps
+        id: gaps
+        run: |
+          python3 tools/parity_check.py --gaps --json > /tmp/gaps.json
+          echo "gaps=$(jq -c . /tmp/gaps.json)" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Open parity gaps"
+            echo
+            echo '```'
+            python3 tools/parity_check.py --gaps
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sync_gap_issues.py \
+            --repo "${{ github.repository }}" \
+            ${{ inputs.include_backfill && '--include-backfill' || '' }}
+
+  dispatch-agents:
+    name: dispatch coding agents
+    needs: sync-issues
+    if: github.event_name != 'workflow_dispatch' || inputs.dispatch_agents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for an agent credential
+        id: creds
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          if [ -n "$CURSOR_API_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "CURSOR_API_KEY is not set — issues were opened but no agent was dispatched." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Find unassigned gap issues
+        if: steps.creds.outputs.enabled == 'true'
+        id: queue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue list --repo "${{ github.repository }}" \
+            --label parity-gap --state open --limit 100 \
+            --json number,title,body,assignees \
+            --jq '[.[] | select(.assignees | length == 0)]' > /tmp/queue.json
+          echo "count=$(jq length /tmp/queue.json)" >> "$GITHUB_OUTPUT"
+          jq -r '.[] | "  #\(.number)  \(.title)"' /tmp/queue.json
+
+      - name: Install the Cursor CLI
+        if: steps.creds.outputs.enabled == 'true' && steps.queue.outputs.count != '0'
+        run: curl https://cursor.com/install -fsS | bash
+
+      # One agent per gap, each on its own branch, each opening a pull request
+      # against its issue. Agent output is reviewed like any other pull request;
+      # the conformance vectors are the objective check.
+      - name: Dispatch
+        if: steps.creds.outputs.enabled == 'true' && steps.queue.outputs.count != '0'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export PATH="$HOME/.cursor/bin:$PATH"
+          jq -c '.[]' /tmp/queue.json | while read -r issue; do
+            number=$(echo "$issue" | jq -r .number)
+            title=$(echo "$issue" | jq -r .title)
+            body=$(echo "$issue" | jq -r .body)
+
+            echo "::group::Dispatching agent for #$number — $title"
+            cursor-agent \
+              --model auto \
+              --print \
+              --output-format text \
+              "Close parity gap issue #$number in ${{ github.repository }}.
+
+          $body
+
+          Read AGENTS.md first. Work on a branch named parity/issue-$number and
+          open a pull request that closes #$number. Do not attribute authorship
+          to any AI, agent or model anywhere in the commits or the pull request." \
+              || echo "::warning::Agent run failed for #$number"
+            echo "::endgroup::"
+          done
+
+  enforce-deadlines:
+    name: enforce grace period
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+
+      # The daily run is what gives the 14-day clock teeth. A failure here means
+      # main is out of parity and releases are blocked until it closes.
+      - name: Parity gate on main
+        id: gate
+        continue-on-error: true
+        run: python3 tools/parity_check.py
+
+      - name: Report
+        if: steps.gate.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "## Parity gate is failing on main"
+            echo
+            python3 tools/parity_check.py || true
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::Parity gate failing on main. Releases are blocked."
+          exit 1

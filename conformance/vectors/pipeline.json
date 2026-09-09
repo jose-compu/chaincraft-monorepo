@@ -1,0 +1,379 @@
+{
+  "feature": "object.pipeline",
+  "spec": "SPEC/semantics-v1.md#3",
+  "description": "replay: build the section 8 registry, apply each message in order, compare state after every step. tiebreak: section 6.1 comparator.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "registry": [
+    "counter",
+    "mirror"
+  ],
+  "replay": [
+    {
+      "name": "accepted run",
+      "steps": [
+        {
+          "message_json": "{\"delta\":5,\"seq\":1}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 1,
+            "total": 5,
+            "head": "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+            ]
+          }
+        },
+        {
+          "message_json": "{\"delta\":-3,\"seq\":2}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 2,
+            "total": 2,
+            "head": "86f54424ae3e644ba2f6eabcee4ceb41ad0af6cd6f3e9170198785e1703790c4"
+          },
+          "mirror": {
+            "count": 2,
+            "last_frontier": [
+              "86f54424ae3e644ba2f6eabcee4ceb41ad0af6cd6f3e9170198785e1703790c4"
+            ]
+          }
+        },
+        {
+          "message_json": "{\"delta\":10,\"seq\":3}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 3,
+            "total": 12,
+            "head": "2ee08980ae6a7061a94f5c3c9b9527c8276ffb162c006eb0eef9d1078a7cf386"
+          },
+          "mirror": {
+            "count": 3,
+            "last_frontier": [
+              "2ee08980ae6a7061a94f5c3c9b9527c8276ffb162c006eb0eef9d1078a7cf386"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "rejected by counter leaves state untouched",
+      "steps": [
+        {
+          "message_json": "{\"delta\":5,\"seq\":1}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 1,
+            "total": 5,
+            "head": "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+            ]
+          }
+        },
+        {
+          "message_json": "{\"delta\":5,\"seq\":99}",
+          "accepted": false,
+          "rejected_by": "counter",
+          "counter": {
+            "seq": 1,
+            "total": 5,
+            "head": "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+            ]
+          }
+        },
+        {
+          "message_json": "{\"delta\":5,\"seq\":2}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 2,
+            "total": 10,
+            "head": "f85fa7e3abfb7776549d5b545d5dd2ad78ad4182a7f7a20e4fdf4c56aa278b5e"
+          },
+          "mirror": {
+            "count": 2,
+            "last_frontier": [
+              "f85fa7e3abfb7776549d5b545d5dd2ad78ad4182a7f7a20e4fdf4c56aa278b5e"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "rejected by mirror is all-or-nothing",
+      "steps": [
+        {
+          "message_json": "{\"delta\":5,\"seq\":1}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 1,
+            "total": 5,
+            "head": "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+            ]
+          }
+        },
+        {
+          "message_json": "{\"delta\":5,\"reject_mirror\":true,\"seq\":2}",
+          "accepted": false,
+          "rejected_by": "mirror",
+          "counter": {
+            "seq": 1,
+            "total": 5,
+            "head": "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+            ]
+          }
+        },
+        {
+          "message_json": "{\"delta\":5,\"seq\":2}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 2,
+            "total": 10,
+            "head": "f85fa7e3abfb7776549d5b545d5dd2ad78ad4182a7f7a20e4fdf4c56aa278b5e"
+          },
+          "mirror": {
+            "count": 2,
+            "last_frontier": [
+              "f85fa7e3abfb7776549d5b545d5dd2ad78ad4182a7f7a20e4fdf4c56aa278b5e"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "out-of-range delta rejected",
+      "steps": [
+        {
+          "message_json": "{\"delta\":101,\"seq\":1}",
+          "accepted": false,
+          "rejected_by": "counter",
+          "counter": {
+            "seq": 0,
+            "total": 0,
+            "head": ""
+          },
+          "mirror": {
+            "count": 0,
+            "last_frontier": []
+          }
+        },
+        {
+          "message_json": "{\"delta\":100,\"seq\":1}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 1,
+            "total": 100,
+            "head": "695f0ab6b4e8d2117c5934860e4ccf51ff0b95a9e58bd678fcc1dcd54ad3e073"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "695f0ab6b4e8d2117c5934860e4ccf51ff0b95a9e58bd678fcc1dcd54ad3e073"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "non-integer fields rejected",
+      "steps": [
+        {
+          "message_json": "{\"delta\":true,\"seq\":1}",
+          "accepted": false,
+          "rejected_by": "counter",
+          "counter": {
+            "seq": 0,
+            "total": 0,
+            "head": ""
+          },
+          "mirror": {
+            "count": 0,
+            "last_frontier": []
+          }
+        },
+        {
+          "message_json": "{\"delta\":\"1\",\"seq\":1}",
+          "accepted": false,
+          "rejected_by": "counter",
+          "counter": {
+            "seq": 0,
+            "total": 0,
+            "head": ""
+          },
+          "mirror": {
+            "count": 0,
+            "last_frontier": []
+          }
+        },
+        {
+          "message_json": "{\"delta\":1,\"seq\":1}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 1,
+            "total": 1,
+            "head": "838fe408d7ca36da6e7afb65a6b54623147f785b77207e0afb31daa6e0706699"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "838fe408d7ca36da6e7afb65a6b54623147f785b77207e0afb31daa6e0706699"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "redelivery of an applied message is rejected",
+      "steps": [
+        {
+          "message_json": "{\"delta\":5,\"seq\":1}",
+          "accepted": true,
+          "rejected_by": null,
+          "counter": {
+            "seq": 1,
+            "total": 5,
+            "head": "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+            ]
+          }
+        },
+        {
+          "message_json": "{\"delta\":5,\"seq\":1}",
+          "accepted": false,
+          "rejected_by": "counter",
+          "counter": {
+            "seq": 1,
+            "total": 5,
+            "head": "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+          },
+          "mirror": {
+            "count": 1,
+            "last_frontier": [
+              "809cbc4a0ff2c155cc5ec47496e668529477806fecef18925e9cf952b239e989"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "tiebreak": [
+    {
+      "name": "higher rank wins",
+      "candidate": {
+        "rank": 2,
+        "digest": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "incumbent": {
+        "rank": 1,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "expected": true
+    },
+    {
+      "name": "lower rank loses",
+      "candidate": {
+        "rank": 1,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "incumbent": {
+        "rank": 2,
+        "digest": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "expected": false
+    },
+    {
+      "name": "tie broken by lowest digest",
+      "candidate": {
+        "rank": 1,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "incumbent": {
+        "rank": 1,
+        "digest": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": true
+    },
+    {
+      "name": "tie, higher digest loses",
+      "candidate": {
+        "rank": 1,
+        "digest": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "incumbent": {
+        "rank": 1,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "expected": false
+    },
+    {
+      "name": "identical entry does not replace itself",
+      "candidate": {
+        "rank": 1,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "incumbent": {
+        "rank": 1,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "expected": false
+    },
+    {
+      "name": "negative ranks compare normally",
+      "candidate": {
+        "rank": -2,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "incumbent": {
+        "rank": -1,
+        "digest": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": false
+    },
+    {
+      "name": "zero rank against positive",
+      "candidate": {
+        "rank": 0,
+        "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "incumbent": {
+        "rank": 1,
+        "digest": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": false
+    }
+  ]
+}

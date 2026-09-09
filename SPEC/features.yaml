@@ -1,0 +1,398 @@
+# Chaincraft parity registry
+#
+# The single record of what exists in which language. Enforced by
+# tools/parity_check.py on every pull request. See AGENTS.md section 5.
+#
+# Entry schema:
+#   id        Stable feature identifier, dot-namespaced. Never renamed.
+#   level     0 wire | 1 semantics | 2 features
+#   spec      Path plus anchor into SPEC/
+#   summary   One line, observable behaviour
+#   vectors   Path under conformance/vectors/, or null for doc-only entries.
+#             Required once a feature is implemented somewhere, not before.
+#   backfill  true for surface predating the parity commitment; exempt from the
+#             14-day clock, requires `milestone` instead (ROADMAP.md 5, Stage 8)
+#   legacy    Where an existing implementation can be ported from. Present only
+#             on backfill entries. It is a porting hint, never a parity claim:
+#             a feature counts as implemented only when it lives in this
+#             monorepo and the language manifest reports it.
+#   milestone Deadline for backfill entries, replacing the grace period
+#   status    Per language: state, since, and issue or reason
+#
+# States: implemented | in-progress | planned | exempt
+#   in-progress  requires `issue`
+#   exempt       requires `reason` and a human reviewer
+
+version: 1
+grace_period_days: 14
+
+languages:
+  - python
+  - rust
+  - typescript
+
+# Languages with no source tree yet. The gate reports their gaps but does not
+# fail on them. Each entry is removed when that implementation lands, which is
+# what makes the gate go live for it.
+bootstrap:
+  rust: { until_stage: 5, note: "Stage 5 — Rust core" }
+
+features:
+
+  # ----------------------------------------------------------------------
+  # Level 0 — wire protocol
+  # ----------------------------------------------------------------------
+
+  - id: wire.canonical-json
+    level: 0
+    spec: SPEC/wire-v1.md#1
+    summary: Canonical JSON encoder, RFC 8785 subset with no floating point
+    vectors: conformance/vectors/canonical-json.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.payload-digest
+    level: 0
+    spec: SPEC/wire-v1.md#2
+    summary: SHA-256 over canonical data, lowercase hex, content-addressed
+    vectors: conformance/vectors/digest.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.envelope
+    level: 0
+    spec: SPEC/wire-v1.md#3
+    summary: Envelope build, serialize and validate in the specified order
+    vectors: conformance/vectors/envelope.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.framing-tcp
+    level: 0
+    spec: SPEC/wire-v1.md#4.1
+    summary: u32 big-endian length prefix, 16 MiB cap, stream reassembly
+    vectors: conformance/vectors/framing.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.framing-udp
+    level: 0
+    spec: SPEC/wire-v1.md#4.2
+    summary: One envelope per datagram, 65507 byte cap
+    vectors: conformance/vectors/framing.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript:
+        state: exempt
+        reason: >-
+          Raw UDP sockets are unavailable in browsers, and the Node-only subset
+          would not be the same capability. UDP is optional at Level 0 and is
+          advertised through ctl.hello, so a TypeScript node interoperates fully
+          over TCP without it.
+        reviewed_by: null
+
+  - id: wire.control
+    level: 0
+    spec: SPEC/wire-v1.md#5
+    summary: ctl.* control messages — hello, peers, digest, messages
+    vectors: conformance/vectors/control.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.version-negotiation
+    level: 0
+    spec: SPEC/wire-v1.md#5.1
+    summary: ctl.hello exchange, capability set, clean disconnect on mismatch
+    vectors: conformance/vectors/control.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.sig-schnorr
+    level: 0
+    spec: SPEC/wire-v1.md#6
+    summary: BIP-340 Schnorr sign and verify over the 32-byte id
+    vectors: conformance/vectors/signatures.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.sig-ed25519
+    level: 0
+    spec: SPEC/wire-v1.md#6
+    summary: RFC 8032 Ed25519 sign and verify over the 32-byte id
+    vectors: conformance/vectors/signatures.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.dedup
+    level: 0
+    spec: SPEC/wire-v1.md#7
+    summary: Seen-digest set, loop termination, control messages never relayed
+    vectors: conformance/vectors/dedup.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  # ----------------------------------------------------------------------
+  # Level 1 — object semantics
+  # ----------------------------------------------------------------------
+
+  - id: object.contract
+    level: 1
+    spec: SPEC/semantics-v1.md#2
+    summary: Application object contract — is_valid, add_message, digests
+    vectors: conformance/vectors/pipeline.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: object.pipeline
+    level: 1
+    spec: SPEC/semantics-v1.md#3
+    summary: Validate-all-then-apply, memento threading, commit only on success
+    vectors: conformance/vectors/pipeline.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: object.memento
+    level: 1
+    spec: SPEC/semantics-v1.md#4
+    summary: StateMemento normalization and reorg detection
+    vectors: conformance/vectors/memento.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: object.merkle-digest
+    level: 1
+    spec: SPEC/semantics-v1.md#5
+    summary: Merkelized object digest and frontier digest computation
+    vectors: conformance/vectors/memento.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: object.tiebreak
+    level: 1
+    spec: SPEC/semantics-v1.md#6.1
+    summary: Replacement comparator, lowest digest wins on exact tie
+    vectors: conformance/vectors/pipeline.json
+    status:
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: planned }
+      typescript: { state: implemented, since: "2026-09-09" }
+
+  # ----------------------------------------------------------------------
+  # Level 2 — feature backfill (ROADMAP.md 5, Stage 8)
+  #
+  # Surface that exists in the standalone chaincraft repositories and predates
+  # the parity commitment. It has not been migrated into this monorepo yet, so
+  # every language reads `planned` here regardless of what the legacy packages
+  # contain. `legacy` records where to port from.
+  #
+  # Exempt from the 14-day clock; each carries a milestone instead.
+  # ----------------------------------------------------------------------
+
+  - id: crypto.ecdsa
+    level: 2
+    spec: SPEC/features/crypto-ecdsa.md
+    summary: ECDSA signing primitive
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 crypto_primitives
+    milestone: "2026-10-15"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: crypto.vdf
+    level: 2
+    spec: SPEC/features/crypto-vdf.md
+    summary: Verifiable delay function
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 crypto_primitives
+    milestone: "2026-10-15"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: crypto.vrf
+    level: 2
+    spec: SPEC/features/crypto-vrf.md
+    summary: Verifiable random function
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 crypto_primitives
+    milestone: "2026-10-15"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: discovery.peer
+    level: 2
+    spec: SPEC/features/discovery-peer.md
+    summary: Peer discovery and address book management
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 discovery
+    milestone: "2026-10-31"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: discovery.local
+    level: 2
+    spec: SPEC/features/discovery-local.md
+    summary: Local network node discovery
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 discovery
+    milestone: "2026-10-31"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: consensus.pow
+    level: 2
+    spec: SPEC/features/consensus-pow.md
+    summary: Proof-of-work consensus object
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 consensus
+    milestone: "2026-11-30"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: consensus.pos
+    level: 2
+    spec: SPEC/features/consensus-pos.md
+    summary: Proof-of-stake consensus object
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 consensus
+    milestone: "2026-11-30"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: consensus.pbft
+    level: 2
+    spec: SPEC/features/consensus-pbft.md
+    summary: PBFT consensus object
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 consensus
+    milestone: "2026-11-30"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: ledger.balance
+    level: 2
+    spec: SPEC/features/ledger-balance.md
+    summary: Account-balance ledger model
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 ledger; rust/chaincraft-rust application objects
+    milestone: "2026-12-15"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: ledger.utxo
+    level: 2
+    spec: SPEC/features/ledger-utxo.md
+    summary: UTXO ledger model
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 ledger
+    milestone: "2026-12-15"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: mempool.basic
+    level: 2
+    spec: SPEC/features/mempool-basic.md
+    summary: Transaction mempool with eviction policy
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 mempool
+    milestone: "2026-12-15"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: fees.policy
+    level: 2
+    spec: SPEC/features/fees-policy.md
+    summary: Fee estimation and policy enforcement
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 fees
+    milestone: "2026-12-15"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: storage.persistent
+    level: 2
+    spec: SPEC/features/storage-persistent.md
+    summary: Persistent message store semantics
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 storage
+    milestone: "2027-01-31"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
+  - id: cli.node
+    level: 2
+    spec: SPEC/features/cli-node.md
+    summary: Node lifecycle command surface
+    vectors: null
+    backfill: true
+    legacy: python/chaincraft@0.7 cli
+    milestone: "2027-01-31"
+    status:
+      python:     { state: planned }
+      rust:       { state: planned }
+      typescript: { state: planned }

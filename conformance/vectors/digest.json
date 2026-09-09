@@ -1,0 +1,70 @@
+{
+  "feature": "wire.payload-digest",
+  "spec": "SPEC/wire-v1.md#2",
+  "description": "digest = lowercase hex sha256 over canonical_json(data).",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "valid": [
+    {
+      "name": "empty object",
+      "data_json": "{}",
+      "canonical": "{}",
+      "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "name": "empty array",
+      "data_json": "[]",
+      "canonical": "[]",
+      "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "name": "empty string",
+      "data_json": "\"\"",
+      "canonical": "\"\"",
+      "digest": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126"
+    },
+    {
+      "name": "null",
+      "data_json": "null",
+      "canonical": "null",
+      "digest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "name": "integer",
+      "data_json": "1",
+      "canonical": "1",
+      "digest": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+    },
+    {
+      "name": "simple object",
+      "data_json": "{\"n\":1}",
+      "canonical": "{\"n\":1}",
+      "digest": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+    },
+    {
+      "name": "key order irrelevant",
+      "data_json": "{\"b\":2,\"a\":1}",
+      "canonical": "{\"a\":1,\"b\":2}",
+      "digest": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+    },
+    {
+      "name": "key order irrelevant, reversed",
+      "data_json": "{\"a\":1,\"b\":2}",
+      "canonical": "{\"a\":1,\"b\":2}",
+      "digest": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+    },
+    {
+      "name": "nested",
+      "data_json": "{\"tags\":[[\"e\",\"abc\"],[\"p\",\"def\"]],\"kind\":1}",
+      "canonical": "{\"kind\":1,\"tags\":[[\"e\",\"abc\"],[\"p\",\"def\"]]}",
+      "digest": "cf017b1ccc367d02e2dc322f2e5aef281cdc173efb94fb9416f5b4e07867457f"
+    },
+    {
+      "name": "non-ascii",
+      "data_json": "{\"msg\":\"héllo 😀\"}",
+      "canonical": "{\"msg\":\"héllo 😀\"}",
+      "digest": "86d5c0552e697745d0639fd97fbe30cff15bb6db5c905e557ca85148e7166bce"
+    }
+  ],
+  "invalid": []
+}

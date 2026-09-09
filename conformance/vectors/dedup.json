@@ -1,0 +1,211 @@
+{
+  "feature": "wire.dedup",
+  "spec": "SPEC/wire-v1.md#7",
+  "description": "Seen-digest set with FIFO eviction. Control messages are never recorded and never relayed.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "now_ms": 1757430000000,
+  "default_capacity": 100000,
+  "sequence": [
+    {
+      "name": "first delivery is processed",
+      "capacity": 100000,
+      "note": "the base case",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 1
+        }
+      ]
+    },
+    {
+      "name": "repeat delivery is suppressed",
+      "capacity": 100000,
+      "note": "this is what terminates a gossip loop",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 1
+        },
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": false,
+          "should_relay": true,
+          "seen_size": 1
+        }
+      ]
+    },
+    {
+      "name": "distinct payloads are independent",
+      "capacity": 100000,
+      "note": "different data, different digest",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 1
+        },
+        {
+          "canonical": "{\"data\":{\"n\":2},\"id\":\"363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 2
+        }
+      ]
+    },
+    {
+      "name": "a nonce distinguishes otherwise equal payloads",
+      "capacity": 100000,
+      "note": "the escape hatch named in section 2 for repeated identical content",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"n\":1,\"nonce\":\"x\"},\"id\":\"1a225723e528eb941052d022eaf270198a187ba73ec795ddb3d39f95bfbd606c\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "1a225723e528eb941052d022eaf270198a187ba73ec795ddb3d39f95bfbd606c",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 1
+        },
+        {
+          "canonical": "{\"data\":{\"n\":1,\"nonce\":\"y\"},\"id\":\"0788ae78ca3e3e2e2cc92aa9e971c538d72a5e1f8c5dd2a73d609d0f8b981e8d\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "0788ae78ca3e3e2e2cc92aa9e971c538d72a5e1f8c5dd2a73d609d0f8b981e8d",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 2
+        }
+      ]
+    },
+    {
+      "name": "equal data under different types is one message",
+      "capacity": 100000,
+      "note": "the digest covers data only, so type does not separate them",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.a\",\"v\":1}",
+          "type": "app.a",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 1
+        },
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.b\",\"v\":1}",
+          "type": "app.b",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": false,
+          "should_relay": true,
+          "seen_size": 1
+        }
+      ]
+    },
+    {
+      "name": "re-serialization under a new timestamp is still a duplicate",
+      "capacity": 100000,
+      "note": "a relay may rebuild the envelope without breaking downstream dedup",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 1
+        },
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430060000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": false,
+          "should_relay": true,
+          "seen_size": 1
+        }
+      ]
+    },
+    {
+      "name": "control messages are never deduplicated or relayed",
+      "capacity": 100000,
+      "note": "ctl.* is point-to-point, so the set stays empty and relay is false",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"caps\":[\"digest-sync\",\"gossip\"],\"impl\":\"py-chaincraft/1.0.0\",\"v\":1},\"id\":\"1ed832d046f7f26ffb0755d04bd9cb7467c5142d292e8477f3ce0a81a9345e1c\",\"ts\":1757430000000,\"type\":\"ctl.hello\",\"v\":1}",
+          "type": "ctl.hello",
+          "id": "1ed832d046f7f26ffb0755d04bd9cb7467c5142d292e8477f3ce0a81a9345e1c",
+          "should_process": true,
+          "should_relay": false,
+          "seen_size": 0
+        },
+        {
+          "canonical": "{\"data\":{\"caps\":[\"digest-sync\",\"gossip\"],\"impl\":\"py-chaincraft/1.0.0\",\"v\":1},\"id\":\"1ed832d046f7f26ffb0755d04bd9cb7467c5142d292e8477f3ce0a81a9345e1c\",\"ts\":1757430000000,\"type\":\"ctl.hello\",\"v\":1}",
+          "type": "ctl.hello",
+          "id": "1ed832d046f7f26ffb0755d04bd9cb7467c5142d292e8477f3ce0a81a9345e1c",
+          "should_process": true,
+          "should_relay": false,
+          "seen_size": 0
+        }
+      ]
+    },
+    {
+      "name": "eviction is FIFO by first insertion",
+      "capacity": 2,
+      "note": "re-seeing a does not refresh it, so c evicts a and a is new again; an implementation that refreshed on re-see would report the final step as a duplicate",
+      "steps": [
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 1
+        },
+        {
+          "canonical": "{\"data\":{\"n\":2},\"id\":\"363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 2
+        },
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": false,
+          "should_relay": true,
+          "seen_size": 2
+        },
+        {
+          "canonical": "{\"data\":{\"n\":3},\"id\":\"215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 2
+        },
+        {
+          "canonical": "{\"data\":{\"n\":1},\"id\":\"2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd\",\"ts\":1757430000000,\"type\":\"app.counter\",\"v\":1}",
+          "type": "app.counter",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "should_process": true,
+          "should_relay": true,
+          "seen_size": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,343 @@
+/**
+ * Conformance vectors — the shared cross-language contract.
+ *
+ * Every implementation runs these same files. A failure here is a wire protocol
+ * violation, not a local bug. Never edit a vector to make a test pass; see
+ * AGENTS.md §7.
+ */
+
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+import {
+  CanonicalError,
+  Deduplicator,
+  Envelope,
+  FrameReader,
+  FramingError,
+  ProtocolError,
+  StateMemento,
+  canonicalJson,
+  control,
+  decodeDatagram,
+  encodeDatagram,
+  encodeFrame,
+  frontierDigest,
+  hexToBytes,
+  merkleDigest,
+  parseJson,
+  payloadDigest,
+  publicKeyHex,
+  sign,
+  verify,
+  winsReplacement,
+} from '../src/index.ts';
+import { buildRegistry, snapshot } from './conformanceObjects.ts';
+
+const VECTORS = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'conformance',
+  'vectors',
+);
+
+type Case = Record<string, any>;
+
+function load(name: string): Record<string, any> {
+  return JSON.parse(readFileSync(join(VECTORS, name), 'utf8'));
+}
+
+function bytes(hex: string): Uint8Array {
+  return hexToBytes(hex);
+}
+
+function toHex(data: Uint8Array): string {
+  return Array.from(data, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Run one node:test per case so a failure names the case, as pytest does. */
+function eachCase(
+  file: string,
+  section: string,
+  run: (c: Case, doc: Record<string, any>) => void,
+): void {
+  const doc = load(file);
+  const cases: Case[] = doc[section] ?? [];
+  assert.ok(cases.length > 0, `${file} has no ${section} cases`);
+  for (const [index, entry] of cases.entries()) {
+    test(`${file} ${section}: ${entry['name'] ?? index}`, () => run(entry, doc));
+  }
+}
+
+// --- wire.canonical-json ----------------------------------------------------
+
+eachCase('canonical-json.json', 'valid', (c) => {
+  assert.equal(canonicalJson(parseJson(c['input_json'])), c['canonical']);
+});
+
+eachCase('canonical-json.json', 'invalid', (c) => {
+  assert.throws(
+    () => canonicalJson(parseJson(c['input_json'])),
+    CanonicalError,
+    c['reason'],
+  );
+});
+
+// --- wire.payload-digest ----------------------------------------------------
+
+eachCase('digest.json', 'valid', (c) => {
+  const data = parseJson(c['data_json']);
+  assert.equal(canonicalJson(data), c['canonical']);
+  assert.equal(payloadDigest(data), c['digest']);
+});
+
+// --- wire.envelope ----------------------------------------------------------
+
+eachCase('envelope.json', 'valid', (c, doc) => {
+  const env = Envelope.build(c['type'], parseJson(c['data_json']), { ts: c['ts'] });
+  assert.equal(env.id, c['id']);
+  assert.equal(env.toJson(), c['canonical']);
+
+  const parsed = Envelope.parse(c['canonical'], { nowMs: doc['now_ms'] });
+  assert.equal(parsed.toJson(), c['canonical']);
+});
+
+eachCase('envelope.json', 'invalid', (c, doc) => {
+  assert.throws(
+    () => Envelope.parse(c['envelope_json'], { nowMs: doc['now_ms'] }),
+    ProtocolError,
+    c['reason'],
+  );
+});
+
+// --- wire.framing-tcp -------------------------------------------------------
+
+eachCase('framing.json', 'valid', (c) => {
+  assert.equal(toHex(encodeFrame(bytes(c['body_hex']))), c['frame_hex']);
+});
+
+eachCase('framing.json', 'stream', (c) => {
+  const reader = new FrameReader();
+  const received: Uint8Array[] = [];
+  for (const chunk of c['chunks_hex'] as string[]) {
+    received.push(...reader.feed(bytes(chunk)));
+  }
+  assert.deepEqual(received.map(toHex), c['frames_hex']);
+});
+
+eachCase('framing.json', 'invalid', (c) => {
+  assert.throws(
+    () => new FrameReader().feed(bytes(c['input_hex'])),
+    FramingError,
+    c['reason'],
+  );
+});
+
+// --- wire.framing-udp -------------------------------------------------------
+//
+// Registered as exempt for TypeScript because browsers have no raw UDP socket.
+// The size-bound checks are pure and portable, so they run anyway: the exemption
+// covers the transport, not the framing rules.
+
+eachCase('framing.json', 'udp_valid', (c) => {
+  const body = bytes(c['body_hex']);
+  assert.deepEqual(encodeDatagram(body), body);
+  assert.deepEqual(decodeDatagram(body), body);
+});
+
+eachCase('framing.json', 'udp_invalid', (c) => {
+  const data =
+    c['input_hex'] === null
+      ? new Uint8Array(c['input_length'])
+      : bytes(c['input_hex']);
+  assert.throws(() => decodeDatagram(data), FramingError, c['reason']);
+  assert.throws(() => encodeDatagram(data), FramingError, c['reason']);
+});
+
+// --- wire.control, wire.version-negotiation ---------------------------------
+
+const CONTROL_BUILDERS: Record<string, (ts: number) => Envelope> = {
+  'hello minimal': (ts) => control.hello('py-chaincraft/1.0.0', { ts }),
+  'hello with listen and caps': (ts) =>
+    control.hello('py-chaincraft/1.0.0', {
+      caps: ['udp', 'gossip', 'digest-sync'],
+      listen: '10.0.0.2:9735',
+      ts,
+    }),
+  'peers request': (ts) => control.peersRequest({ ts }),
+  'peers response': (ts) => control.peers(['10.0.0.2:9735', '10.0.0.3:9735'], { ts }),
+  'digest request': (ts) => control.digestRequest('BalanceLedger', { ts }),
+  'digest response': (ts) =>
+    control.digest('BalanceLedger', 'ab'.repeat(32), ['cd'.repeat(32)], { ts }),
+  'messages request': (ts) =>
+    control.messagesRequest('BalanceLedger', 'ab'.repeat(32), { ts }),
+  'messages response': (ts) =>
+    control.messages('BalanceLedger', [Envelope.build('app.t', { n: 1 }, { ts })], {
+      ts,
+    }),
+};
+
+eachCase('control.json', 'valid', (c, doc) => {
+  const parsed = Envelope.parse(c['canonical'], { nowMs: doc['now_ms'] });
+  assert.equal(parsed.type, c['type']);
+  assert.equal(parsed.id, c['id']);
+
+  const builder = CONTROL_BUILDERS[c['name']];
+  assert.ok(builder !== undefined, `no builder registered for ${c['name']}`);
+  assert.equal(builder(parsed.ts).toJson(), c['canonical']);
+});
+
+eachCase('control.json', 'invalid', (c, doc) => {
+  const env = Envelope.parse(c['envelope_json'], { nowMs: doc['now_ms'] });
+  assert.throws(() => control.parseHello(env), ProtocolError, c['reason']);
+});
+
+// --- wire.sig-schnorr, wire.sig-ed25519 -------------------------------------
+
+eachCase('signatures.json', 'valid', (c) => {
+  const secretKey = bytes(c['secret_key']);
+  const message = bytes(c['message']);
+
+  assert.equal(publicKeyHex(c['alg'], secretKey), c['public_key']);
+
+  const produced = sign(c['alg'], message, secretKey, bytes(c['aux']));
+  assert.equal(
+    toHex(produced.signature),
+    c['signature'],
+    'deterministic signing must match',
+  );
+  assert.ok(verify(c['alg'], message, produced.signature, bytes(c['public_key'])));
+
+  if (c['canonical'] !== undefined) {
+    const env = Envelope.parse(c['canonical'], { nowMs: 1e13 });
+    assert.ok(env.verify());
+  }
+});
+
+eachCase('signatures.json', 'invalid', (c) => {
+  // Verification returns false on bad input and never throws into receive.
+  const result = verify(
+    c['alg'],
+    bytes(c['message']),
+    bytes(c['signature']),
+    bytes(c['public_key']),
+  );
+  assert.equal(result, false);
+});
+
+// --- wire.dedup -------------------------------------------------------------
+
+eachCase('dedup.json', 'sequence', (c, doc) => {
+  // The eviction case only distinguishes FIFO-by-first-insertion from a policy
+  // that refreshes on re-see if each step is checked in order.
+  const dedup = new Deduplicator(c['capacity']);
+  for (const [index, step] of (c['steps'] as Case[]).entries()) {
+    const env = Envelope.parse(step['canonical'], { nowMs: doc['now_ms'] });
+    const where = `step ${index} (${step['type']} ${String(step['id']).slice(0, 8)})`;
+    assert.equal(env.id, step['id'], where);
+    assert.equal(dedup.shouldProcess(env), step['should_process'], where);
+    assert.equal(dedup.shouldRelay(env), step['should_relay'], where);
+    assert.equal(dedup.seen.size, step['seen_size'], where);
+  }
+});
+
+// --- object.memento, object.merkle-digest -----------------------------------
+
+eachCase('memento.json', 'normalize', (c) => {
+  const memento = StateMemento.normalize(
+    c['input']['canonical_digest'],
+    c['input']['frontier_digests'],
+  );
+  assert.deepEqual(memento.toObject(), c['expected']);
+});
+
+eachCase('memento.json', 'reorg', (c) => {
+  const current = StateMemento.normalize(
+    c['current']['canonical_digest'],
+    c['current']['frontier_digests'],
+  );
+  const previous =
+    c['previous'] === null
+      ? undefined
+      : StateMemento.normalize(
+          c['previous']['canonical_digest'],
+          c['previous']['frontier_digests'],
+        );
+  assert.equal(current.indicatesReorgAgainst(previous), c['expected']);
+});
+
+eachCase('memento.json', 'merkle', (c) => {
+  const payload = parseJson(c['payload_json']);
+  assert.equal(canonicalJson(payload), c['canonical']);
+  assert.equal(merkleDigest(payload), c['digest']);
+});
+
+eachCase('memento.json', 'frontier', (c) => {
+  assert.equal(frontierDigest(c['heads']), c['digest']);
+});
+
+// --- object.pipeline, object.contract, object.tiebreak ----------------------
+
+eachCase('pipeline.json', 'replay', (c, doc) => {
+  assert.deepEqual(doc['registry'], buildRegistry().names);
+
+  const registry = buildRegistry();
+  for (const [index, step] of (c['steps'] as Case[]).entries()) {
+    const result = registry.apply(parseJson(step['message_json']));
+    const where = `step ${index} (${step['message_json']})`;
+    assert.equal(result.accepted, step['accepted'], where);
+    assert.equal(result.rejectedBy ?? null, step['rejected_by'], where);
+    assert.deepEqual(
+      snapshot(registry),
+      { counter: step['counter'], mirror: step['mirror'] },
+      where,
+    );
+  }
+});
+
+eachCase('pipeline.json', 'tiebreak', (c) => {
+  assert.equal(
+    winsReplacement(
+      c['candidate']['rank'],
+      c['candidate']['digest'],
+      c['incumbent']['rank'],
+      c['incumbent']['digest'],
+    ),
+    c['expected'],
+  );
+});
+
+// --- vector hygiene ---------------------------------------------------------
+
+test('every vector file declares its feature', () => {
+  const files = [
+    'canonical-json.json',
+    'digest.json',
+    'envelope.json',
+    'framing.json',
+    'control.json',
+    'signatures.json',
+    'dedup.json',
+    'memento.json',
+    'pipeline.json',
+  ];
+  for (const name of files) {
+    const doc = load(name);
+    for (const field of ['feature', 'spec', 'wire_version', 'generator']) {
+      assert.ok(field in doc, `${name} is missing ${field}`);
+    }
+    assert.equal(doc['wire_version'], 1);
+  }
+});
+
+test('vector files whose cases are parsed pin the clock', () => {
+  // Without now_ms these tests would fall back to the wall clock and pass for
+  // the wrong reason, until the fixed timestamps drifted out of range.
+  for (const name of ['envelope.json', 'control.json', 'dedup.json']) {
+    assert.equal(typeof load(name)['now_ms'], 'number', `${name} needs now_ms`);
+  }
+});

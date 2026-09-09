@@ -1,0 +1,191 @@
+{
+  "feature": "wire.canonical-json",
+  "spec": "SPEC/wire-v1.md#1",
+  "description": "Parse input_json, re-encode canonically, compare bytes exactly.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "valid": [
+    {
+      "name": "empty object",
+      "input_json": "{}",
+      "canonical": "{}"
+    },
+    {
+      "name": "empty array",
+      "input_json": "[]",
+      "canonical": "[]"
+    },
+    {
+      "name": "key ordering",
+      "input_json": "{\"b\":1,\"a\":2,\"C\":3}",
+      "canonical": "{\"C\":3,\"a\":2,\"b\":1}"
+    },
+    {
+      "name": "nested ordering",
+      "input_json": "{\"z\":{\"b\":1,\"a\":2},\"a\":[3,1,2]}",
+      "canonical": "{\"a\":[3,1,2],\"z\":{\"a\":2,\"b\":1}}"
+    },
+    {
+      "name": "whitespace stripped",
+      "input_json": "{ \"a\" : [ 1 , 2 ] }",
+      "canonical": "{\"a\":[1,2]}"
+    },
+    {
+      "name": "literals",
+      "input_json": "{\"t\":true,\"f\":false,\"n\":null}",
+      "canonical": "{\"f\":false,\"n\":null,\"t\":true}"
+    },
+    {
+      "name": "integer zero",
+      "input_json": "0",
+      "canonical": "0"
+    },
+    {
+      "name": "negative integer",
+      "input_json": "-42",
+      "canonical": "-42"
+    },
+    {
+      "name": "max safe integer",
+      "input_json": "9007199254740991",
+      "canonical": "9007199254740991"
+    },
+    {
+      "name": "min safe integer",
+      "input_json": "-9007199254740991",
+      "canonical": "-9007199254740991"
+    },
+    {
+      "name": "short escapes",
+      "input_json": "\"\\b\\t\\n\\f\\r\"",
+      "canonical": "\"\\b\\t\\n\\f\\r\""
+    },
+    {
+      "name": "quote and backslash",
+      "input_json": "\"a\\\"b\\\\c\"",
+      "canonical": "\"a\\\"b\\\\c\""
+    },
+    {
+      "name": "control characters",
+      "input_json": "\"\\u0000\\u001f\"",
+      "canonical": "\"\\u0000\\u001f\""
+    },
+    {
+      "name": "solidus unescaped",
+      "input_json": "\"a/b\"",
+      "canonical": "\"a/b\""
+    },
+    {
+      "name": "non-ascii literal",
+      "input_json": "\"café\"",
+      "canonical": "\"café\""
+    },
+    {
+      "name": "cjk literal",
+      "input_json": "\"日本語\"",
+      "canonical": "\"日本語\""
+    },
+    {
+      "name": "emoji literal",
+      "input_json": "\"😀\"",
+      "canonical": "\"😀\""
+    },
+    {
+      "name": "escaped non-ascii is decoded",
+      "input_json": "\"\\u00e9\"",
+      "canonical": "\"é\""
+    },
+    {
+      "name": "unicode key ordering",
+      "input_json": "{\"é\":1,\"e\":2,\"z\":3}",
+      "canonical": "{\"e\":2,\"z\":3,\"é\":1}"
+    },
+    {
+      "name": "astral plane key ordering",
+      "input_json": "{\"\\uE000\":1,\"\\ud800\\udc00\":2}",
+      "canonical": "{\"\":1,\"𐀀\":2}"
+    },
+    {
+      "name": "surrogate pair decoded to one code point",
+      "input_json": "\"\\ud83d\\ude00\"",
+      "canonical": "\"😀\""
+    },
+    {
+      "name": "array order preserved",
+      "input_json": "[3,1,2]",
+      "canonical": "[3,1,2]"
+    },
+    {
+      "name": "deeply nested",
+      "input_json": "{\"a\":{\"b\":{\"c\":{\"d\":[1,{\"e\":null}]}}}}",
+      "canonical": "{\"a\":{\"b\":{\"c\":{\"d\":[1,{\"e\":null}]}}}}"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "float",
+      "input_json": "1.5",
+      "reason": "floating point not permitted in v1"
+    },
+    {
+      "name": "exponent",
+      "input_json": "1e3",
+      "reason": "floating point not permitted in v1"
+    },
+    {
+      "name": "negative float",
+      "input_json": "-0.1",
+      "reason": "floating point not permitted in v1"
+    },
+    {
+      "name": "integer-valued float",
+      "input_json": "1.0",
+      "reason": "fraction in the number token, even though the value is an integer"
+    },
+    {
+      "name": "negative zero float",
+      "input_json": "-0.0",
+      "reason": "fraction in the number token, even though the value is zero"
+    },
+    {
+      "name": "integer-valued exponent",
+      "input_json": "1e2",
+      "reason": "exponent in the number token, even though the value is an integer"
+    },
+    {
+      "name": "integer above safe range",
+      "input_json": "9007199254740992",
+      "reason": "integer outside the safe range"
+    },
+    {
+      "name": "integer below safe range",
+      "input_json": "-9007199254740992",
+      "reason": "integer outside the safe range"
+    },
+    {
+      "name": "duplicate keys",
+      "input_json": "{\"a\":1,\"a\":2}",
+      "reason": "duplicate object key"
+    },
+    {
+      "name": "NaN",
+      "input_json": "NaN",
+      "reason": "not valid JSON"
+    },
+    {
+      "name": "Infinity",
+      "input_json": "Infinity",
+      "reason": "not valid JSON"
+    },
+    {
+      "name": "trailing comma",
+      "input_json": "{\"a\":1,}",
+      "reason": "not valid JSON"
+    },
+    {
+      "name": "single quotes",
+      "input_json": "{'a':1}",
+      "reason": "not valid JSON"
+    }
+  ]
+}
