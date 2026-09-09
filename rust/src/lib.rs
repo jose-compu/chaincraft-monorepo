@@ -6,6 +6,7 @@ pub mod canonical;
 pub mod control;
 pub mod crypto;
 pub mod dedup;
+pub mod discovery;
 pub mod ecdsa;
 pub mod envelope;
 pub mod error;

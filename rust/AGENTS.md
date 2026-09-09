@@ -32,6 +32,7 @@ src/
   ecdsa.rs       secp256k1 ECDSA (crypto-ecdsa.md)
   vdf.rs         Sloth VDF (crypto-vdf.md)
   vrf.rs         Deterministic ECDSA VRF (crypto-vrf.md)
+  discovery.rs   Address book and local-discovery policy
   dedup.rs       Seen-digest set and relay gate (§7)
   memento.rs     StateMemento (semantics-v1 §4)
   object.rs      ApplicationObject contract, digests, tie-break (§2, §5, §6)

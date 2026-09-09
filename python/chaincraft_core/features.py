@@ -39,6 +39,8 @@ FEATURES = frozenset(
         "crypto.ecdsa",
         "crypto.vdf",
         "crypto.vrf",
+        "discovery.peer",
+        "discovery.local",
     }
 )
 

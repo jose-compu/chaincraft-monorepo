@@ -1,0 +1,401 @@
+{
+  "feature": "discovery.peer",
+  "spec": "SPEC/features/discovery-peer.md",
+  "description": "Address book: IPv4/hostname:port, FIFO insert eviction, no-evict ingest, code-point advertise, injected clock.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "now_ms": 1757430000000,
+  "default_capacity": 50,
+  "default_timeout_ms": 120000,
+  "valid": [
+    {
+      "name": "10.0.0.2:9735",
+      "address": "10.0.0.2:9735"
+    },
+    {
+      "name": "10.0.0.10:9735",
+      "address": "10.0.0.10:9735"
+    },
+    {
+      "name": "127.0.0.1:1",
+      "address": "127.0.0.1:1"
+    },
+    {
+      "name": "0.0.0.0:65535",
+      "address": "0.0.0.0:65535"
+    },
+    {
+      "name": "localhost:9735",
+      "address": "localhost:9735"
+    },
+    {
+      "name": "node-a.local:8080",
+      "address": "node-a.local:8080"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "empty",
+      "address": ""
+    },
+    {
+      "name": "missing port",
+      "address": "10.0.0.2"
+    },
+    {
+      "name": "port zero",
+      "address": "10.0.0.2:0"
+    },
+    {
+      "name": "port leading zero",
+      "address": "10.0.0.2:09735"
+    },
+    {
+      "name": "port too large",
+      "address": "10.0.0.2:65536"
+    },
+    {
+      "name": "ipv4 octet 256",
+      "address": "256.0.0.1:9735"
+    },
+    {
+      "name": "ipv4 leading zero",
+      "address": "10.0.0.01:9735"
+    },
+    {
+      "name": "ipv6",
+      "address": "[::1]:9735"
+    },
+    {
+      "name": "underscore host",
+      "address": "node_a:9735"
+    },
+    {
+      "name": "trailing hyphen",
+      "address": "node-.local:9735"
+    },
+    {
+      "name": "space",
+      "address": "10.0.0.2: 9735"
+    }
+  ],
+  "sequence": [
+    {
+      "name": "insert and reject self",
+      "note": "listen is never stored; a fresh address is",
+      "capacity": 3,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "insert",
+          "address": "10.0.0.1:9735",
+          "now_ms": 1757430000000,
+          "added": false,
+          "size": 0,
+          "book": [],
+          "advertised": []
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "re-see updates last_seen without moving eviction rank",
+      "note": "same no-refresh rule as wire.dedup",
+      "capacity": 3,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.3:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430060000,
+          "added": false,
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.4:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 3,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.5:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 3,
+          "book": [
+            "10.0.0.3:9735",
+            "10.0.0.4:9735",
+            "10.0.0.5:9735"
+          ],
+          "advertised": [
+            "10.0.0.3:9735",
+            "10.0.0.4:9735",
+            "10.0.0.5:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ingest fills remaining slots and never evicts",
+      "note": "a ctl.peers flood must not rotate the book",
+      "capacity": 3,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.3:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ]
+        },
+        {
+          "op": "ingest",
+          "addresses": [
+            "10.0.0.4:9735",
+            "10.0.0.5:9735",
+            "10.0.0.6:9735"
+          ],
+          "solicited": true,
+          "now_ms": 1757430000000,
+          "added": 1,
+          "size": 3,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unsolicited ingest is ignored",
+      "note": "wire-v1 section 5.2",
+      "capacity": 3,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "ingest",
+          "addresses": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "solicited": false,
+          "now_ms": 1757430000000,
+          "added": 0,
+          "size": 0,
+          "book": [],
+          "advertised": []
+        }
+      ]
+    },
+    {
+      "name": "invalid and self addresses are skipped",
+      "note": "ingest never raises",
+      "capacity": 3,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "ingest",
+          "addresses": [
+            "10.0.0.1:9735",
+            "256.0.0.1:9735",
+            "10.0.0.2:9735",
+            "bad"
+          ],
+          "solicited": true,
+          "now_ms": 1757430000000,
+          "added": 1,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "advertise is sorted by code point",
+      "note": "10.0.0.10 precedes 10.0.0.2",
+      "capacity": 3,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.10:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.10:9735"
+          ],
+          "advertised": [
+            "10.0.0.10:9735",
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "advertise",
+          "advertised": [
+            "10.0.0.10:9735",
+            "10.0.0.2:9735"
+          ],
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.10:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sweep expires by last_seen",
+      "note": "timeout is exclusive: equal is kept",
+      "capacity": 3,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.3:9735",
+          "now_ms": 1757430060000,
+          "added": true,
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ]
+        },
+        {
+          "op": "sweep",
+          "now_ms": 1757430120001,
+          "expired": 1,
+          "size": 1,
+          "book": [
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.3:9735"
+          ]
+        }
+      ]
+    }
+  ]
+}

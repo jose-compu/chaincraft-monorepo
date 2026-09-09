@@ -76,6 +76,13 @@ export { type ApplyResult, ObjectRegistry } from './pipeline.ts';
 export * as ecdsa from './ecdsa.ts';
 export * as vdf from './vdf.ts';
 export * as vrf from './vrf.ts';
+export {
+  AddressBook,
+  LocalDiscovery,
+  DEFAULT_CAPACITY as DISCOVERY_DEFAULT_CAPACITY,
+  DEFAULT_TIMEOUT_MS as DISCOVERY_DEFAULT_TIMEOUT_MS,
+  isValidAddress,
+} from './discovery.ts';
 
 export {
   type Manifest,

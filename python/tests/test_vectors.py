@@ -383,6 +383,76 @@ def test_vrf_invalid(case):
     )
 
 
+# --- Level 2 discovery ------------------------------------------------------
+
+
+@cases("discovery-peer.json", "valid")
+def test_discovery_peer_valid(case):
+    from chaincraft_core.discovery import is_valid_address
+
+    assert is_valid_address(case["address"]) is True
+
+
+@cases("discovery-peer.json", "invalid")
+def test_discovery_peer_invalid(case):
+    from chaincraft_core.discovery import is_valid_address
+
+    assert is_valid_address(case["address"]) is False
+
+
+@cases("discovery-peer.json", "sequence")
+def test_discovery_peer_sequence(case):
+    from chaincraft_core.discovery import AddressBook
+
+    book = AddressBook(
+        listen=case["listen"],
+        capacity=case["capacity"],
+        timeout_ms=load("discovery-peer.json")["default_timeout_ms"],
+    )
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "insert":
+            assert book.insert(step["address"], step["now_ms"]) is step["added"], where
+        elif op == "ingest":
+            assert book.ingest(step["addresses"], step["now_ms"], step["solicited"]) == step["added"], where
+        elif op == "sweep":
+            assert book.sweep(step["now_ms"]) == step["expired"], where
+        elif op == "advertise":
+            assert book.advertise() == step["advertised"], where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert len(book) == step["size"], where
+        assert book.addresses() == step["book"], where
+        assert book.advertise() == step["advertised"], where
+
+
+@cases("discovery-local.json", "sequence")
+def test_discovery_local_sequence(case):
+    from chaincraft_core.discovery import AddressBook, LocalDiscovery
+
+    book = AddressBook(listen=case["listen"])
+    local = LocalDiscovery(book, enabled=case["enabled"])
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "insert":
+            assert book.insert(step["address"], step["now_ms"]) is step["added"], where
+        elif op == "request":
+            assert local.request(step["peer"]) is step["ok"], where
+            assert book.is_solicited(step["peer"]) is step["solicited"], where
+        elif op == "reply":
+            assert local.reply() == step["peers"], where
+        elif op == "accept":
+            assert local.accept(step["from"], step["addresses"], step["now_ms"]) == step["added"], where
+            assert book.is_solicited(step["from"]) is step["solicited"], where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert len(book) == step["size"], where
+        assert book.addresses() == step["book"], where
+        assert book.advertise() == step["advertised"], where
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

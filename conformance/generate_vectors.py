@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPO / "python"))
 # scaffolding, not shipped API. See SPEC/semantics-v1.md section 8.
 sys.path.insert(0, str(REPO / "python" / "tests"))
 
-from chaincraft_core import control, crypto, ecdsa, framing, vdf, vrf  # noqa: E402
+from chaincraft_core import control, crypto, discovery, ecdsa, framing, vdf, vrf  # noqa: E402
 from chaincraft_core.canonical import canonical_json, payload_digest  # noqa: E402
 from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft_core.envelope import Envelope  # noqa: E402
@@ -984,6 +984,260 @@ def vrf_vectors() -> Dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------
+# Level 2 — discovery
+# --------------------------------------------------------------------------
+
+
+def _book_state(book: discovery.AddressBook) -> Dict[str, Any]:
+    return {
+        "size": len(book),
+        "book": book.addresses(),
+        "advertised": book.advertise(),
+    }
+
+
+def discovery_peer_vectors() -> Dict[str, Any]:
+    valid = [
+        "10.0.0.2:9735",
+        "10.0.0.10:9735",
+        "127.0.0.1:1",
+        "0.0.0.0:65535",
+        "localhost:9735",
+        "node-a.local:8080",
+    ]
+    invalid = [
+        ("empty", ""),
+        ("missing port", "10.0.0.2"),
+        ("port zero", "10.0.0.2:0"),
+        ("port leading zero", "10.0.0.2:09735"),
+        ("port too large", "10.0.0.2:65536"),
+        ("ipv4 octet 256", "256.0.0.1:9735"),
+        ("ipv4 leading zero", "10.0.0.01:9735"),
+        ("ipv6", "[::1]:9735"),
+        ("underscore host", "node_a:9735"),
+        ("trailing hyphen", "node-.local:9735"),
+        ("space", "10.0.0.2: 9735"),
+    ]
+
+    listen = "10.0.0.1:9735"
+    now = NOW
+
+    def run(name: str, note: str, ops) -> Dict[str, Any]:
+        book = discovery.AddressBook(listen=listen, capacity=3, timeout_ms=120_000)
+        steps = []
+        for op in ops:
+            kind = op["op"]
+            clock = op.get("now_ms", now)
+            if kind == "insert":
+                added = book.insert(op["address"], clock)
+                step = {"op": "insert", "address": op["address"], "now_ms": clock, "added": added}
+            elif kind == "ingest":
+                count = book.ingest(op["addresses"], clock, op["solicited"])
+                step = {
+                    "op": "ingest",
+                    "addresses": list(op["addresses"]),
+                    "solicited": op["solicited"],
+                    "now_ms": clock,
+                    "added": count,
+                }
+            elif kind == "sweep":
+                expired = book.sweep(clock)
+                step = {"op": "sweep", "now_ms": clock, "expired": expired}
+            elif kind == "advertise":
+                step = {"op": "advertise", "advertised": book.advertise()}
+            else:
+                raise ValueError(kind)
+            step.update(_book_state(book))
+            steps.append(step)
+        return {"name": name, "note": note, "capacity": 3, "listen": listen, "steps": steps}
+
+    a, b, c, d = "10.0.0.2:9735", "10.0.0.3:9735", "10.0.0.4:9735", "10.0.0.5:9735"
+    later = now + 60_000
+    stale = now + 120_001
+
+    sequence = [
+        run(
+            "insert and reject self",
+            "listen is never stored; a fresh address is",
+            [
+                {"op": "insert", "address": listen},
+                {"op": "insert", "address": a},
+            ],
+        ),
+        run(
+            "re-see updates last_seen without moving eviction rank",
+            "same no-refresh rule as wire.dedup",
+            [
+                {"op": "insert", "address": a},
+                {"op": "insert", "address": b},
+                {"op": "insert", "address": a, "now_ms": later},
+                {"op": "insert", "address": c},
+                {"op": "insert", "address": d},
+            ],
+        ),
+        run(
+            "ingest fills remaining slots and never evicts",
+            "a ctl.peers flood must not rotate the book",
+            [
+                {"op": "insert", "address": a},
+                {"op": "insert", "address": b},
+                {
+                    "op": "ingest",
+                    "addresses": [c, d, "10.0.0.6:9735"],
+                    "solicited": True,
+                },
+            ],
+        ),
+        run(
+            "unsolicited ingest is ignored",
+            "wire-v1 section 5.2",
+            [
+                {"op": "ingest", "addresses": [a, b], "solicited": False},
+            ],
+        ),
+        run(
+            "invalid and self addresses are skipped",
+            "ingest never raises",
+            [
+                {
+                    "op": "ingest",
+                    "addresses": [listen, "256.0.0.1:9735", a, "bad"],
+                    "solicited": True,
+                },
+            ],
+        ),
+        run(
+            "advertise is sorted by code point",
+            "10.0.0.10 precedes 10.0.0.2",
+            [
+                {"op": "insert", "address": "10.0.0.2:9735"},
+                {"op": "insert", "address": "10.0.0.10:9735"},
+                {"op": "advertise"},
+            ],
+        ),
+        run(
+            "sweep expires by last_seen",
+            "timeout is exclusive: equal is kept",
+            [
+                {"op": "insert", "address": a, "now_ms": now},
+                {"op": "insert", "address": b, "now_ms": later},
+                {"op": "sweep", "now_ms": stale},
+            ],
+        ),
+    ]
+
+    return {
+        **header(
+            "discovery.peer",
+            "SPEC/features/discovery-peer.md",
+            "Address book: IPv4/hostname:port, FIFO insert eviction, "
+            "no-evict ingest, code-point advertise, injected clock.",
+        ),
+        "now_ms": NOW,
+        "default_capacity": discovery.DEFAULT_CAPACITY,
+        "default_timeout_ms": discovery.DEFAULT_TIMEOUT_MS,
+        "valid": [{"name": addr, "address": addr} for addr in valid],
+        "invalid": [{"name": name, "address": addr} for name, addr in invalid],
+        "sequence": sequence,
+    }
+
+
+def discovery_local_vectors() -> Dict[str, Any]:
+    listen = "10.0.0.1:9735"
+    neighbor = "10.0.0.2:9735"
+    a, b = "10.0.0.3:9735", "10.0.0.4:9735"
+    now = NOW
+
+    def run(name: str, note: str, enabled: bool, ops) -> Dict[str, Any]:
+        book = discovery.AddressBook(listen=listen, capacity=50)
+        local = discovery.LocalDiscovery(book, enabled=enabled)
+        steps = []
+        for op in ops:
+            kind = op["op"]
+            clock = op.get("now_ms", now)
+            if kind == "insert":
+                added = book.insert(op["address"], clock)
+                step = {"op": "insert", "address": op["address"], "now_ms": clock, "added": added}
+            elif kind == "request":
+                ok = local.request(op["peer"])
+                step = {
+                    "op": "request",
+                    "peer": op["peer"],
+                    "ok": ok,
+                    "solicited": book.is_solicited(op["peer"]),
+                }
+            elif kind == "reply":
+                peers = local.reply()
+                step = {"op": "reply", "peers": peers}
+            elif kind == "accept":
+                count = local.accept(op["from"], op["addresses"], clock)
+                step = {
+                    "op": "accept",
+                    "from": op["from"],
+                    "addresses": list(op["addresses"]),
+                    "now_ms": clock,
+                    "added": count,
+                    "solicited": book.is_solicited(op["from"]),
+                }
+            else:
+                raise ValueError(kind)
+            step.update(_book_state(book))
+            steps.append(step)
+        return {
+            "name": name,
+            "note": note,
+            "enabled": enabled,
+            "listen": listen,
+            "steps": steps,
+        }
+
+    sequence = [
+        run(
+            "enabled request, reply and accept",
+            "solicited neighbor's list is ingested",
+            True,
+            [
+                {"op": "insert", "address": neighbor},
+                {"op": "insert", "address": a},
+                {"op": "request", "peer": neighbor},
+                {"op": "reply"},
+                {"op": "accept", "from": neighbor, "addresses": [a, b]},
+            ],
+        ),
+        run(
+            "disabled neither replies nor accepts",
+            "the book only changes through insert",
+            False,
+            [
+                {"op": "insert", "address": neighbor},
+                {"op": "request", "peer": neighbor},
+                {"op": "reply"},
+                {"op": "accept", "from": neighbor, "addresses": [a, b]},
+            ],
+        ),
+        run(
+            "unsolicited accept is ignored even when enabled",
+            "request must precede accept",
+            True,
+            [
+                {"op": "accept", "from": neighbor, "addresses": [a]},
+            ],
+        ),
+    ]
+
+    return {
+        **header(
+            "discovery.local",
+            "SPEC/features/discovery-local.md",
+            "Local peer-list policy over ctl.peers. Disabled nodes do not "
+            "share or learn addresses.",
+        ),
+        "now_ms": NOW,
+        "sequence": sequence,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -1001,6 +1255,9 @@ def main() -> int:
     write("ecdsa.json", ecdsa_vectors())
     write("vdf.json", vdf_vectors())
     write("vrf.json", vrf_vectors())
+    print("\nLevel 2 — discovery")
+    write("discovery-peer.json", discovery_peer_vectors())
+    write("discovery-local.json", discovery_local_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

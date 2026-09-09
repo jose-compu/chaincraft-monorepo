@@ -25,6 +25,7 @@ chaincraft_core/
   ecdsa.py       secp256k1 ECDSA (crypto-ecdsa.md)
   vdf.py         Sloth VDF (crypto-vdf.md)
   vrf.py         Deterministic ECDSA VRF (crypto-vrf.md)
+  discovery.py   Address book and local-discovery policy
   dedup.py       Seen-digest set and relay gate (§7)
   memento.py     StateMemento (semantics-v1 §4)
   object.py      SharedObject contract, digests, tie-break (§2, §5, §6)

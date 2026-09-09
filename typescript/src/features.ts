@@ -36,6 +36,8 @@ export const FEATURES: readonly string[] = [
   'crypto.ecdsa',
   'crypto.vdf',
   'crypto.vrf',
+  'discovery.peer',
+  'discovery.local',
 ];
 
 export interface Manifest {

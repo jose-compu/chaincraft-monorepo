@@ -13,6 +13,7 @@ use chaincraft_core::canonical::{
 use chaincraft_core::control;
 use chaincraft_core::crypto::{public_key_hex, sign, verify, Algorithm};
 use chaincraft_core::dedup::Deduplicator;
+use chaincraft_core::discovery::{self, AddressBook, LocalDiscovery};
 use chaincraft_core::envelope::Envelope;
 use chaincraft_core::framing::{decode_datagram, encode_datagram, encode_frame, FrameReader};
 use chaincraft_core::memento::StateMemento;
@@ -791,6 +792,176 @@ fn vrf_invalid() {
     }
 }
 
+fn json_strings(value: &Value) -> Vec<String> {
+    value
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item.as_str().unwrap().to_owned())
+        .collect()
+}
+
+fn assert_book(book: &AddressBook, step: &Value, where_: &str) {
+    assert_eq!(
+        book.len(),
+        step["size"].as_u64().unwrap() as usize,
+        "{where_} size"
+    );
+    assert_eq!(
+        book.addresses(),
+        json_strings(&step["book"]),
+        "{where_} book"
+    );
+    assert_eq!(
+        book.advertise(),
+        json_strings(&step["advertised"]),
+        "{where_} advertised"
+    );
+}
+
+#[test]
+fn discovery_peer_valid() {
+    let doc = load("discovery-peer.json");
+    for case in doc["valid"].as_array().unwrap() {
+        let address = case["address"].as_str().unwrap();
+        assert!(discovery::is_valid_address(address), "{address}");
+    }
+}
+
+#[test]
+fn discovery_peer_invalid() {
+    let doc = load("discovery-peer.json");
+    for case in doc["invalid"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let address = case["address"].as_str().unwrap();
+        assert!(!discovery::is_valid_address(address), "{name}");
+    }
+}
+
+#[test]
+fn discovery_peer_sequence() {
+    let doc = load("discovery-peer.json");
+    let timeout = doc["default_timeout_ms"].as_i64().unwrap();
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut book = AddressBook::new(
+            Some(case["listen"].as_str().unwrap()),
+            case["capacity"].as_u64().unwrap() as usize,
+            timeout,
+        )
+        .unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            match step["op"].as_str().unwrap() {
+                "insert" => {
+                    assert_eq!(
+                        book.insert(
+                            step["address"].as_str().unwrap(),
+                            step["now_ms"].as_i64().unwrap()
+                        ),
+                        step["added"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "ingest" => {
+                    assert_eq!(
+                        book.ingest(
+                            &json_strings(&step["addresses"]),
+                            step["now_ms"].as_i64().unwrap(),
+                            step["solicited"].as_bool().unwrap()
+                        ),
+                        step["added"].as_u64().unwrap() as usize,
+                        "{where_}"
+                    );
+                }
+                "sweep" => {
+                    assert_eq!(
+                        book.sweep(step["now_ms"].as_i64().unwrap()),
+                        step["expired"].as_u64().unwrap() as usize,
+                        "{where_}"
+                    );
+                }
+                "advertise" => {
+                    assert_eq!(
+                        book.advertise(),
+                        json_strings(&step["advertised"]),
+                        "{where_}"
+                    );
+                }
+                other => panic!("unknown op {other}"),
+            }
+            assert_book(&book, step, &where_);
+        }
+    }
+}
+
+#[test]
+fn discovery_local_sequence() {
+    let doc = load("discovery-local.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut book =
+            AddressBook::new(Some(case["listen"].as_str().unwrap()), 50, 120_000).unwrap();
+        let local = LocalDiscovery::new(case["enabled"].as_bool().unwrap());
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            match step["op"].as_str().unwrap() {
+                "insert" => {
+                    assert_eq!(
+                        book.insert(
+                            step["address"].as_str().unwrap(),
+                            step["now_ms"].as_i64().unwrap()
+                        ),
+                        step["added"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "request" => {
+                    let peer = step["peer"].as_str().unwrap();
+                    assert_eq!(
+                        local.request(&mut book, peer),
+                        step["ok"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                    assert_eq!(
+                        book.is_solicited(peer),
+                        step["solicited"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "reply" => {
+                    let peers = local.reply(&book);
+                    if step["peers"].is_null() {
+                        assert!(peers.is_none(), "{where_}");
+                    } else {
+                        assert_eq!(peers.unwrap(), json_strings(&step["peers"]), "{where_}");
+                    }
+                }
+                "accept" => {
+                    let from = step["from"].as_str().unwrap();
+                    assert_eq!(
+                        local.accept(
+                            &mut book,
+                            from,
+                            &json_strings(&step["addresses"]),
+                            step["now_ms"].as_i64().unwrap()
+                        ),
+                        step["added"].as_u64().unwrap() as usize,
+                        "{where_}"
+                    );
+                    assert_eq!(
+                        book.is_solicited(from),
+                        step["solicited"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                other => panic!("unknown op {other}"),
+            }
+            assert_book(&book, step, &where_);
+        }
+    }
+}
+
 #[test]
 fn vector_files_declare_feature() {
     for name in [
@@ -806,6 +977,8 @@ fn vector_files_declare_feature() {
         "ecdsa.json",
         "vdf.json",
         "vrf.json",
+        "discovery-peer.json",
+        "discovery-local.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

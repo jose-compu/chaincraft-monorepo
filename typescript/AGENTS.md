@@ -38,6 +38,7 @@ src/
   ecdsa.ts       secp256k1 ECDSA (crypto-ecdsa.md)
   vdf.ts         Sloth VDF (crypto-vdf.md)
   vrf.ts         Deterministic ECDSA VRF (crypto-vrf.md)
+  discovery.ts   Address book and local-discovery policy
   dedup.ts       Seen-digest set and relay gate (§7)
   memento.ts     StateMemento (semantics-v1 §4)
   object.ts      Object contract and digests (§2, §5, §6)

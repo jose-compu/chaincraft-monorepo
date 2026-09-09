@@ -13,8 +13,10 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  AddressBook,
   CanonicalError,
   Deduplicator,
+  LocalDiscovery,
   Envelope,
   FrameReader,
   FramingError,
@@ -28,6 +30,7 @@ import {
   encodeFrame,
   frontierDigest,
   hexToBytes,
+  isValidAddress,
   merkleDigest,
   parseJson,
   payloadDigest,
@@ -362,6 +365,67 @@ eachCase('vrf.json', 'invalid', (c) => {
   );
 });
 
+eachCase('discovery-peer.json', 'valid', (c) => {
+  assert.equal(isValidAddress(c['address']), true);
+});
+
+eachCase('discovery-peer.json', 'invalid', (c) => {
+  assert.equal(isValidAddress(c['address']), false);
+});
+
+eachCase('discovery-peer.json', 'sequence', (c, doc) => {
+  const book = new AddressBook(c['listen'], c['capacity'], doc['default_timeout_ms']);
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    if (step['op'] === 'insert') {
+      assert.equal(book.insert(step['address'], step['now_ms']), step['added'], where);
+    } else if (step['op'] === 'ingest') {
+      assert.equal(
+        book.ingest(step['addresses'], step['now_ms'], step['solicited']),
+        step['added'],
+        where,
+      );
+    } else if (step['op'] === 'sweep') {
+      assert.equal(book.sweep(step['now_ms']), step['expired'], where);
+    } else if (step['op'] === 'advertise') {
+      assert.deepEqual(book.advertise(), step['advertised'], where);
+    } else {
+      assert.fail(`unknown op ${step['op']}`);
+    }
+    assert.equal(book.size, step['size'], where);
+    assert.deepEqual(book.addresses(), step['book'], where);
+    assert.deepEqual(book.advertise(), step['advertised'], where);
+  }
+});
+
+eachCase('discovery-local.json', 'sequence', (c) => {
+  const book = new AddressBook(c['listen']);
+  const local = new LocalDiscovery(book, c['enabled']);
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    if (step['op'] === 'insert') {
+      assert.equal(book.insert(step['address'], step['now_ms']), step['added'], where);
+    } else if (step['op'] === 'request') {
+      assert.equal(local.request(step['peer']), step['ok'], where);
+      assert.equal(book.isSolicited(step['peer']), step['solicited'], where);
+    } else if (step['op'] === 'reply') {
+      assert.deepEqual(local.reply(), step['peers'], where);
+    } else if (step['op'] === 'accept') {
+      assert.equal(
+        local.accept(step['from'], step['addresses'], step['now_ms']),
+        step['added'],
+        where,
+      );
+      assert.equal(book.isSolicited(step['from']), step['solicited'], where);
+    } else {
+      assert.fail(`unknown op ${step['op']}`);
+    }
+    assert.equal(book.size, step['size'], where);
+    assert.deepEqual(book.addresses(), step['book'], where);
+    assert.deepEqual(book.advertise(), step['advertised'], where);
+  }
+});
+
 // --- vector hygiene ---------------------------------------------------------
 
 test('every vector file declares its feature', () => {
@@ -378,6 +442,8 @@ test('every vector file declares its feature', () => {
     'ecdsa.json',
     'vdf.json',
     'vrf.json',
+    'discovery-peer.json',
+    'discovery-local.json',
   ];
   for (const name of files) {
     const doc = load(name);

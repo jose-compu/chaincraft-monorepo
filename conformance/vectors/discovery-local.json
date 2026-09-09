@@ -1,0 +1,183 @@
+{
+  "feature": "discovery.local",
+  "spec": "SPEC/features/discovery-local.md",
+  "description": "Local peer-list policy over ctl.peers. Disabled nodes do not share or learn addresses.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "now_ms": 1757430000000,
+  "sequence": [
+    {
+      "name": "enabled request, reply and accept",
+      "note": "solicited neighbor's list is ingested",
+      "enabled": true,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "insert",
+          "address": "10.0.0.3:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ]
+        },
+        {
+          "op": "request",
+          "peer": "10.0.0.2:9735",
+          "ok": true,
+          "solicited": true,
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ]
+        },
+        {
+          "op": "reply",
+          "peers": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "size": 2,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735"
+          ]
+        },
+        {
+          "op": "accept",
+          "from": "10.0.0.2:9735",
+          "addresses": [
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ],
+          "now_ms": 1757430000000,
+          "added": 1,
+          "solicited": false,
+          "size": 3,
+          "book": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735",
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled neither replies nor accepts",
+      "note": "the book only changes through insert",
+      "enabled": false,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "insert",
+          "address": "10.0.0.2:9735",
+          "now_ms": 1757430000000,
+          "added": true,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "request",
+          "peer": "10.0.0.2:9735",
+          "ok": false,
+          "solicited": false,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "reply",
+          "peers": null,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "accept",
+          "from": "10.0.0.2:9735",
+          "addresses": [
+            "10.0.0.3:9735",
+            "10.0.0.4:9735"
+          ],
+          "now_ms": 1757430000000,
+          "added": 0,
+          "solicited": false,
+          "size": 1,
+          "book": [
+            "10.0.0.2:9735"
+          ],
+          "advertised": [
+            "10.0.0.2:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unsolicited accept is ignored even when enabled",
+      "note": "request must precede accept",
+      "enabled": true,
+      "listen": "10.0.0.1:9735",
+      "steps": [
+        {
+          "op": "accept",
+          "from": "10.0.0.2:9735",
+          "addresses": [
+            "10.0.0.3:9735"
+          ],
+          "now_ms": 1757430000000,
+          "added": 0,
+          "solicited": false,
+          "size": 0,
+          "book": [],
+          "advertised": []
+        }
+      ]
+    }
+  ]
+}
