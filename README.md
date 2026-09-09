@@ -47,10 +47,10 @@ python3 tools/parity_check.py --summary
 ```
 feature                   lvl  python       rust         typescript
 ----------------------------------------------------------------------
-wire.canonical-json       0    yes          no           yes
-wire.payload-digest       0    yes          no           yes
-wire.envelope             0    yes          no           yes
-wire.framing-udp          0    yes          no           n/a
+wire.canonical-json       0    yes          yes          yes
+wire.payload-digest       0    yes          yes          yes
+wire.envelope             0    yes          yes          yes
+wire.framing-udp          0    yes          yes          n/a
 ...
 ```
 
@@ -67,16 +67,16 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 2 | Python reference core — Level 0 and Level 1 | done |
 | 3 | Parity machinery and conformance vectors | done |
 | 4 | TypeScript core — Level 0 and Level 1 | done |
-| 7 | Level 1 replay parity | Python and TypeScript done |
-| 5 | Rust core | next |
+| 5 | Rust core — Level 0 and Level 1 | done |
+| 7 | Level 1 replay parity | Python, TypeScript and Rust done |
 | 6 | Live 3×3 interop matrix | |
 | 8 | Level 2 feature backfill | |
 | 9 | Mixed-language `nostraft` mesh | |
 
-Python and TypeScript both cover Level 0 and Level 1: 15 of 29 registry features, 260 and
-173 tests respectively, against 159 shared conformance cases. The one exemption in the
-registry is `wire.framing-udp` for TypeScript, since browsers have no raw UDP socket and
-UDP is optional at Level 0.
+Python, TypeScript and Rust all cover Level 0 and Level 1: 15 of 29 registry features
+each (TypeScript 14 implemented plus the UDP exemption), against 159 shared conformance
+cases. The one exemption in the registry is `wire.framing-udp` for TypeScript, since
+browsers have no raw UDP socket and UDP is optional at Level 0.
 
 TypeScript was written from `SPEC/` alone, without reading the Python source, as a test of
 whether the specification was complete. It was not: the exercise found five defects,

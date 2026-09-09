@@ -1,0 +1,38 @@
+//! Feature manifest — the IDs this implementation claims to provide.
+
+pub const VERSION: &str = "1.0.0";
+pub const WIRE_VERSION: i64 = 1;
+pub const LANGUAGE: &str = "rust";
+pub const IMPL: &str = "rust-chaincraft/1.0.0";
+
+pub const FEATURES: &[&str] = &[
+    "wire.canonical-json",
+    "wire.payload-digest",
+    "wire.envelope",
+    "wire.framing-tcp",
+    "wire.framing-udp",
+    "wire.control",
+    "wire.version-negotiation",
+    "wire.sig-schnorr",
+    "wire.sig-ed25519",
+    "wire.dedup",
+    "object.contract",
+    "object.pipeline",
+    "object.memento",
+    "object.merkle-digest",
+    "object.tiebreak",
+];
+
+/// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.
+pub fn manifest_json() -> String {
+    let mut features: Vec<&str> = FEATURES.to_vec();
+    features.sort_unstable();
+    let list = features
+        .iter()
+        .map(|f| format!("    \"{f}\""))
+        .collect::<Vec<_>>()
+        .join(",\n");
+    format!(
+        "{{\n  \"impl\": \"{IMPL}\",\n  \"language\": \"{LANGUAGE}\",\n  \"version\": \"{VERSION}\",\n  \"wire_version\": {WIRE_VERSION},\n  \"features\": [\n{list}\n  ]\n}}\n"
+    )
+}

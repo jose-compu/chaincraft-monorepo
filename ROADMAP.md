@@ -236,10 +236,10 @@ internally consistent and merely false. Writing a second implementation is what 
 it. A gate can enforce agreement between documents; only a second implementation tests
 whether the documents describe anything real.
 
-### Stage 5 — Rust core
+### Stage 5 — Rust core ✅
 
-Rust changes most: TCP framing, canonical JSON, the new digest rule, the `ctl.*`
-namespace. A breaking release for `chaincraft-rust`.
+`rust/` — Level 0 and Level 1 complete, 22 conformance tests covering the 159 shared
+cases. Written from `SPEC/`, not from the previous `chaincraft-rust` crate.
 
 ### Stage 6 — Live interop matrix
 
@@ -257,7 +257,7 @@ Level 0 and Level 1 together rather than in two passes.
 - [x] Python: memento, pipeline, merkle digest, tie-break comparator
 - [x] `memento.json` and `pipeline.json` vectors
 - [x] TypeScript replay — identical digests from an independently written pipeline
-- [ ] Rust replay
+- [x] Rust replay — identical digests from a third independently written pipeline
 
 ### Stage 8 — Level 2 backfill
 

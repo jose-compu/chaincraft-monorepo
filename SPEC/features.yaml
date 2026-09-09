@@ -34,8 +34,7 @@ languages:
 # Languages with no source tree yet. The gate reports their gaps but does not
 # fail on them. Each entry is removed when that implementation lands, which is
 # what makes the gate go live for it.
-bootstrap:
-  rust: { until_stage: 5, note: "Stage 5 — Rust core" }
+bootstrap: {}
 
 features:
 
@@ -50,7 +49,7 @@ features:
     vectors: conformance/vectors/canonical-json.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.payload-digest
@@ -60,7 +59,7 @@ features:
     vectors: conformance/vectors/digest.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.envelope
@@ -70,7 +69,7 @@ features:
     vectors: conformance/vectors/envelope.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.framing-tcp
@@ -80,7 +79,7 @@ features:
     vectors: conformance/vectors/framing.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.framing-udp
@@ -90,7 +89,7 @@ features:
     vectors: conformance/vectors/framing.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript:
         state: exempt
         reason: >-
@@ -107,7 +106,7 @@ features:
     vectors: conformance/vectors/control.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.version-negotiation
@@ -117,7 +116,7 @@ features:
     vectors: conformance/vectors/control.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.sig-schnorr
@@ -127,7 +126,7 @@ features:
     vectors: conformance/vectors/signatures.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.sig-ed25519
@@ -137,7 +136,7 @@ features:
     vectors: conformance/vectors/signatures.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: wire.dedup
@@ -147,7 +146,7 @@ features:
     vectors: conformance/vectors/dedup.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   # ----------------------------------------------------------------------
@@ -161,7 +160,7 @@ features:
     vectors: conformance/vectors/pipeline.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: object.pipeline
@@ -171,7 +170,7 @@ features:
     vectors: conformance/vectors/pipeline.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: object.memento
@@ -181,7 +180,7 @@ features:
     vectors: conformance/vectors/memento.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: object.merkle-digest
@@ -191,7 +190,7 @@ features:
     vectors: conformance/vectors/memento.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   - id: object.tiebreak
@@ -201,7 +200,7 @@ features:
     vectors: conformance/vectors/pipeline.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
-      rust:       { state: planned }
+      rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
   # ----------------------------------------------------------------------

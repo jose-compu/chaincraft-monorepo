@@ -2,31 +2,38 @@
 
 Read the root `AGENTS.md` first. This file covers only what is specific to `rust/`.
 
-**Status: not yet implemented.** Stage 5 in `ROADMAP.md`.
+**Status: Level 0 and Level 1 complete.** Stage 5 in `ROADMAP.md`.
 
-## Migrating from `chaincraft-rust`
+## Role
 
-This is not a port of the existing crate; it is a rewrite of its transport layer against
-`SPEC/wire-v1.md`. Four things change, and all four are breaking:
+A rewrite of the transport layer against `SPEC/wire-v1.md`, not a port of the previous
+`chaincraft-rust` crate. Four things changed, all breaking:
 
-| Area | Existing crate | Required by wire v1 |
+| Area | Previous crate | Required by wire v1 |
 |---|---|---|
 | Transport | UDP only | TCP with a u32 length prefix; UDP optional |
 | Serialization | `serde_json::to_string` on a struct | Canonical JSON, sorted keys, no floats |
 | Message id | Hash over envelope fields | `sha256(canonical_json(data))` — payload only |
 | Control messages | Ad hoc variants | The `ctl.*` namespace, §5 |
 
-The application object model largely survives; the wire layer does not.
+The application object model is the Level 1 contract in `SPEC/semantics-v1.md`.
 
-## Planned layout
+Write from `SPEC/`. If the document is incomplete, fix the document and add a vector.
+
+## Layout
 
 ```
 src/
-  canonical.rs   Canonical JSON (wire-v1 §1)
+  canonical.rs   Canonical JSON encoder and parser (wire-v1 §1, §2)
   envelope.rs    Envelope (§3)
-  framing.rs     TCP framing (§4)
+  framing.rs     TCP framing and UDP datagrams (§4)
   control.rs     ctl.* messages (§5)
   crypto.rs      BIP-340 Schnorr, Ed25519 (§6)
+  dedup.rs       Seen-digest set and relay gate (§7)
+  memento.rs     StateMemento (semantics-v1 §4)
+  object.rs      ApplicationObject contract, digests, tie-break (§2, §5, §6)
+  pipeline.rs    ObjectRegistry, validate-all-then-apply (§3)
+  error.rs       Error classes
   features.rs    Feature manifest
   bin/features.rs  Prints the manifest as JSON
 tests/
@@ -36,28 +43,34 @@ tests/
 ## Commands
 
 ```bash
-cargo test --all-features
-cargo run --bin features        # feature manifest, JSON on stdout
+cargo test --all-features --verbose
+cargo run --quiet --bin features    # feature manifest, JSON on stdout
 cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings
 ```
 
 ## Conventions
 
-- Fallible operations return `Result<T, ProtocolError>`. Parity is of error *class*, not
-  of error type: Rust returning `Err(ProtocolError::…)` where Python raises
-  `ProtocolError` is correct. Returning `Ok` where Python raises is a parity bug.
-- `serde_json`'s default `Map` is a `BTreeMap`, so keys serialize sorted and UTF-8 byte
-  order matches Python's code-point ordering. Do **not** enable the `preserve_order`
-  feature — it silently breaks canonical output and every digest with it.
-- Reject floats explicitly. `serde_json::Value::Number` accepts them; wire v1 does not.
-- Signature verification returns `bool`, never a `Result`. Malformed input is `false`.
+- Fallible operations return `Result<T, Error>`. Parity is of error *class*, not of
+  message text: `Error::Protocol` where Python raises `ProtocolError` is correct.
+- Object keys live in a `BTreeMap`. UTF-8 byte order is code point order, so the default
+  sort is already the one §1.1 requires. Do not switch to a hash map.
+- The crate carries its own JSON parser. `serde_json` would accept duplicate keys (it
+  keeps the last) and is therefore not used on the receive path.
+- Signature verification returns `bool` and never a `Result`. Malformed input is `false`.
 - Clippy runs with `-D warnings`.
+- The object trait is named `ApplicationObject`. Python and TypeScript call it
+  `SharedObject`. The names differ; the contract does not.
+
+## Crypto backend
+
+`k256` (BIP-340 Schnorr) and `ed25519-dalek` (RFC 8032). Verification must return `false`
+on malformed input rather than propagating a library error.
 
 ## The feature manifest
 
-`src/bin/features.rs` must print JSON on stdout in exactly this shape, because
-`tools/parity_check.py` parses it:
+`cargo run --quiet --bin features` must print JSON on stdout in exactly this shape,
+because `tools/parity_check.py` parses it:
 
 ```json
 {
