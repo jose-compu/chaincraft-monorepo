@@ -23,7 +23,9 @@ path = "src/bin/node.rs"
 ed25519-dalek = "2.1"
 hex = "0.4"
 indexmap = "2"
-k256 = { version = "0.13", features = ["schnorr"] }
+k256 = { version = "0.13", features = ["ecdsa", "schnorr"] }
+num-bigint = "0.4"
+num-traits = "0.2"
 serde_json = "1"
 sha2 = "0.10"
 thiserror = "2"

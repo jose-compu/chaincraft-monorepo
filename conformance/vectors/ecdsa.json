@@ -1,0 +1,67 @@
+{
+  "feature": "crypto.ecdsa",
+  "spec": "SPEC/features/crypto-ecdsa.md",
+  "description": "secp256k1 ECDSA, SHA-256, compact r||s, low-S, compressed pubkey.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "valid": [
+    {
+      "name": "empty message, key 3",
+      "secret_key": "0000000000000000000000000000000000000000000000000000000000000003",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "",
+      "signature": "34c5f82a78a2589566f1ed6cf22ab4c9e084c6c2d277fd8a554398b6166bc16d748678c9ed008d83a561b4732aa23f59541f34b9731588c862e79ea89809700f"
+    },
+    {
+      "name": "sample, RFC 6979 key",
+      "secret_key": "c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721",
+      "public_key": "032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645",
+      "message_hex": "73616d706c65",
+      "signature": "432310e32cb80eb6503a26ce83cc165c783b870845fb8aad6d970889fcd7a6c8530128b6b81c548874a6305d93ed071ca6e05074d85863d4056ce89b02bfab69"
+    },
+    {
+      "name": "test, RFC 6979 key",
+      "secret_key": "c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721",
+      "public_key": "032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645",
+      "message_hex": "74657374",
+      "signature": "f2adcea7139057be6409855ee96d008e0e5b5f532333ec17448e26a36f47bcb2570c9d342779b40f513c0d75cbf93e3f3de7b01f6593f17bfc2ee87151414d64"
+    },
+    {
+      "name": "binary payload",
+      "secret_key": "0000000000000000000000000000000000000000000000000000000000000003",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "signature": "3ec207897f239a711810202ec883aace5216e00d6fcbdf2df78601a003777bc0723b384422b28fe8d1efe60f94ca4aa66f019b466f91a9bd1cbfcf4057577abd"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "high-S signature",
+      "public_key": "032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645",
+      "message_hex": "73616d706c65",
+      "signature": "432310e32cb80eb6503a26ce83cc165c783b870845fb8aad6d970889fcd7a6c8acfed74947e3ab778b59cfa26c12f8e213ce8c71d6f03c67ba6575f1cd7695d8",
+      "reason": "s must be in the lower half of the scalar field"
+    },
+    {
+      "name": "truncated signature",
+      "public_key": "032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645",
+      "message_hex": "73616d706c65",
+      "signature": "432310e32cb80eb6503a26ce83cc165c783b870845fb8aad6d970889fcd7a6",
+      "reason": "signature must be 64 bytes"
+    },
+    {
+      "name": "wrong public key",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "73616d706c65",
+      "signature": "432310e32cb80eb6503a26ce83cc165c783b870845fb8aad6d970889fcd7a6c8530128b6b81c548874a6305d93ed071ca6e05074d85863d4056ce89b02bfab69",
+      "reason": "verification must return false, not raise"
+    },
+    {
+      "name": "uncompressed public key rejected",
+      "public_key": "04abababababababababababababababababababababababababababababababab",
+      "message_hex": "73616d706c65",
+      "signature": "432310e32cb80eb6503a26ce83cc165c783b870845fb8aad6d970889fcd7a6c8530128b6b81c548874a6305d93ed071ca6e05074d85863d4056ce89b02bfab69",
+      "reason": "only 33-byte compressed keys are valid"
+    }
+  ]
+}

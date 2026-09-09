@@ -1,0 +1,52 @@
+{
+  "feature": "crypto.vrf",
+  "spec": "SPEC/features/crypto-vrf.md",
+  "description": "Deterministic ECDSA VRF. Same (sk, message) yields the same proof.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "domain": "chaincraft-vrf-v1",
+  "valid": [
+    {
+      "name": "hello",
+      "secret_key": "0000000000000000000000000000000000000000000000000000000000000003",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "48656c6c6f20565246",
+      "proof": "ab07e4fa77252d3b9d6e2ecdcef17d87e57c4b5e740afbd683d17632003972d9287e4e0e7c59c2ffa1b11454ab904638d5b3558bdae871cff7db3e2bcdefb726",
+      "output": "ecf6bd3ebf1db44d0f0d577db8ceb362fa4e21ceee245a8a94076277daf57130"
+    },
+    {
+      "name": "empty",
+      "secret_key": "0000000000000000000000000000000000000000000000000000000000000003",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "",
+      "proof": "0c50873ed19ceaa3a40453e13d13cef175dca25f33b6e6970dd69494c9e1c03a09669f07cc7b7374e919844b84de3013f5a4638b04f42ec04dcfbe0c1428c99b",
+      "output": "5743d13af19ce67fd4e36968c098ba3f91133f3d9e3cb8e9af10153cba47842a"
+    },
+    {
+      "name": "sample",
+      "secret_key": "0000000000000000000000000000000000000000000000000000000000000003",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "73616d706c65",
+      "proof": "803c4a0fe3a54a8f0e7856f39a65d998782c0cfa3a1ec80e4f61de953e6ce53f12845555c2521be210d410c71574d12654068a10630aa1db4ab9c7750a940cb4",
+      "output": "45a8c2b0b8401e197b143690af8d7b397d96af0e2f5a9c96c0f0b070cdeb0b35"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "wrong message",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "41747461636b20565246",
+      "proof": "ab07e4fa77252d3b9d6e2ecdcef17d87e57c4b5e740afbd683d17632003972d9287e4e0e7c59c2ffa1b11454ab904638d5b3558bdae871cff7db3e2bcdefb726",
+      "output": "ecf6bd3ebf1db44d0f0d577db8ceb362fa4e21ceee245a8a94076277daf57130",
+      "reason": "proof is bound to the message"
+    },
+    {
+      "name": "truncated proof",
+      "public_key": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "message_hex": "48656c6c6f20565246",
+      "proof": "ab07e4fa77252d3b9d6e",
+      "output": "ecf6bd3ebf1db44d0f0d577db8ceb362fa4e21ceee245a8a94076277daf57130",
+      "reason": "malformed proof is invalid"
+    }
+  ]
+}

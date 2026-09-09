@@ -20,6 +20,7 @@ use chaincraft_core::object::{
     frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
 };
 use chaincraft_core::pipeline::ObjectRegistry;
+use chaincraft_core::{ecdsa, vdf, vrf};
 use serde_json::Value;
 
 fn vectors_dir() -> PathBuf {
@@ -664,6 +665,133 @@ fn replacement_tiebreak() {
 }
 
 #[test]
+fn ecdsa_valid() {
+    let doc = load("ecdsa.json");
+    for case in doc["valid"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let key = hex_bytes(case["secret_key"].as_str().unwrap());
+        let message = hex_bytes(case["message_hex"].as_str().unwrap());
+        let pk = ecdsa::public_key(&key).unwrap();
+        assert_eq!(
+            to_hex(&pk),
+            case["public_key"].as_str().unwrap(),
+            "{name} pubkey"
+        );
+        let sig = ecdsa::sign(&message, &key).unwrap();
+        assert_eq!(
+            to_hex(&sig),
+            case["signature"].as_str().unwrap(),
+            "{name} signature"
+        );
+        assert!(
+            ecdsa::verify(
+                &message,
+                &hex_bytes(case["signature"].as_str().unwrap()),
+                &hex_bytes(case["public_key"].as_str().unwrap())
+            ),
+            "{name} verify"
+        );
+    }
+}
+
+#[test]
+fn ecdsa_invalid() {
+    let doc = load("ecdsa.json");
+    for case in doc["invalid"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        assert!(
+            !ecdsa::verify(
+                &hex_bytes(case["message_hex"].as_str().unwrap()),
+                &hex_bytes(case["signature"].as_str().unwrap()),
+                &hex_bytes(case["public_key"].as_str().unwrap())
+            ),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn vdf_valid() {
+    let doc = load("vdf.json");
+    for case in doc["valid"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let seed = hex_bytes(case["seed_hex"].as_str().unwrap());
+        let t = case["t"].as_u64().unwrap() as u32;
+        let proof = vdf::evaluate(&seed, t).unwrap();
+        assert_eq!(
+            vdf::proof_to_hex(&proof),
+            case["proof"].as_str().unwrap(),
+            "{name}"
+        );
+        assert!(vdf::verify(&seed, t, &proof), "{name} verify");
+    }
+}
+
+#[test]
+fn vdf_invalid() {
+    let doc = load("vdf.json");
+    for case in doc["invalid"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let proof = vdf::hex_to_proof(case["proof"].as_str().unwrap()).unwrap();
+        assert!(
+            !vdf::verify(
+                &hex_bytes(case["seed_hex"].as_str().unwrap()),
+                case["t"].as_u64().unwrap() as u32,
+                &proof
+            ),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn vrf_valid() {
+    let doc = load("vrf.json");
+    for case in doc["valid"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let message = hex_bytes(case["message_hex"].as_str().unwrap());
+        let key = hex_bytes(case["secret_key"].as_str().unwrap());
+        let (proof, output, pk) = vrf::evaluate(&message, &key).unwrap();
+        assert_eq!(
+            to_hex(&pk),
+            case["public_key"].as_str().unwrap(),
+            "{name} pubkey"
+        );
+        assert_eq!(
+            to_hex(&proof),
+            case["proof"].as_str().unwrap(),
+            "{name} proof"
+        );
+        assert_eq!(
+            to_hex(&output),
+            case["output"].as_str().unwrap(),
+            "{name} output"
+        );
+        assert!(
+            vrf::verify(&message, &proof, &pk, Some(&output)),
+            "{name} verify"
+        );
+    }
+}
+
+#[test]
+fn vrf_invalid() {
+    let doc = load("vrf.json");
+    for case in doc["invalid"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        assert!(
+            !vrf::verify(
+                &hex_bytes(case["message_hex"].as_str().unwrap()),
+                &hex_bytes(case["proof"].as_str().unwrap()),
+                &hex_bytes(case["public_key"].as_str().unwrap()),
+                Some(&hex_bytes(case["output"].as_str().unwrap()))
+            ),
+            "{name}"
+        );
+    }
+}
+
+#[test]
 fn vector_files_declare_feature() {
     for name in [
         "canonical-json.json",
@@ -675,6 +803,9 @@ fn vector_files_declare_feature() {
         "dedup.json",
         "memento.json",
         "pipeline.json",
+        "ecdsa.json",
+        "vdf.json",
+        "vrf.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

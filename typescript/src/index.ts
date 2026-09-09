@@ -73,6 +73,10 @@ export {
 
 export { type ApplyResult, ObjectRegistry } from './pipeline.ts';
 
+export * as ecdsa from './ecdsa.ts';
+export * as vdf from './vdf.ts';
+export * as vrf from './vrf.ts';
+
 export {
   type Manifest,
   FEATURES,

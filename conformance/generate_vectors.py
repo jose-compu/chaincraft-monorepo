@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPO / "python"))
 # scaffolding, not shipped API. See SPEC/semantics-v1.md section 8.
 sys.path.insert(0, str(REPO / "python" / "tests"))
 
-from chaincraft_core import control, crypto, framing  # noqa: E402
+from chaincraft_core import control, crypto, ecdsa, framing, vdf, vrf  # noqa: E402
 from chaincraft_core.canonical import canonical_json, payload_digest  # noqa: E402
 from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft_core.envelope import Envelope  # noqa: E402
@@ -810,6 +810,180 @@ def pipeline_vectors() -> Dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------
+# Level 2 — crypto primitives
+# --------------------------------------------------------------------------
+
+
+def ecdsa_vectors() -> Dict[str, Any]:
+    rfc_key = bytes.fromhex(
+        "C9AFA9D845BA75166B5C215767B1D6934E50C3DB36E89B127B8A622B120F6721"
+    )
+    valid = []
+    for name, key, message in (
+        ("empty message, key 3", SECKEY, b""),
+        ("sample, RFC 6979 key", rfc_key, b"sample"),
+        ("test, RFC 6979 key", rfc_key, b"test"),
+        ("binary payload", SECKEY, bytes(range(32))),
+    ):
+        pk = ecdsa.public_key(key)
+        sig = ecdsa.sign(message, key)
+        valid.append(
+            {
+                "name": name,
+                "secret_key": key.hex(),
+                "public_key": pk.hex(),
+                "message_hex": message.hex(),
+                "signature": sig.hex(),
+            }
+        )
+
+    sample_sig = bytes.fromhex(valid[1]["signature"])
+    sample_pk = bytes.fromhex(valid[1]["public_key"])
+    high_s = sample_sig[:32] + (ecdsa.N - int.from_bytes(sample_sig[32:], "big")).to_bytes(
+        32, "big"
+    )
+    invalid = [
+        {
+            "name": "high-S signature",
+            "public_key": sample_pk.hex(),
+            "message_hex": b"sample".hex(),
+            "signature": high_s.hex(),
+            "reason": "s must be in the lower half of the scalar field",
+        },
+        {
+            "name": "truncated signature",
+            "public_key": sample_pk.hex(),
+            "message_hex": b"sample".hex(),
+            "signature": sample_sig[:31].hex(),
+            "reason": "signature must be 64 bytes",
+        },
+        {
+            "name": "wrong public key",
+            "public_key": ecdsa.public_key(SECKEY).hex(),
+            "message_hex": b"sample".hex(),
+            "signature": sample_sig.hex(),
+            "reason": "verification must return false, not raise",
+        },
+        {
+            "name": "uncompressed public key rejected",
+            "public_key": "04" + "ab" * 32,
+            "message_hex": b"sample".hex(),
+            "signature": sample_sig.hex(),
+            "reason": "only 33-byte compressed keys are valid",
+        },
+    ]
+    return {
+        **header(
+            "crypto.ecdsa",
+            "SPEC/features/crypto-ecdsa.md",
+            "secp256k1 ECDSA, SHA-256, compact r||s, low-S, compressed pubkey.",
+        ),
+        "valid": valid,
+        "invalid": invalid,
+    }
+
+
+def vdf_vectors() -> Dict[str, Any]:
+    valid = []
+    for name, seed, t in (
+        ("ascii seed, t=8", b"TestVDF", 8),
+        ("empty seed, t=4", b"", 4),
+        ("binary seed, t=16", bytes.fromhex("00ff"), 16),
+    ):
+        proof = vdf.evaluate(seed, t)
+        valid.append(
+            {
+                "name": name,
+                "seed_hex": seed.hex(),
+                "t": t,
+                "proof": vdf.proof_to_hex(proof),
+            }
+        )
+    invalid = [
+        {
+            "name": "proof plus one",
+            "seed_hex": b"TestVDF".hex(),
+            "t": 8,
+            "proof": vdf.proof_to_hex(vdf.evaluate(b"TestVDF", 8) + 1),
+            "reason": "altered proof must not verify",
+        },
+        {
+            "name": "wrong seed",
+            "seed_hex": b"Other".hex(),
+            "t": 8,
+            "proof": vdf.proof_to_hex(vdf.evaluate(b"TestVDF", 8)),
+            "reason": "proof is bound to the seed",
+        },
+        {
+            "name": "zero iterations",
+            "seed_hex": b"TestVDF".hex(),
+            "t": 0,
+            "proof": "1",
+            "reason": "t must be positive",
+        },
+    ]
+    return {
+        **header(
+            "crypto.vdf",
+            "SPEC/features/crypto-vdf.md",
+            "Sloth VDF: sequential square roots, verify by squaring.",
+        ),
+        "modulus": vdf.proof_to_hex(vdf.P),
+        "valid": valid,
+        "invalid": invalid,
+    }
+
+
+def vrf_vectors() -> Dict[str, Any]:
+    valid = []
+    for name, key, message in (
+        ("hello", SECKEY, b"Hello VRF"),
+        ("empty", SECKEY, b""),
+        ("sample", SECKEY, b"sample"),
+    ):
+        proof, output, pk = vrf.evaluate(message, key)
+        valid.append(
+            {
+                "name": name,
+                "secret_key": key.hex(),
+                "public_key": pk.hex(),
+                "message_hex": message.hex(),
+                "proof": proof.hex(),
+                "output": output.hex(),
+            }
+        )
+    hello = valid[0]
+    invalid = [
+        {
+            "name": "wrong message",
+            "public_key": hello["public_key"],
+            "message_hex": b"Attack VRF".hex(),
+            "proof": hello["proof"],
+            "output": hello["output"],
+            "reason": "proof is bound to the message",
+        },
+        {
+            "name": "truncated proof",
+            "public_key": hello["public_key"],
+            "message_hex": hello["message_hex"],
+            "proof": hello["proof"][:20],
+            "output": hello["output"],
+            "reason": "malformed proof is invalid",
+        },
+    ]
+    return {
+        **header(
+            "crypto.vrf",
+            "SPEC/features/crypto-vrf.md",
+            "Deterministic ECDSA VRF. Same (sk, message) yields the same proof.",
+        ),
+        "domain": "chaincraft-vrf-v1",
+        "valid": valid,
+        "invalid": invalid,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -823,6 +997,10 @@ def main() -> int:
     print("\nLevel 1 — object semantics")
     write("memento.json", memento_vectors())
     write("pipeline.json", pipeline_vectors())
+    print("\nLevel 2 — crypto primitives")
+    write("ecdsa.json", ecdsa_vectors())
+    write("vdf.json", vdf_vectors())
+    write("vrf.json", vrf_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

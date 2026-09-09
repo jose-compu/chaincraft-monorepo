@@ -22,6 +22,7 @@ import {
   StateMemento,
   canonicalJson,
   control,
+  ecdsa,
   decodeDatagram,
   encodeDatagram,
   encodeFrame,
@@ -32,7 +33,9 @@ import {
   payloadDigest,
   publicKeyHex,
   sign,
+  vdf,
   verify,
+  vrf,
   winsReplacement,
 } from '../src/index.ts';
 import { buildRegistry, snapshot } from './conformanceObjects.ts';
@@ -311,6 +314,54 @@ eachCase('pipeline.json', 'tiebreak', (c) => {
   );
 });
 
+eachCase('ecdsa.json', 'valid', (c) => {
+  const key = bytes(c['secret_key']);
+  const message = bytes(c['message_hex']);
+  assert.equal(toHex(ecdsa.publicKey(key)), c['public_key']);
+  assert.equal(toHex(ecdsa.sign(message, key)), c['signature']);
+  assert.ok(ecdsa.verify(message, bytes(c['signature']), bytes(c['public_key'])));
+});
+
+eachCase('ecdsa.json', 'invalid', (c) => {
+  assert.equal(
+    ecdsa.verify(bytes(c['message_hex']), bytes(c['signature']), bytes(c['public_key'])),
+    false,
+  );
+});
+
+eachCase('vdf.json', 'valid', (c) => {
+  const proof = vdf.evaluate(bytes(c['seed_hex']), c['t']);
+  assert.equal(vdf.proofToHex(proof), c['proof']);
+  assert.ok(vdf.verify(bytes(c['seed_hex']), c['t'], proof));
+});
+
+eachCase('vdf.json', 'invalid', (c) => {
+  assert.equal(
+    vdf.verify(bytes(c['seed_hex']), c['t'], vdf.hexToProof(c['proof'])),
+    false,
+  );
+});
+
+eachCase('vrf.json', 'valid', (c) => {
+  const got = vrf.evaluate(bytes(c['message_hex']), bytes(c['secret_key']));
+  assert.equal(toHex(got.publicKey), c['public_key']);
+  assert.equal(toHex(got.proof), c['proof']);
+  assert.equal(toHex(got.output), c['output']);
+  assert.ok(vrf.verify(bytes(c['message_hex']), got.proof, got.publicKey, got.output));
+});
+
+eachCase('vrf.json', 'invalid', (c) => {
+  assert.equal(
+    vrf.verify(
+      bytes(c['message_hex']),
+      bytes(c['proof']),
+      bytes(c['public_key']),
+      bytes(c['output']),
+    ),
+    false,
+  );
+});
+
 // --- vector hygiene ---------------------------------------------------------
 
 test('every vector file declares its feature', () => {
@@ -324,6 +375,9 @@ test('every vector file declares its feature', () => {
     'dedup.json',
     'memento.json',
     'pipeline.json',
+    'ecdsa.json',
+    'vdf.json',
+    'vrf.json',
   ];
   for (const name of files) {
     const doc = load(name);

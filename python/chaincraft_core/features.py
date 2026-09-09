@@ -35,6 +35,10 @@ FEATURES = frozenset(
         "object.memento",
         "object.merkle-digest",
         "object.tiebreak",
+        # Level 2 — crypto
+        "crypto.ecdsa",
+        "crypto.vdf",
+        "crypto.vrf",
     }
 )
 

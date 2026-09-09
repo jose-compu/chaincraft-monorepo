@@ -306,6 +306,83 @@ def test_replacement_tiebreak(case):
     )
 
 
+# --- Level 2 crypto ---------------------------------------------------------
+
+
+@cases("ecdsa.json", "valid")
+def test_ecdsa_valid(case):
+    from chaincraft_core import ecdsa
+
+    key = bytes.fromhex(case["secret_key"])
+    message = bytes.fromhex(case["message_hex"])
+    assert ecdsa.public_key(key).hex() == case["public_key"]
+    assert ecdsa.sign(message, key).hex() == case["signature"]
+    assert ecdsa.verify(message, bytes.fromhex(case["signature"]), bytes.fromhex(case["public_key"]))
+
+
+@cases("ecdsa.json", "invalid")
+def test_ecdsa_invalid(case):
+    from chaincraft_core import ecdsa
+
+    assert (
+        ecdsa.verify(
+            bytes.fromhex(case["message_hex"]),
+            bytes.fromhex(case["signature"]),
+            bytes.fromhex(case["public_key"]),
+        )
+        is False
+    )
+
+
+@cases("vdf.json", "valid")
+def test_vdf_valid(case):
+    from chaincraft_core import vdf
+
+    proof = vdf.evaluate(bytes.fromhex(case["seed_hex"]), case["t"])
+    assert vdf.proof_to_hex(proof) == case["proof"]
+    assert vdf.verify(bytes.fromhex(case["seed_hex"]), case["t"], proof)
+
+
+@cases("vdf.json", "invalid")
+def test_vdf_invalid(case):
+    from chaincraft_core import vdf
+
+    assert (
+        vdf.verify(
+            bytes.fromhex(case["seed_hex"]),
+            case["t"],
+            vdf.hex_to_proof(case["proof"]),
+        )
+        is False
+    )
+
+
+@cases("vrf.json", "valid")
+def test_vrf_valid(case):
+    from chaincraft_core import vrf
+
+    proof, output, pk = vrf.evaluate(bytes.fromhex(case["message_hex"]), bytes.fromhex(case["secret_key"]))
+    assert pk.hex() == case["public_key"]
+    assert proof.hex() == case["proof"]
+    assert output.hex() == case["output"]
+    assert vrf.verify(bytes.fromhex(case["message_hex"]), proof, pk, output)
+
+
+@cases("vrf.json", "invalid")
+def test_vrf_invalid(case):
+    from chaincraft_core import vrf
+
+    assert (
+        vrf.verify(
+            bytes.fromhex(case["message_hex"]),
+            bytes.fromhex(case["proof"]),
+            bytes.fromhex(case["public_key"]),
+            bytes.fromhex(case["output"]),
+        )
+        is False
+    )
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

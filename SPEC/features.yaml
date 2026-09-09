@@ -217,41 +217,41 @@ features:
   - id: crypto.ecdsa
     level: 2
     spec: SPEC/features/crypto-ecdsa.md
-    summary: ECDSA signing primitive
-    vectors: null
+    summary: secp256k1 ECDSA, SHA-256, compact r||s, low-S, compressed pubkey
+    vectors: conformance/vectors/ecdsa.json
     backfill: true
     legacy: python/chaincraft@0.7 crypto_primitives
     milestone: "2026-10-15"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: crypto.vdf
     level: 2
     spec: SPEC/features/crypto-vdf.md
-    summary: Verifiable delay function
-    vectors: null
+    summary: Sloth VDF over a fixed prime, sequential modular square roots
+    vectors: conformance/vectors/vdf.json
     backfill: true
     legacy: python/chaincraft@0.7 crypto_primitives
     milestone: "2026-10-15"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: crypto.vrf
     level: 2
     spec: SPEC/features/crypto-vrf.md
-    summary: Verifiable random function
-    vectors: null
+    summary: Pedagogical VRF — SHA-256 domain then ECDSA, output SHA-256(proof||pk||msg)
+    vectors: conformance/vectors/vrf.json
     backfill: true
     legacy: python/chaincraft@0.7 crypto_primitives
     milestone: "2026-10-15"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: discovery.peer
     level: 2

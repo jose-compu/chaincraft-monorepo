@@ -1,0 +1,51 @@
+{
+  "feature": "crypto.vdf",
+  "spec": "SPEC/features/crypto-vdf.md",
+  "description": "Sloth VDF: sequential square roots, verify by squaring.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "modulus": "8dbb34b480f42719d39d153cb5d9669bf736d8f3fc692c62a88dd6e59135466b",
+  "valid": [
+    {
+      "name": "ascii seed, t=8",
+      "seed_hex": "54657374564446",
+      "t": 8,
+      "proof": "2a2cdbb27c1c104865bbf740649347df8dd8959538342af14df38135d3789dc6"
+    },
+    {
+      "name": "empty seed, t=4",
+      "seed_hex": "",
+      "t": 4,
+      "proof": "0"
+    },
+    {
+      "name": "binary seed, t=16",
+      "seed_hex": "00ff",
+      "t": 16,
+      "proof": "61c1f1633a9d5ba1b7eb05da07dcdd3ac2d978294e2dd1899196f6f0d080ad8d"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "proof plus one",
+      "seed_hex": "54657374564446",
+      "t": 8,
+      "proof": "2a2cdbb27c1c104865bbf740649347df8dd8959538342af14df38135d3789dc7",
+      "reason": "altered proof must not verify"
+    },
+    {
+      "name": "wrong seed",
+      "seed_hex": "4f74686572",
+      "t": 8,
+      "proof": "2a2cdbb27c1c104865bbf740649347df8dd8959538342af14df38135d3789dc6",
+      "reason": "proof is bound to the seed"
+    },
+    {
+      "name": "zero iterations",
+      "seed_hex": "54657374564446",
+      "t": 0,
+      "proof": "1",
+      "reason": "t must be positive"
+    }
+  ]
+}

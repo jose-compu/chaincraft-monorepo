@@ -32,6 +32,10 @@ export const FEATURES: readonly string[] = [
   'object.memento',
   'object.merkle-digest',
   'object.tiebreak',
+  // Level 2 — crypto
+  'crypto.ecdsa',
+  'crypto.vdf',
+  'crypto.vrf',
 ];
 
 export interface Manifest {

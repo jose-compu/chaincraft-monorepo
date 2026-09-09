@@ -21,6 +21,9 @@ pub const FEATURES: &[&str] = &[
     "object.memento",
     "object.merkle-digest",
     "object.tiebreak",
+    "crypto.ecdsa",
+    "crypto.vdf",
+    "crypto.vrf",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.

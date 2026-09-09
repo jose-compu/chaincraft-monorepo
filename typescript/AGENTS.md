@@ -2,7 +2,7 @@
 
 Read the root `AGENTS.md` first. This file covers only what is specific to `typescript/`.
 
-**Status: Level 0 and Level 1 complete.** Stage 4 in `ROADMAP.md`.
+**Status: Level 0, Level 1, and Level 2 crypto (`ecdsa`/`vdf`/`vrf`) complete.** Stage 8 in `ROADMAP.md`.
 
 ## Role: the spec's proving ground
 
@@ -35,6 +35,9 @@ src/
   framing.ts     TCP framing and UDP datagrams (§4)
   control.ts     ctl.* messages (§5)
   crypto.ts      BIP-340 Schnorr, Ed25519 (§6)
+  ecdsa.ts       secp256k1 ECDSA (crypto-ecdsa.md)
+  vdf.ts         Sloth VDF (crypto-vdf.md)
+  vrf.ts         Deterministic ECDSA VRF (crypto-vrf.md)
   dedup.ts       Seen-digest set and relay gate (§7)
   memento.ts     StateMemento (semantics-v1 §4)
   object.ts      Object contract and digests (§2, §5, §6)

@@ -6,6 +6,7 @@ pub mod canonical;
 pub mod control;
 pub mod crypto;
 pub mod dedup;
+pub mod ecdsa;
 pub mod envelope;
 pub mod error;
 pub mod features;
@@ -13,6 +14,8 @@ pub mod framing;
 pub mod memento;
 pub mod object;
 pub mod pipeline;
+pub mod vdf;
+pub mod vrf;
 
 pub use canonical::{
     bytes_to_hex, canonical_bytes, canonical_json, hex_to_bytes, parse_json, payload_digest,

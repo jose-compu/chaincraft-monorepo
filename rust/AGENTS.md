@@ -2,7 +2,7 @@
 
 Read the root `AGENTS.md` first. This file covers only what is specific to `rust/`.
 
-**Status: Level 0 and Level 1 complete.** Stage 5 in `ROADMAP.md`.
+**Status: Level 0, Level 1, and Level 2 crypto (`ecdsa`/`vdf`/`vrf`) complete.** Stage 8 in `ROADMAP.md`.
 
 ## Role
 
@@ -29,6 +29,9 @@ src/
   framing.rs     TCP framing and UDP datagrams (§4)
   control.rs     ctl.* messages (§5)
   crypto.rs      BIP-340 Schnorr, Ed25519 (§6)
+  ecdsa.rs       secp256k1 ECDSA (crypto-ecdsa.md)
+  vdf.rs         Sloth VDF (crypto-vdf.md)
+  vrf.rs         Deterministic ECDSA VRF (crypto-vrf.md)
   dedup.rs       Seen-digest set and relay gate (§7)
   memento.rs     StateMemento (semantics-v1 §4)
   object.rs      ApplicationObject contract, digests, tie-break (§2, §5, §6)
@@ -65,8 +68,9 @@ cargo clippy --all-targets --all-features -- -D warnings
 
 ## Crypto backend
 
-`k256` (BIP-340 Schnorr) and `ed25519-dalek` (RFC 8032). Verification must return `false`
-on malformed input rather than propagating a library error.
+`k256` (BIP-340 Schnorr and ECDSA), `ed25519-dalek` (RFC 8032), and `num-bigint`
+(Sloth VDF). Verification must return `false` on malformed input rather than
+propagating a library error.
 
 ## The feature manifest
 
