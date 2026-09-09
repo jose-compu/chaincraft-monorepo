@@ -42,6 +42,7 @@ src/
   errors.ts      Error classes
   features.ts    Feature manifest
   featuresCli.ts Manifest printer for the parity gate
+  node.ts        TCP mesh node for the live interop runner
   index.ts       Public entry point
 test/
   conformance.test.ts   The shared vectors — the real contract

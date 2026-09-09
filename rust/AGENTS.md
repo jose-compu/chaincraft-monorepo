@@ -36,6 +36,7 @@ src/
   error.rs       Error classes
   features.rs    Feature manifest
   bin/features.rs  Prints the manifest as JSON
+  bin/node.rs      TCP mesh node for the live interop runner
 tests/
   conformance.rs Shared vectors from conformance/vectors/
 ```

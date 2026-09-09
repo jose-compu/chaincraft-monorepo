@@ -241,23 +241,20 @@ whether the documents describe anything real.
 `rust/` — Level 0 and Level 1 complete, 22 conformance tests covering the 159 shared
 cases. Written from `SPEC/`, not from the previous `chaincraft-rust` crate.
 
-### Stage 6 — Live interop matrix
+### Stage 6 — Live interop matrix ✅
 
-Three nodes, one per language, connected pairwise in both directions. 3×3 green in CI.
+Three TCP nodes, one per language, connected as a triangle. Each sends `app.interop`;
+every node ends with the same three payload digests. Dedup and a `ctl.hello` version
+mismatch are checked on the live sockets.
 
-### Stage 7 — Level 1 replay parity 🔄
+    python3 conformance/runner/run_interop.py
+
+### Stage 7 — Level 1 replay parity ✅
 
 Pipeline and memento vectors through each object registry; identical digests.
 
-Specified and implemented in Python, so the vectors exist and Stages 4 and 5 can port
-Level 0 and Level 1 together rather than in two passes.
-
-- [x] `SPEC/semantics-v1.md` §8 conformance objects — without a defined fixture, a
-      replay vector is not portable
-- [x] Python: memento, pipeline, merkle digest, tie-break comparator
-- [x] `memento.json` and `pipeline.json` vectors
-- [x] TypeScript replay — identical digests from an independently written pipeline
-- [x] Rust replay — identical digests from a third independently written pipeline
+- [x] `SPEC/semantics-v1.md` §8 conformance objects
+- [x] Python / TypeScript / Rust replay against `memento.json` and `pipeline.json`
 
 ### Stage 8 — Level 2 backfill
 

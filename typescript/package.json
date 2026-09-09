@@ -26,7 +26,8 @@
     "features": "node src/featuresCli.ts",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "node": "node src/node.ts"
   },
   "dependencies": {
     "@noble/curves": "^2.4.0",

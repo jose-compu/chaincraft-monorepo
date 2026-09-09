@@ -68,8 +68,8 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 3 | Parity machinery and conformance vectors | done |
 | 4 | TypeScript core — Level 0 and Level 1 | done |
 | 5 | Rust core — Level 0 and Level 1 | done |
-| 7 | Level 1 replay parity | Python, TypeScript and Rust done |
-| 6 | Live 3×3 interop matrix | |
+| 6 | Live 3×3 interop matrix | done |
+| 7 | Level 1 replay parity | done |
 | 8 | Level 2 feature backfill | |
 | 9 | Mixed-language `nostraft` mesh | |
 

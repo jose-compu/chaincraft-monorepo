@@ -26,6 +26,7 @@ chaincraft_core/
   memento.py     StateMemento (semantics-v1 §4)
   object.py      SharedObject contract, digests, tie-break (§2, §5, §6)
   pipeline.py    ObjectRegistry, validate-all-then-apply (§3)
+  node.py        TCP mesh node for the live interop runner
   features.py    Feature manifest — read by tools/parity_check.py
 tests/
   test_level0.py         One test per normative wire rule

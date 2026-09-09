@@ -15,11 +15,16 @@ path = "src/lib.rs"
 name = "features"
 path = "src/bin/features.rs"
 
+[[bin]]
+name = "node"
+path = "src/bin/node.rs"
+
 [dependencies]
 ed25519-dalek = "2.1"
 hex = "0.4"
 indexmap = "2"
 k256 = { version = "0.13", features = ["schnorr"] }
+serde_json = "1"
 sha2 = "0.10"
 thiserror = "2"
 
