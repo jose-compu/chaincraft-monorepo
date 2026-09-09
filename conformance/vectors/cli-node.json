@@ -1,0 +1,204 @@
+{
+  "feature": "cli.node",
+  "spec": "SPEC/features/cli-node.md",
+  "description": "JSON-lines node commands and events, no sockets.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "impl": "py-chaincraft/1.0.0",
+  "listen": "127.0.0.1:21000",
+  "sequence": [
+    {
+      "name": "start connect send and ids",
+      "note": "payload digest is the sent id",
+      "impl": "py-chaincraft/1.0.0",
+      "listen": "127.0.0.1:21000",
+      "steps": [
+        {
+          "op": "start",
+          "events": [
+            {
+              "event": "ready",
+              "addr": "127.0.0.1:21000",
+              "impl": "py-chaincraft/1.0.0"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{\"addr\":\"10.0.0.2:9735\",\"cmd\":\"connect\"}",
+          "events": [
+            {
+              "event": "connected",
+              "addr": "10.0.0.2:9735"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "line",
+          "line": "{\"addr\":\"10.0.0.2:9735\",\"cmd\":\"connect\"}",
+          "events": [
+            {
+              "event": "connected",
+              "addr": "10.0.0.2:9735"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "line",
+          "line": "{\"cmd\":\"send\",\"data\":{\"n\":1},\"type\":\"app.interop\"}",
+          "events": [
+            {
+              "event": "sent",
+              "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+            }
+          ],
+          "closed": false,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+          ],
+          "peers": [
+            "10.0.0.2:9735"
+          ]
+        },
+        {
+          "op": "line",
+          "line": "{\"cmd\":\"ids\"}",
+          "events": [
+            {
+              "event": "ids",
+              "ids": [
+                "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              ]
+            }
+          ],
+          "closed": false,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+          ],
+          "peers": [
+            "10.0.0.2:9735"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rejects and quit",
+      "note": "closed session accepts no further commands",
+      "impl": "py-chaincraft/1.0.0",
+      "listen": "127.0.0.1:21000",
+      "steps": [
+        {
+          "op": "start",
+          "events": [
+            {
+              "event": "ready",
+              "addr": "127.0.0.1:21000",
+              "impl": "py-chaincraft/1.0.0"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "   ",
+          "events": [],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{not json",
+          "events": [
+            {
+              "event": "error",
+              "message": "invalid json"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{\"addr\":\"bad\",\"cmd\":\"connect\"}",
+          "events": [
+            {
+              "event": "error",
+              "message": "invalid address"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{\"cmd\":\"send\",\"data\":{},\"type\":\"Nope\"}",
+          "events": [
+            {
+              "event": "error",
+              "message": "invalid send"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{\"cmd\":\"nope\"}",
+          "events": [
+            {
+              "event": "error",
+              "message": "unknown cmd"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{\"cmd\":\"quit\"}",
+          "events": [
+            {
+              "event": "quit"
+            }
+          ],
+          "closed": true,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{\"cmd\":\"ids\"}",
+          "events": [
+            {
+              "event": "error",
+              "message": "closed"
+            }
+          ],
+          "closed": true,
+          "ids": [],
+          "peers": []
+        }
+      ]
+    }
+  ]
+}

@@ -46,6 +46,12 @@ src/
   ledgerUtxo.ts      Pedagogical UTXO ledger
   mempool.ts     Pedagogical transaction pool
   fees.ts        Pedagogical fee policy
+  storage.ts     Pedagogical message store
+  cli.ts         JSON-lines node command surface
+  bittorrent.ts  Pedagogical BitTorrent swarm + client
+  mesh.ts        TCP mesh (listen, hello, dedup, relay)
+  node.ts        Wire CLI: connect / send / ids / quit
+  btNode.ts      BitTorrent client on Mesh (`bt.*` commands)
   dedup.ts       Seen-digest set and relay gate (§7)
   memento.ts     StateMemento (semantics-v1 §4)
   object.ts      Object contract and digests (§2, §5, §6)
@@ -53,7 +59,6 @@ src/
   errors.ts      Error classes
   features.ts    Feature manifest
   featuresCli.ts Manifest printer for the parity gate
-  node.ts        TCP mesh node for the live interop runner
   index.ts       Public entry point
 test/
   conformance.test.ts   The shared vectors — the real contract

@@ -7,9 +7,11 @@ use std::any::Any;
 use std::fs;
 use std::path::PathBuf;
 
+use chaincraft_core::bittorrent::Swarm;
 use chaincraft_core::canonical::{
     canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue,
 };
+use chaincraft_core::cli::NodeSession;
 use chaincraft_core::consensus_pbft::Pbft;
 use chaincraft_core::consensus_pos::ProofOfStake;
 use chaincraft_core::consensus_pow::ProofOfWork;
@@ -28,6 +30,7 @@ use chaincraft_core::object::{
     frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
 };
 use chaincraft_core::pipeline::ObjectRegistry;
+use chaincraft_core::storage::MessageStore;
 use chaincraft_core::{ecdsa, vdf, vrf};
 use serde_json::Value;
 
@@ -1298,6 +1301,124 @@ fn fees_policy_base_fee() {
 }
 
 #[test]
+fn storage_persistent_sequence() {
+    let doc = load("storage-persistent.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut store = MessageStore::new(case["capacity"].as_u64().unwrap() as usize).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            match step["op"].as_str().unwrap() {
+                "put" => {
+                    assert_eq!(
+                        store.put(step["id"].as_str().unwrap(), step["body"].as_str().unwrap()),
+                        step["added"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "get" => {
+                    let (found, body) = store.get(step["id"].as_str().unwrap());
+                    assert_eq!(found, step["found"].as_bool().unwrap(), "{where_}");
+                    assert_eq!(body, step["body"].as_str().unwrap(), "{where_}");
+                }
+                "remove" => {
+                    assert_eq!(
+                        store.remove(step["id"].as_str().unwrap()),
+                        step["removed"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "load" => {
+                    assert_eq!(
+                        store.load(&as_core_json(&step["snapshot"])),
+                        step["ok"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                other => panic!("unknown op {other}"),
+            }
+            assert_eq!(store.ids(), json_strings(&step["ids"]), "{where_} ids");
+            assert_eq!(
+                store.len(),
+                step["size"].as_u64().unwrap() as usize,
+                "{where_} size"
+            );
+            let (entries, version) = store.dump();
+            assert_eq!(version, step["dump"]["v"].as_i64().unwrap(), "{where_} v");
+            let expected: Vec<(String, String)> = step["dump"]["entries"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|item| {
+                    (
+                        item["body"].as_str().unwrap().to_owned(),
+                        item["id"].as_str().unwrap().to_owned(),
+                    )
+                })
+                .collect();
+            assert_eq!(entries, expected, "{where_} dump");
+        }
+    }
+}
+
+#[test]
+fn cli_node_sequence() {
+    let doc = load("cli-node.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut session = NodeSession::new(
+            case["impl"].as_str().unwrap(),
+            case["listen"].as_str().unwrap(),
+        )
+        .unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let events = match step["op"].as_str().unwrap() {
+                "start" => session.start(),
+                "line" => session.handle(step["line"].as_str().unwrap()),
+                other => panic!("unknown op {other}"),
+            };
+            let expected: Vec<JsonValue> = step["events"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(as_core_json)
+                .collect();
+            assert_eq!(events, expected, "{where_} events");
+            let (closed, ids, peers) = session.state();
+            assert_eq!(closed, step["closed"].as_bool().unwrap(), "{where_} closed");
+            assert_eq!(ids, json_strings(&step["ids"]), "{where_} ids");
+            assert_eq!(peers, json_strings(&step["peers"]), "{where_} peers");
+        }
+    }
+}
+
+#[test]
+fn bittorrent_swarm_replay() {
+    let doc = load("bittorrent-swarm.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let digest = case["info_hash"].as_str().unwrap();
+        let mut obj = Swarm::new();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = as_core_json(&step["message"]);
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            assert_eq!(
+                obj.assembled(digest),
+                step["assembled"].as_str().map(str::to_owned),
+                "{where_} assembled"
+            );
+            assert_eq!(obj.state(), as_core_json(&step["state"]), "{where_} state");
+        }
+    }
+}
+
+#[test]
 fn vector_files_declare_feature() {
     for name in [
         "canonical-json.json",
@@ -1321,6 +1442,9 @@ fn vector_files_declare_feature() {
         "ledger-utxo.json",
         "mempool-basic.json",
         "fees-policy.json",
+        "storage-persistent.json",
+        "cli-node.json",
+        "bittorrent-swarm.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

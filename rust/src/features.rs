@@ -33,6 +33,9 @@ pub const FEATURES: &[&str] = &[
     "ledger.utxo",
     "mempool.basic",
     "fees.policy",
+    "storage.persistent",
+    "cli.node",
+    "bittorrent.swarm",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.

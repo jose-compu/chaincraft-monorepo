@@ -40,6 +40,10 @@ src/
   ledger_utxo.rs     Pedagogical UTXO ledger
   mempool.rs     Pedagogical transaction pool
   fees.rs        Pedagogical fee policy
+  storage.rs     Pedagogical message store
+  cli.rs         JSON-lines node command surface
+  bittorrent.rs  Pedagogical BitTorrent swarm + client
+  mesh.rs        TCP mesh (listen, hello, dedup, relay)
   dedup.rs       Seen-digest set and relay gate (§7)
   memento.rs     StateMemento (semantics-v1 §4)
   object.rs      ApplicationObject contract, digests, tie-break (§2, §5, §6)
@@ -47,7 +51,8 @@ src/
   error.rs       Error classes
   features.rs    Feature manifest
   bin/features.rs  Prints the manifest as JSON
-  bin/node.rs      TCP mesh node for the live interop runner
+  bin/node.rs      Wire CLI: connect / send / ids / quit
+  bin/bt_node.rs   BitTorrent client on Mesh (`bt.*` commands)
 tests/
   conformance.rs Shared vectors from conformance/vectors/
 ```

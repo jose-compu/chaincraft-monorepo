@@ -27,7 +27,8 @@
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "node": "node src/node.ts"
+    "node": "node src/node.ts",
+    "bt-node": "node src/btNode.ts"
   },
   "dependencies": {
     "@noble/curves": "^2.4.0",

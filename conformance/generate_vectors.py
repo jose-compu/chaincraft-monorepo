@@ -28,7 +28,10 @@ from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E
 from chaincraft_core.fees import charge, estimate, next_base_fee, select  # noqa: E402
 from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
 from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
+from chaincraft_core.bittorrent import Swarm, split_payload  # noqa: E402
+from chaincraft_core.cli import NodeSession  # noqa: E402
 from chaincraft_core.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
+from chaincraft_core.storage import MessageStore  # noqa: E402
 from chaincraft_core.canonical import canonical_json, payload_digest  # noqa: E402
 from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft_core.envelope import Envelope  # noqa: E402
@@ -1695,6 +1698,270 @@ def fees_policy_vectors() -> Dict[str, Any]:
     }
 
 
+def storage_persistent_vectors() -> Dict[str, Any]:
+    a = payload_digest({"n": 1})
+    b = payload_digest({"n": 2})
+    c = payload_digest({"n": 3})
+
+    def run(name: str, note: str, capacity: int, ops) -> Dict[str, Any]:
+        store = MessageStore(capacity)
+        steps = []
+        for op in ops:
+            kind = op["op"]
+            if kind == "put":
+                added = store.put(op["id"], op["body"])
+                step = {"op": "put", "id": op["id"], "body": op["body"], "added": added}
+            elif kind == "get":
+                step = {"op": "get", "id": op["id"], **store.get(op["id"])}
+            elif kind == "remove":
+                step = {"op": "remove", "id": op["id"], "removed": store.remove(op["id"])}
+            elif kind == "load":
+                step = {"op": "load", "snapshot": op["snapshot"], "ok": store.load(op["snapshot"])}
+            else:
+                raise ValueError(kind)
+            step["ids"] = store.ids()
+            step["size"] = len(store)
+            step["dump"] = store.dump()
+            steps.append(step)
+        return {"name": name, "note": note, "capacity": capacity, "steps": steps}
+
+    snapshot = {
+        "entries": [{"body": "one", "id": a}, {"body": "two", "id": b}],
+        "v": 1,
+    }
+    bad = {"entries": [{"body": "one", "id": a}, {"body": "dup", "id": a}], "v": 1}
+    sequence = [
+        run(
+            "put get overwrite and remove",
+            "replace does not move eviction rank",
+            8,
+            [
+                {"op": "put", "id": a, "body": "one"},
+                {"op": "put", "id": b, "body": "two"},
+                {"op": "put", "id": a, "body": "ONE"},
+                {"op": "get", "id": a},
+                {"op": "get", "id": "0" * 64},
+                {"op": "remove", "id": b},
+            ],
+        ),
+        run(
+            "fifo eviction",
+            "oldest insertion is dropped first",
+            2,
+            [
+                {"op": "put", "id": a, "body": "one"},
+                {"op": "put", "id": b, "body": "two"},
+                {"op": "put", "id": c, "body": "three"},
+            ],
+        ),
+        run(
+            "load replaces; bad snapshot is rejected",
+            "capacity and uniqueness are enforced",
+            2,
+            [
+                {"op": "put", "id": c, "body": "keep"},
+                {"op": "load", "snapshot": snapshot},
+                {"op": "load", "snapshot": bad},
+            ],
+        ),
+        run(
+            "invalid id rejected",
+            "id must be 64 lowercase hex",
+            8,
+            [{"op": "put", "id": "not-hex", "body": "x"}],
+        ),
+    ]
+    return {
+        **header(
+            "storage.persistent",
+            "SPEC/features/storage-persistent.md",
+            "Message store: content-addressed put, FIFO eviction, dump/load.",
+        ),
+        "sequence": sequence,
+    }
+
+
+def cli_node_vectors() -> Dict[str, Any]:
+    impl = "py-chaincraft/1.0.0"
+    listen = "127.0.0.1:21000"
+    peer = "10.0.0.2:9735"
+
+    def run(name: str, note: str, ops) -> Dict[str, Any]:
+        session = NodeSession(impl, listen)
+        steps = []
+        for op in ops:
+            kind = op["op"]
+            if kind == "start":
+                events = session.start()
+                step = {"op": "start", "events": events}
+            elif kind == "line":
+                events = session.handle(op["line"])
+                step = {"op": "line", "line": op["line"], "events": events}
+            else:
+                raise ValueError(kind)
+            step.update(session.state())
+            steps.append(step)
+        return {
+            "name": name,
+            "note": note,
+            "impl": impl,
+            "listen": listen,
+            "steps": steps,
+        }
+
+    send = canonical_json({"cmd": "send", "data": {"n": 1}, "type": "app.interop"})
+    sequence = [
+        run(
+            "start connect send and ids",
+            "payload digest is the sent id",
+            [
+                {"op": "start"},
+                {"op": "line", "line": canonical_json({"addr": peer, "cmd": "connect"})},
+                {"op": "line", "line": canonical_json({"addr": peer, "cmd": "connect"})},
+                {"op": "line", "line": send},
+                {"op": "line", "line": canonical_json({"cmd": "ids"})},
+            ],
+        ),
+        run(
+            "rejects and quit",
+            "closed session accepts no further commands",
+            [
+                {"op": "start"},
+                {"op": "line", "line": "   "},
+                {"op": "line", "line": "{not json"},
+                {"op": "line", "line": canonical_json({"cmd": "connect", "addr": "bad"})},
+                {"op": "line", "line": canonical_json({"cmd": "send", "type": "Nope", "data": {}})},
+                {"op": "line", "line": canonical_json({"cmd": "nope"})},
+                {"op": "line", "line": canonical_json({"cmd": "quit"})},
+                {"op": "line", "line": canonical_json({"cmd": "ids"})},
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "cli.node",
+            "SPEC/features/cli-node.md",
+            "JSON-lines node commands and events, no sockets.",
+        ),
+        "impl": impl,
+        "listen": listen,
+        "sequence": sequence,
+    }
+
+
+def bittorrent_swarm_vectors() -> Dict[str, Any]:
+    seed = split_payload("demo", "ABCDEFGHIJKL", 4)
+    digest = seed["info_hash"]
+    corrupt = "00" * 4
+    replay = []
+
+    def run(name: str, note: str, messages: List[Any]) -> Dict[str, Any]:
+        obj = Swarm()
+        steps = []
+        for message in messages:
+            accepted = obj.is_valid(message)
+            if accepted:
+                obj.add_message(message)
+            snap = obj.state()
+            steps.append(
+                {
+                    "accepted": accepted,
+                    "assembled": obj.assembled(digest),
+                    "message": message,
+                    "state": snap,
+                }
+            )
+        return {"name": name, "note": note, "info_hash": digest, "steps": steps}
+
+    metainfo = {"bt": "metainfo", "name": "demo", "pieces": seed["pieces"]}
+    pieces = [
+        {
+            "bt": "piece",
+            "data": payload,
+            "index": index,
+            "info_hash": digest,
+            "peer": "alice",
+        }
+        for index, payload in enumerate(seed["payloads"])
+    ]
+    replay.append(
+        run(
+            "seed three pieces",
+            "alice completes; assembled bytes match",
+            [metainfo, *pieces],
+        )
+    )
+    replay.append(
+        run(
+            "have without data",
+            "bob is advertised only",
+            [
+                metainfo,
+                {"bt": "have", "index": 0, "info_hash": digest, "peer": "bob"},
+            ],
+        )
+    )
+    replay.append(
+        run(
+            "corrupt piece rejected",
+            "hash mismatch does not mutate",
+            [
+                metainfo,
+                {
+                    "bt": "piece",
+                    "data": corrupt,
+                    "index": 0,
+                    "info_hash": digest,
+                    "peer": "alice",
+                },
+            ],
+        )
+    )
+    replay.append(
+        run(
+            "idempotent metainfo and request",
+            "request is valid and leaves state unchanged",
+            [
+                metainfo,
+                metainfo,
+                {"bt": "request", "index": 0, "info_hash": digest, "peer": "bob"},
+            ],
+        )
+    )
+    replay.append(
+        run(
+            "unknown torrent rejected",
+            "have before metainfo is invalid",
+            [{"bt": "have", "index": 0, "info_hash": digest, "peer": "bob"}],
+        )
+    )
+    replay.append(
+        run(
+            "prototype limits",
+            "name length and piece count are capped",
+            [
+                {"bt": "metainfo", "name": "x" * 65, "pieces": ["0" * 64]},
+                {"bt": "metainfo", "name": "ok", "pieces": ["0" * 64] * 65},
+            ],
+        )
+    )
+    return {
+        **header(
+            "bittorrent.swarm",
+            "SPEC/features/bittorrent-swarm.md",
+            "Pedagogical BitTorrent: metainfo, verified pieces, have-set.",
+        ),
+        "assembled": bytes("ABCDEFGHIJKL", "utf-8").hex(),
+        "info_hash": digest,
+        "length": seed["length"],
+        "name": "demo",
+        "payload": "ABCDEFGHIJKL",
+        "piece_size": 4,
+        "pieces": seed["pieces"],
+        "replay": replay,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -1725,6 +1992,11 @@ def main() -> int:
     print("\nLevel 2 — mempool and fees")
     write("mempool-basic.json", mempool_basic_vectors())
     write("fees-policy.json", fees_policy_vectors())
+    print("\nLevel 2 — storage and CLI")
+    write("storage-persistent.json", storage_persistent_vectors())
+    write("cli-node.json", cli_node_vectors())
+    print("\nLevel 2 — BitTorrent swarm")
+    write("bittorrent-swarm.json", bittorrent_swarm_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

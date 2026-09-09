@@ -1,0 +1,202 @@
+"""TCP mesh — SPEC/wire-v1.md §4, §5, §7, §8.
+
+Application protocols attach via `on_app`, not by editing this module.
+"""
+
+from __future__ import annotations
+
+import json
+import socket
+import sys
+import threading
+from typing import Any, Callable, Dict, List, Optional
+
+from . import IMPL
+from . import control
+from .dedup import Deduplicator
+from .discovery import is_connect_allowed, is_resolved_ip_allowed
+from .envelope import Envelope, ProtocolError
+from .framing import FrameReader, FramingError, encode_frame
+
+MAX_PEERS = 16
+MAX_RECEIVED = 4096
+MAX_STDIN_LINE = 1_048_576
+CONNECT_TIMEOUT_S = 5
+NODE_MAX_FRAME = 262_144
+
+EventFn = Callable[[Dict[str, Any]], None]
+AppFn = Callable[[str, Any], None]
+
+
+class _Peer:
+    def __init__(self, sock: socket.socket, addr: str) -> None:
+        self.sock = sock
+        self.addr = addr
+        self.lock = threading.Lock()
+        self.impl: Optional[str] = None
+
+
+class Mesh:
+    """Listen, connect, hello, dedup and relay."""
+
+    def __init__(
+        self,
+        impl: str = IMPL,
+        on_event: Optional[EventFn] = None,
+        on_app: Optional[AppFn] = None,
+    ) -> None:
+        self.impl = impl
+        self.on_event = on_event or (lambda _e: None)
+        self.on_app = on_app or (lambda _t, _d: None)
+        self.dedup = Deduplicator()
+        self.peers: List[_Peer] = []
+        self.received: List[Dict[str, Any]] = []
+        self.lock = threading.Lock()
+        self.listen_addr = ""
+        self._listener: Optional[socket.socket] = None
+
+    def start(self, host: str = "127.0.0.1", port: int = 0) -> str:
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listener.bind((host, port))
+        listener.listen(16)
+        self._listener = listener
+        bound_host, bound_port = listener.getsockname()
+        self.listen_addr = f"{bound_host}:{bound_port}"
+        threading.Thread(target=self._accept, daemon=True).start()
+        return self.listen_addr
+
+    def connect(self, addr: str) -> None:
+        if not is_connect_allowed(addr):
+            raise ValueError("address not allowed")
+        host, port_s = addr.rsplit(":", 1)
+        infos = socket.getaddrinfo(host, int(port_s), socket.AF_INET, socket.SOCK_STREAM)
+        if not infos:
+            raise ValueError("unresolvable")
+        sockaddr = infos[0][4]
+        if not is_resolved_ip_allowed(sockaddr[0]):
+            raise ValueError("address not allowed")
+        sock = socket.create_connection(sockaddr, timeout=CONNECT_TIMEOUT_S)
+        sock.settimeout(None)
+        self._add_peer(sock, addr)
+
+    def broadcast(self, type_name: str, data: Any) -> str:
+        env = Envelope.build(type_name, data)
+        with self.lock:
+            fresh = self.dedup.should_process(env)
+            if fresh:
+                self._record(env)
+            peers = list(self.peers)
+        if fresh:
+            for peer in peers:
+                self._write(peer, env)
+            self.on_app(type_name, data)
+        return env.id
+
+    def _record(self, env: Envelope) -> None:
+        if len(self.received) >= MAX_RECEIVED:
+            self.received.pop(0)
+        self.received.append({"id": env.id, "type": env.type, "data": env.data})
+
+    def ids(self) -> List[str]:
+        with self.lock:
+            return [item["id"] for item in self.received]
+
+    def close(self) -> None:
+        if self._listener is not None:
+            try:
+                self._listener.close()
+            except OSError:
+                pass
+        with self.lock:
+            peers = list(self.peers)
+        for peer in peers:
+            try:
+                peer.sock.close()
+            except OSError:
+                pass
+
+    def _accept(self) -> None:
+        assert self._listener is not None
+        while True:
+            try:
+                sock, addr = self._listener.accept()
+            except OSError:
+                return
+            self._add_peer(sock, f"{addr[0]}:{addr[1]}")
+
+    def _add_peer(self, sock: socket.socket, addr: str) -> None:
+        peer = _Peer(sock, addr)
+        with self.lock:
+            if len(self.peers) >= MAX_PEERS:
+                try:
+                    sock.close()
+                except OSError:
+                    pass
+                return
+            self.peers.append(peer)
+        self._write(peer, control.hello(self.impl, listen=self.listen_addr))
+        threading.Thread(target=self._read_loop, args=(peer,), daemon=True).start()
+
+    def _write(self, peer: _Peer, env: Envelope) -> None:
+        frame = encode_frame(env.to_bytes())
+        with peer.lock:
+            peer.sock.sendall(frame)
+
+    def _read_loop(self, peer: _Peer) -> None:
+        reader = FrameReader(max_frame_bytes=NODE_MAX_FRAME)
+        try:
+            while True:
+                chunk = peer.sock.recv(65536)
+                if not chunk:
+                    break
+                for body in reader.feed(chunk):
+                    self._handle(peer, body)
+        except (OSError, FramingError, ProtocolError, ValueError) as exc:
+            self.on_event({"event": "error", "message": str(exc), "addr": peer.addr})
+        finally:
+            self._drop(peer)
+
+    def _handle(self, peer: _Peer, body: bytes) -> None:
+        env = Envelope.parse(body)
+        if env.is_control():
+            if env.type == control.HELLO:
+                hello = control.parse_hello(env)
+                peer.impl = hello["impl"]
+                self.on_event(
+                    {"event": "hello", "peer": hello["impl"], "addr": peer.addr}
+                )
+            return
+        with self.lock:
+            if not self.dedup.should_process(env):
+                return
+            self._record(env)
+            should_relay = self.dedup.should_relay(env)
+            peers = list(self.peers)
+        self.on_event(
+            {"event": "received", "id": env.id, "type": env.type, "data": env.data}
+        )
+        if should_relay:
+            for other in peers:
+                if other is peer:
+                    continue
+                try:
+                    self._write(other, env)
+                except OSError:
+                    pass
+        self.on_app(env.type, env.data)
+
+    def _drop(self, peer: _Peer) -> None:
+        with self.lock:
+            if peer in self.peers:
+                self.peers.remove(peer)
+        try:
+            peer.sock.close()
+        except OSError:
+            pass
+
+
+def emit(event: Dict[str, Any], lock: threading.Lock) -> None:
+    with lock:
+        sys.stdout.write(json.dumps(event, separators=(",", ":")) + "\n")
+        sys.stdout.flush()

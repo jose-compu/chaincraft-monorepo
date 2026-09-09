@@ -45,6 +45,9 @@ export const FEATURES: readonly string[] = [
   'ledger.utxo',
   'mempool.basic',
   'fees.policy',
+  'storage.persistent',
+  'cli.node',
+  'bittorrent.swarm',
 ];
 
 export interface Manifest {

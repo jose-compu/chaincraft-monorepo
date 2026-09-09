@@ -631,6 +631,73 @@ def test_fees_policy_base_fee(case):
     assert next_base_fee(case["base"], case["parent_count"], case["target"]) == case["next"]
 
 
+# --- Level 2 storage and CLI ------------------------------------------------
+
+
+@cases("storage-persistent.json", "sequence")
+def test_storage_persistent_sequence(case):
+    from chaincraft_core.storage import MessageStore
+
+    store = MessageStore(case["capacity"])
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "put":
+            assert store.put(step["id"], step["body"]) is step["added"], where
+        elif op == "get":
+            assert store.get(step["id"]) == {"body": step["body"], "found": step["found"]}, where
+        elif op == "remove":
+            assert store.remove(step["id"]) is step["removed"], where
+        elif op == "load":
+            assert store.load(step["snapshot"]) is step["ok"], where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert store.ids() == step["ids"], where
+        assert len(store) == step["size"], where
+        assert store.dump() == step["dump"], where
+
+
+@cases("cli-node.json", "sequence")
+def test_cli_node_sequence(case):
+    from chaincraft_core.cli import NodeSession
+
+    session = NodeSession(case["impl"], case["listen"])
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "start":
+            events = session.start()
+        elif op == "line":
+            events = session.handle(step["line"])
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert events == step["events"], where
+        assert session.state() == {
+            "closed": step["closed"],
+            "ids": step["ids"],
+            "peers": step["peers"],
+        }, where
+
+
+# --- Level 2 BitTorrent -----------------------------------------------------
+
+
+@cases("bittorrent-swarm.json", "replay")
+def test_bittorrent_swarm_replay(case):
+    from chaincraft_core.bittorrent import Swarm
+
+    obj = Swarm()
+    digest = case["info_hash"]
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index}"
+        accepted = obj.is_valid(step["message"])
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(step["message"])
+        assert obj.assembled(digest) == step["assembled"], where
+        assert obj.state() == step["state"], where
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

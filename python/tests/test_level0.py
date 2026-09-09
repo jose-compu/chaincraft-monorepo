@@ -8,6 +8,7 @@ from chaincraft_core import canonical, control, crypto, envelope, framing
 from chaincraft_core.canonical import CanonicalError, canonical_json, payload_digest
 from chaincraft_core.dedup import Deduplicator, SeenDigests
 from chaincraft_core.envelope import Envelope, ProtocolError
+from chaincraft_core.discovery import is_connect_allowed, is_resolved_ip_allowed
 from chaincraft_core.framing import FrameReader, FramingError, encode_frame
 
 
@@ -422,3 +423,20 @@ class TestDeduplication:
     def test_capacity_must_be_positive(self):
         with pytest.raises(ValueError):
             SeenDigests(capacity=0)
+
+
+class TestConnectPolicy:
+    def test_loopback_and_rfc1918_allowed(self):
+        assert is_connect_allowed("127.0.0.1:21000")
+        assert is_connect_allowed("10.0.0.2:9735")
+        assert is_connect_allowed("192.168.1.8:8080")
+        assert is_connect_allowed("172.16.0.1:1")
+        assert is_connect_allowed("localhost:9735")
+        assert is_connect_allowed("node-a.local:8080")
+
+    def test_public_and_metadata_refused(self):
+        assert not is_connect_allowed("8.8.8.8:53")
+        assert not is_connect_allowed("169.254.169.254:80")
+        assert not is_connect_allowed("0.0.0.0:21000")
+        assert not is_connect_allowed("example.com:443")
+        assert not is_resolved_ip_allowed("1.1.1.1")

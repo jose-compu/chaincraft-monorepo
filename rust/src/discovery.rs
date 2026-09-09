@@ -9,6 +9,38 @@ use indexmap::IndexMap;
 pub const DEFAULT_CAPACITY: usize = 50;
 pub const DEFAULT_TIMEOUT_MS: i64 = 120_000;
 
+pub fn is_resolved_ip_allowed(ip: &str) -> bool {
+    let labels: Vec<&str> = ip.split('.').collect();
+    if labels.len() != 4
+        || !labels
+            .iter()
+            .all(|label| label.bytes().all(|b| b.is_ascii_digit()))
+    {
+        return false;
+    }
+    let Ok(a) = labels[0].parse::<u32>() else {
+        return false;
+    };
+    let Ok(b) = labels[1].parse::<u32>() else {
+        return false;
+    };
+    a == 127 || a == 10 || (a == 192 && b == 168) || (a == 172 && (16..=31).contains(&b))
+}
+
+pub fn is_connect_allowed(address: &str) -> bool {
+    if !is_valid_address(address) {
+        return false;
+    }
+    let Some((host, _)) = split_host_port(address) else {
+        return false;
+    };
+    let lowered = host.to_ascii_lowercase();
+    if lowered == "localhost" || lowered.ends_with(".local") {
+        return true;
+    }
+    is_resolved_ip_allowed(host)
+}
+
 pub fn is_valid_address(address: &str) -> bool {
     match split_host_port(address) {
         Some((host, port)) => valid_host(host) && valid_port(port),

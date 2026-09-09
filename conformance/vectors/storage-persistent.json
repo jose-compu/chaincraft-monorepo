@@ -1,0 +1,338 @@
+{
+  "feature": "storage.persistent",
+  "spec": "SPEC/features/storage-persistent.md",
+  "description": "Message store: content-addressed put, FIFO eviction, dump/load.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "sequence": [
+    {
+      "name": "put get overwrite and remove",
+      "note": "replace does not move eviction rank",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "put",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "body": "one",
+          "added": true,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8",
+          "body": "two",
+          "added": true,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "body": "ONE",
+          "added": false,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "ONE",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "get",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "body": "ONE",
+          "found": true,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "ONE",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "get",
+          "id": "0000000000000000000000000000000000000000000000000000000000000000",
+          "body": "",
+          "found": false,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "ONE",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "remove",
+          "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8",
+          "removed": true,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "ONE",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "fifo eviction",
+      "note": "oldest insertion is dropped first",
+      "capacity": 2,
+      "steps": [
+        {
+          "op": "put",
+          "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+          "body": "one",
+          "added": true,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8",
+          "body": "two",
+          "added": true,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6",
+          "body": "three",
+          "added": true,
+          "ids": [
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8",
+            "215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              },
+              {
+                "body": "three",
+                "id": "215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "load replaces; bad snapshot is rejected",
+      "note": "capacity and uniqueness are enforced",
+      "capacity": 2,
+      "steps": [
+        {
+          "op": "put",
+          "id": "215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6",
+          "body": "keep",
+          "added": true,
+          "ids": [
+            "215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "keep",
+                "id": "215ddd5567ca2590efd4ea109b4e56cbe591e2676fbf54a9262692c539166da6"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "load",
+          "snapshot": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          },
+          "ok": true,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "load",
+          "snapshot": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "dup",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              }
+            ],
+            "v": 1
+          },
+          "ok": false,
+          "ids": [
+            "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd",
+            "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "one",
+                "id": "2bfd14f43d17fc7cea24e0917a8879b4b2f880b8baeec1b9d90fbaad655e71bd"
+              },
+              {
+                "body": "two",
+                "id": "363379742f80b51bdb9206579af7754911543079b9399cb3fc315fb199f476e8"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "invalid id rejected",
+      "note": "id must be 64 lowercase hex",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "put",
+          "id": "not-hex",
+          "body": "x",
+          "added": false,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        }
+      ]
+    }
+  ]
+}

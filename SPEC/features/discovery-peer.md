@@ -37,6 +37,20 @@ An address is `host:port`, split on the last `:`.
 
 IPv6 is rejected. Brackets, paths, spaces and empty labels are rejected.
 
+## Node connect policy
+
+`is_valid_address` is the book format. A node CLI `connect` is stricter:
+it is a prototype dial, not an open proxy.
+
+`is_connect_allowed(addr)` is true only when `addr` is a valid address
+and the host is loopback (`127.0.0.0/8` or `localhost`), RFC1918
+(`10/8`, `172.16/12`, `192.168/16`), or a `.local` hostname.
+
+After DNS resolution the node MUST dial only the first IPv4 result, and
+MUST refuse it unless that IP is loopback or RFC1918. Link-local
+(`169.254/16`), unspecified (`0.0.0.0`) and public addresses are
+refused. IPv6 is refused. Connect MUST time out within 5 seconds.
+
 The stored form is the input string after it has passed validation. No
 normalization of case. Comparison is exact.
 

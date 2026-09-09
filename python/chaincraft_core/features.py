@@ -48,6 +48,9 @@ FEATURES = frozenset(
         "ledger.utxo",
         "mempool.basic",
         "fees.policy",
+        "storage.persistent",
+        "cli.node",
+        "bittorrent.swarm",
     }
 )
 

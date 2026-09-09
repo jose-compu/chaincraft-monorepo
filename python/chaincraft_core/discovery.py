@@ -11,12 +11,40 @@ __all__ = [
     "DEFAULT_CAPACITY",
     "DEFAULT_TIMEOUT_MS",
     "is_valid_address",
+    "is_connect_allowed",
+    "is_resolved_ip_allowed",
     "AddressBook",
     "LocalDiscovery",
 ]
 
 DEFAULT_CAPACITY = 50
 DEFAULT_TIMEOUT_MS = 120_000
+
+
+def is_resolved_ip_allowed(ip: str) -> bool:
+    labels = ip.split(".")
+    if len(labels) != 4 or not all(label.isdigit() for label in labels):
+        return False
+    a, b = int(labels[0]), int(labels[1])
+    if a == 127:
+        return True
+    if a == 10:
+        return True
+    if a == 192 and b == 168:
+        return True
+    if a == 172 and 16 <= b <= 31:
+        return True
+    return False
+
+
+def is_connect_allowed(address: str) -> bool:
+    if not is_valid_address(address):
+        return False
+    host, _port = address.rsplit(":", 1)
+    lowered = host.lower()
+    if lowered == "localhost" or lowered.endswith(".local"):
+        return True
+    return is_resolved_ip_allowed(host)
 
 
 def is_valid_address(address: str) -> bool:

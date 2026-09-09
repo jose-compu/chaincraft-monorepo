@@ -268,17 +268,18 @@ one registry entry at a time, agent-ported and human-reviewed:
 4. `consensus.*` — PoW, PoS, PBFT examples ✅ (`consensus.pow`, `consensus.pos`, `consensus.pbft`)
 5. `ledger.*` — balance and UTXO models ✅ (`ledger.balance`, `ledger.utxo`)
 6. `mempool.*`, `fees.*` ✅ (`mempool.basic`, `fees.policy`)
-7. `storage.*` — persistence semantics
-8. `cli.*` — command surface
+7. `storage.*` — persistence semantics ✅ (`storage.persistent`)
+8. `cli.*` — command surface ✅ (`cli.node`)
 
 The grace period is suspended for Stage 8 backfill entries, which carry explicit
 milestone dates instead. Applying a 14-day clock to a pre-existing 113-module gap would
 paint CI red permanently and train everyone to ignore it.
 
-### Stage 9 — Prove it with `nostraft`
+### Stage 9 — Prove it with a mixed swarm ✅
 
-A mixed Rust/Python/TypeScript `nostraft` relay mesh. The demo that makes the whole
-exercise concrete.
+A mixed Rust/Python/TypeScript BitTorrent swarm
+(`conformance/runner/run_bittorrent.py`). Each language seeds once; the other
+two leech the same info-hash. `nostraft` remains a later out-of-repo consumer.
 
 ---
 

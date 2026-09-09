@@ -62,9 +62,9 @@ COMMANDS = {
 
 
 class Node:
-    def __init__(self, language: str) -> None:
+    def __init__(self, language: str, spec: Optional[Dict[str, Any]] = None) -> None:
         self.language = language
-        spec = COMMANDS[language]
+        spec = spec or COMMANDS[language]
         env = {**os.environ, **spec["env_extra"]}
         self.proc = subprocess.Popen(
             spec["cmd"],
@@ -136,11 +136,12 @@ class Node:
             self.proc.kill()
 
 
-def start_nodes() -> Dict[str, Node]:
+def start_nodes(commands: Optional[Dict[str, Any]] = None) -> Dict[str, Node]:
+    table = commands or COMMANDS
     nodes: Dict[str, Node] = {}
     for language in LANGUAGES:
         print(f"  starting {language} ...", flush=True)
-        node = Node(language)
+        node = Node(language, table[language])
         ready = node.wait_event("ready", timeout=60.0)
         node.addr = ready["addr"]
         node.impl = ready["impl"]

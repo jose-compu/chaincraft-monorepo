@@ -153,6 +153,7 @@ python3 conformance/run_all.py
 
 # Live 3x3 interop matrix
 python3 conformance/runner/run_interop.py
+python3 conformance/runner/run_bittorrent.py
 
 # Regenerate vectors — deliberate act, see section 7
 python3 conformance/generate_vectors.py

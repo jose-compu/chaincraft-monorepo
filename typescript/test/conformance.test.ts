@@ -21,6 +21,9 @@ import {
   BalanceLedger,
   UtxoLedger,
   Mempool,
+  MessageStore,
+  NodeSession,
+  Swarm,
   Deduplicator,
   fees,
   LocalDiscovery,
@@ -552,6 +555,55 @@ eachCase('fees-policy.json', 'base_fee', (c) => {
   assert.equal(fees.nextBaseFee(c['base'], c['parent_count'], c['target']), c['next']);
 });
 
+eachCase('storage-persistent.json', 'sequence', (c) => {
+  const store = new MessageStore(c['capacity']);
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    const op = step['op'];
+    if (op === 'put') {
+      assert.equal(store.put(step['id'], step['body']), step['added'], where);
+    } else if (op === 'get') {
+      assert.deepEqual(store.get(step['id']), { body: step['body'], found: step['found'] }, where);
+    } else if (op === 'remove') {
+      assert.equal(store.remove(step['id']), step['removed'], where);
+    } else if (op === 'load') {
+      assert.equal(store.load(step['snapshot']), step['ok'], where);
+    } else {
+      assert.fail(`unknown op ${op}`);
+    }
+    assert.deepEqual(store.ids(), step['ids'], where);
+    assert.equal(store.size, step['size'], where);
+    assert.deepEqual(store.dump(), step['dump'], where);
+  }
+});
+
+eachCase('cli-node.json', 'sequence', (c) => {
+  const session = new NodeSession(c['impl'], c['listen']);
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    const events = step['op'] === 'start' ? session.start() : session.handle(step['line']);
+    assert.deepEqual(events, step['events'], where);
+    assert.deepEqual(session.state(), {
+      closed: step['closed'],
+      ids: step['ids'],
+      peers: step['peers'],
+    }, where);
+  }
+});
+
+eachCase('bittorrent-swarm.json', 'replay', (c) => {
+  const obj = new Swarm();
+  const digest = c['info_hash'];
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index}`;
+    const accepted = obj.isValid(step['message']);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(step['message']);
+    assert.equal(obj.assembled(digest), step['assembled'], where);
+    assert.deepEqual(obj.state(), step['state'], where);
+  }
+});
+
 eachCase('consensus-pbft.json', 'replay', (c) => {
   const obj = new PBFT();
   for (const [index, step] of c['steps'].entries()) {
@@ -595,6 +647,9 @@ test('every vector file declares its feature', () => {
     'ledger-utxo.json',
     'mempool-basic.json',
     'fees-policy.json',
+    'storage-persistent.json',
+    'cli-node.json',
+    'bittorrent-swarm.json',
   ];
   for (const name of files) {
     const doc = load(name);

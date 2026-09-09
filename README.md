@@ -70,14 +70,14 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 5 | Rust core — Level 0 and Level 1 | done |
 | 6 | Live 3×3 interop matrix | done |
 | 7 | Level 1 replay parity | done |
-| 8 | Level 2 feature backfill | |
-| 9 | Mixed-language `nostraft` mesh | |
+| 8 | Level 2 feature backfill | done |
+| 9 | Mixed-language BitTorrent swarm | done |
 
-Python, TypeScript and Rust all cover Level 0, Level 1, and Level 2 crypto,
-discovery, consensus, ledgers, mempool and fees: 27 of 29 registry features
-each (TypeScript 26 implemented plus the UDP exemption). The one exemption in
-the registry is `wire.framing-udp` for TypeScript, since browsers have no raw
-UDP socket and UDP is optional at Level 0.
+Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
+registry and a pedagogical BitTorrent swarm: 30 of 30 features each
+(TypeScript 29 implemented plus the UDP exemption). The one exemption in
+the registry is `wire.framing-udp` for TypeScript, since browsers have no
+raw UDP socket and UDP is optional at Level 0.
 
 TypeScript was written from `SPEC/` alone, without reading the Python source, as a test of
 whether the specification was complete. It was not: the exercise found five defects,
@@ -146,6 +146,9 @@ python3 conformance/run_all.py
 
 # Live 3x3 interop matrix
 python3 conformance/runner/run_interop.py
+
+# Mixed-language BitTorrent swarm (each language seeds once)
+python3 conformance/runner/run_bittorrent.py
 
 # Parity
 python3 tools/parity_check.py

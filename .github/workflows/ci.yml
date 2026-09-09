@@ -296,10 +296,36 @@ jobs:
         if: steps.ready.outputs.ready == 'true'
         run: python3 conformance/runner/run_interop.py
 
+  bittorrent:
+    name: mixed bittorrent swarm
+    needs: [python, rust, typescript]
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Python node
+        working-directory: python
+        run: pip install -e .
+      - name: Install TypeScript node
+        working-directory: typescript
+        run: npm ci || npm install
+      - name: Build Rust node
+        working-directory: rust
+        run: cargo build --bin node --bin bt_node
+      - name: Run the 3-client swarm
+        run: python3 conformance/runner/run_bittorrent.py
+
   ci:
     name: CI
     runs-on: ubuntu-latest
-    needs: [parity, vectors, python, rust, typescript, interop]
+    needs: [parity, vectors, python, rust, typescript, interop, bittorrent]
     if: always()
     steps:
       - name: Fail if any required job failed

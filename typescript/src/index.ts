@@ -80,6 +80,19 @@ export { BalanceLedger, DEFAULT_ALLOCATIONS as BALANCE_DEFAULT_ALLOCATIONS } fro
 export { UtxoLedger, DEFAULT_ALLOCATIONS as UTXO_DEFAULT_ALLOCATIONS, transactionId } from './ledgerUtxo.ts';
 export { Mempool, transactionId as mempoolTransactionId } from './mempool.ts';
 export * as fees from './fees.ts';
+export { MessageStore, isValidId as isValidStoreId } from './storage.ts';
+export { NodeSession } from './cli.ts';
+export {
+  BitTorrentClient,
+  Swarm,
+  WIRE_TYPE,
+  MAX_NAME_LEN,
+  MAX_PEER_ID_LEN,
+  infoHash,
+  pieceHash,
+  splitPayload,
+} from './bittorrent.ts';
+export { Mesh } from './mesh.ts';
 export * as ecdsa from './ecdsa.ts';
 export * as vdf from './vdf.ts';
 export * as vrf from './vrf.ts';
@@ -89,6 +102,8 @@ export {
   DEFAULT_CAPACITY as DISCOVERY_DEFAULT_CAPACITY,
   DEFAULT_TIMEOUT_MS as DISCOVERY_DEFAULT_TIMEOUT_MS,
   isValidAddress,
+  isConnectAllowed,
+  isResolvedIpAllowed,
 } from './discovery.ts';
 
 export {

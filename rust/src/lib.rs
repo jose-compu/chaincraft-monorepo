@@ -2,7 +2,9 @@
 //!
 //! Implements SPEC/wire-v1.md and SPEC/semantics-v1.md.
 
+pub mod bittorrent;
 pub mod canonical;
+pub mod cli;
 pub mod consensus_pbft;
 pub mod consensus_pos;
 pub mod consensus_pow;
@@ -20,8 +22,10 @@ pub mod ledger_balance;
 pub mod ledger_utxo;
 pub mod memento;
 pub mod mempool;
+pub mod mesh;
 pub mod object;
 pub mod pipeline;
+pub mod storage;
 pub mod vdf;
 pub mod vrf;
 
