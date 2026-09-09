@@ -44,6 +44,8 @@ src/
   consensusPbft.ts   Pedagogical PBFT object
   ledgerBalance.ts   Pedagogical account ledger
   ledgerUtxo.ts      Pedagogical UTXO ledger
+  mempool.ts     Pedagogical transaction pool
+  fees.ts        Pedagogical fee policy
   dedup.ts       Seen-digest set and relay gate (§7)
   memento.ts     StateMemento (semantics-v1 §4)
   object.ts      Object contract and digests (§2, §5, §6)

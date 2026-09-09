@@ -78,6 +78,8 @@ export { ProofOfStake, DEFAULT_SEED, DEFAULT_VALIDATORS, proposerFor } from './c
 export { ProofOfWork, DEFAULT_DIFFICULTY, blockId, meetsWork } from './consensusPow.ts';
 export { BalanceLedger, DEFAULT_ALLOCATIONS as BALANCE_DEFAULT_ALLOCATIONS } from './ledgerBalance.ts';
 export { UtxoLedger, DEFAULT_ALLOCATIONS as UTXO_DEFAULT_ALLOCATIONS, transactionId } from './ledgerUtxo.ts';
+export { Mempool, transactionId as mempoolTransactionId } from './mempool.ts';
+export * as fees from './fees.ts';
 export * as ecdsa from './ecdsa.ts';
 export * as vdf from './vdf.ts';
 export * as vrf from './vrf.ts';

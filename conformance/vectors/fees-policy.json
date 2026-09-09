@@ -1,0 +1,159 @@
+{
+  "feature": "fees.policy",
+  "spec": "SPEC/features/fees-policy.md",
+  "description": "Fee policy: rank, burn split, median estimate, integer base-fee step.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "select": [
+    {
+      "name": "highest fee then lowest id",
+      "candidates": [
+        {
+          "id": "b",
+          "fee": 1
+        },
+        {
+          "id": "a",
+          "fee": 9
+        },
+        {
+          "id": "c",
+          "fee": 9
+        },
+        {
+          "id": "d",
+          "fee": 5
+        },
+        {
+          "id": "",
+          "fee": 99
+        },
+        {
+          "id": "a",
+          "fee": 1
+        }
+      ],
+      "limit": 3,
+      "ids": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    {
+      "name": "limit one",
+      "candidates": [
+        {
+          "id": "b",
+          "fee": 1
+        },
+        {
+          "id": "a",
+          "fee": 9
+        },
+        {
+          "id": "c",
+          "fee": 9
+        },
+        {
+          "id": "d",
+          "fee": 5
+        },
+        {
+          "id": "",
+          "fee": 99
+        },
+        {
+          "id": "a",
+          "fee": 1
+        }
+      ],
+      "limit": 1,
+      "ids": [
+        "a"
+      ]
+    }
+  ],
+  "charge": [
+    {
+      "name": "tip only",
+      "fee": 7,
+      "base": 0,
+      "burned": 0,
+      "charged": 7,
+      "tip": 7
+    },
+    {
+      "name": "base burned",
+      "fee": 8,
+      "base": 5,
+      "burned": 5,
+      "charged": 8,
+      "tip": 3
+    },
+    {
+      "name": "fee below base",
+      "fee": 3,
+      "base": 5,
+      "burned": 3,
+      "charged": 3,
+      "tip": 0
+    }
+  ],
+  "estimate": [
+    {
+      "name": "empty",
+      "fees": [],
+      "estimate": 0
+    },
+    {
+      "name": "odd",
+      "fees": [
+        10,
+        6,
+        2
+      ],
+      "estimate": 6
+    },
+    {
+      "name": "even floor average",
+      "fees": [
+        10,
+        7,
+        5,
+        2
+      ],
+      "estimate": 6
+    }
+  ],
+  "base_fee": [
+    {
+      "name": "at target",
+      "base": 100,
+      "parent_count": 5,
+      "target": 5,
+      "next": 100
+    },
+    {
+      "name": "above target",
+      "base": 100,
+      "parent_count": 10,
+      "target": 5,
+      "next": 112
+    },
+    {
+      "name": "below target",
+      "base": 100,
+      "parent_count": 0,
+      "target": 5,
+      "next": 88
+    },
+    {
+      "name": "floor is one",
+      "base": 1,
+      "parent_count": 0,
+      "target": 5,
+      "next": 1
+    }
+  ]
+}

@@ -43,6 +43,8 @@ export const FEATURES: readonly string[] = [
   'consensus.pbft',
   'ledger.balance',
   'ledger.utxo',
+  'mempool.basic',
+  'fees.policy',
 ];
 
 export interface Manifest {

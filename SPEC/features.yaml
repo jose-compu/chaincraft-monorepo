@@ -347,28 +347,28 @@ features:
   - id: mempool.basic
     level: 2
     spec: SPEC/features/mempool-basic.md
-    summary: Transaction mempool with eviction policy
-    vectors: null
+    summary: Pedagogical mempool with RBF, sender cap, TTL and lowest-fee eviction
+    vectors: conformance/vectors/mempool-basic.json
     backfill: true
     legacy: python/chaincraft@0.7 mempool
     milestone: "2026-12-15"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: fees.policy
     level: 2
     spec: SPEC/features/fees-policy.md
-    summary: Fee estimation and policy enforcement
-    vectors: null
+    summary: Pedagogical fee ranking, burn split, median estimate and base-fee step
+    vectors: conformance/vectors/fees-policy.json
     backfill: true
     legacy: python/chaincraft@0.7 fees
     milestone: "2026-12-15"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: storage.persistent
     level: 2

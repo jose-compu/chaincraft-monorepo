@@ -31,6 +31,8 @@ chaincraft_core/
   consensus_pbft.py  Pedagogical PBFT object
   ledger_balance.py  Pedagogical account ledger
   ledger_utxo.py     Pedagogical UTXO ledger
+  mempool.py     Pedagogical transaction pool
+  fees.py        Pedagogical fee policy
   dedup.py       Seen-digest set and relay gate (§7)
   memento.py     StateMemento (semantics-v1 §4)
   object.py      SharedObject contract, digests, tie-break (§2, §5, §6)

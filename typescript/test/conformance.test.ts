@@ -20,7 +20,9 @@ import {
   ProofOfWork,
   BalanceLedger,
   UtxoLedger,
+  Mempool,
   Deduplicator,
+  fees,
   LocalDiscovery,
   Envelope,
   FrameReader,
@@ -501,6 +503,55 @@ eachCase('ledger-utxo.json', 'replay', (c, doc) => {
   }
 });
 
+eachCase('mempool-basic.json', 'sequence', (c) => {
+  const pool = new Mempool(
+    c['capacity'],
+    c['min_fee'],
+    c['ttl_ms'],
+    c['max_per_sender'],
+    c['rbf_min_increase'],
+  );
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    const op = step['op'];
+    if (op === 'insert') {
+      const result = pool.insert(step['tx'], step['now_ms']);
+      assert.equal(result.accepted, step['accepted'], where);
+      assert.equal(result.replaced, step['replaced'], where);
+      assert.equal(result.evicted, step['evicted'], where);
+      assert.equal(result.expired, step['expired'], where);
+    } else if (op === 'remove') {
+      assert.equal(pool.remove(step['id']), step['removed'], where);
+    } else if (op === 'sweep') {
+      assert.equal(pool.sweep(step['now_ms']), step['expired'], where);
+    } else {
+      assert.fail(`unknown op ${op}`);
+    }
+    assert.deepEqual(pool.ids(), step['ids'], where);
+    assert.equal(pool.size, step['size'], where);
+  }
+});
+
+eachCase('fees-policy.json', 'select', (c) => {
+  assert.deepEqual(fees.select(c['candidates'], c['limit']), c['ids']);
+});
+
+eachCase('fees-policy.json', 'charge', (c) => {
+  assert.deepEqual(fees.charge(c['fee'], c['base']), {
+    burned: c['burned'],
+    charged: c['charged'],
+    tip: c['tip'],
+  });
+});
+
+eachCase('fees-policy.json', 'estimate', (c) => {
+  assert.equal(fees.estimate(c['fees']), c['estimate']);
+});
+
+eachCase('fees-policy.json', 'base_fee', (c) => {
+  assert.equal(fees.nextBaseFee(c['base'], c['parent_count'], c['target']), c['next']);
+});
+
 eachCase('consensus-pbft.json', 'replay', (c) => {
   const obj = new PBFT();
   for (const [index, step] of c['steps'].entries()) {
@@ -542,6 +593,8 @@ test('every vector file declares its feature', () => {
     'consensus-pbft.json',
     'ledger-balance.json',
     'ledger-utxo.json',
+    'mempool-basic.json',
+    'fees-policy.json',
   ];
   for (const name of files) {
     const doc = load(name);

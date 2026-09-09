@@ -566,6 +566,71 @@ def test_ledger_utxo_replay(case):
         }, where
 
 
+# --- Level 2 mempool and fees -----------------------------------------------
+
+
+@cases("mempool-basic.json", "sequence")
+def test_mempool_basic_sequence(case):
+    from chaincraft_core.mempool import Mempool
+
+    pool = Mempool(
+        capacity=case["capacity"],
+        min_fee=case["min_fee"],
+        ttl_ms=case["ttl_ms"],
+        max_per_sender=case["max_per_sender"],
+        rbf_min_increase=case["rbf_min_increase"],
+    )
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "insert":
+            result = pool.insert(step["tx"], step["now_ms"])
+            assert result["accepted"] is step["accepted"], where
+            assert result["replaced"] == step["replaced"], where
+            assert result["evicted"] == step["evicted"], where
+            assert result["expired"] == step["expired"], where
+        elif op == "remove":
+            assert pool.remove(step["id"]) is step["removed"], where
+        elif op == "sweep":
+            assert pool.sweep(step["now_ms"]) == step["expired"], where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert pool.ids() == step["ids"], where
+        assert len(pool) == step["size"], where
+
+
+@cases("fees-policy.json", "select")
+def test_fees_policy_select(case):
+    from chaincraft_core.fees import select
+
+    assert select(case["candidates"], case["limit"]) == case["ids"]
+
+
+@cases("fees-policy.json", "charge")
+def test_fees_policy_charge(case):
+    from chaincraft_core.fees import charge
+
+    assert charge(case["fee"], case["base"]) == {
+        "burned": case["burned"],
+        "charged": case["charged"],
+        "tip": case["tip"],
+    }
+
+
+@cases("fees-policy.json", "estimate")
+def test_fees_policy_estimate(case):
+    from chaincraft_core.fees import estimate
+
+    assert estimate(case["fees"]) == case["estimate"]
+
+
+@cases("fees-policy.json", "base_fee")
+def test_fees_policy_base_fee(case):
+    from chaincraft_core.fees import next_base_fee
+
+    assert next_base_fee(case["base"], case["parent_count"], case["target"]) == case["next"]
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

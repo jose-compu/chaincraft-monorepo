@@ -1,0 +1,370 @@
+{
+  "feature": "mempool.basic",
+  "spec": "SPEC/features/mempool-basic.md",
+  "description": "Mempool: min fee, RBF, sender cap, lowest-fee eviction, TTL.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "now_ms": 1757430000000,
+  "sequence": [
+    {
+      "name": "min fee and duplicate rejected",
+      "note": "floor then content-addressed id",
+      "capacity": 8,
+      "min_fee": 5,
+      "ttl_ms": 60000,
+      "max_per_sender": 0,
+      "rbf_min_increase": 1,
+      "steps": [
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 4,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": false,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [],
+          "size": 0
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 5,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "af1ce91e10bc738ab202a8201ad3660ce820b2d2a4f030346e94474afa4d2f9f"
+          ],
+          "size": 1
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 5,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": false,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "af1ce91e10bc738ab202a8201ad3660ce820b2d2a4f030346e94474afa4d2f9f"
+          ],
+          "size": 1
+        }
+      ]
+    },
+    {
+      "name": "replace by fee",
+      "note": "same sender and nonce, higher fee replaces",
+      "capacity": 8,
+      "min_fee": 0,
+      "ttl_ms": 60000,
+      "max_per_sender": 0,
+      "rbf_min_increase": 1,
+      "steps": [
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 3,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "7a156d189efd882839843b68ac5da8dc1bced90b716abb7a0d30b7b5b14a6b8e"
+          ],
+          "size": 1
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 5,
+            "nonce": 0,
+            "payload": "q",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "7a156d189efd882839843b68ac5da8dc1bced90b716abb7a0d30b7b5b14a6b8e",
+          "ids": [
+            "ff16b43c1844464f908eeac28eb115d8e6b522015a81ae8e92fe1c3c32f81191"
+          ],
+          "size": 1
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 3,
+            "nonce": 0,
+            "payload": "r",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": false,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "ff16b43c1844464f908eeac28eb115d8e6b522015a81ae8e92fe1c3c32f81191"
+          ],
+          "size": 1
+        }
+      ]
+    },
+    {
+      "name": "per-sender cap",
+      "note": "a replacement is not a second slot",
+      "capacity": 8,
+      "min_fee": 0,
+      "ttl_ms": 60000,
+      "max_per_sender": 1,
+      "rbf_min_increase": 1,
+      "steps": [
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 3,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "7a156d189efd882839843b68ac5da8dc1bced90b716abb7a0d30b7b5b14a6b8e"
+          ],
+          "size": 1
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 3,
+            "nonce": 1,
+            "payload": "p",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": false,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "7a156d189efd882839843b68ac5da8dc1bced90b716abb7a0d30b7b5b14a6b8e"
+          ],
+          "size": 1
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 3,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "carol"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "7a156d189efd882839843b68ac5da8dc1bced90b716abb7a0d30b7b5b14a6b8e",
+            "9dbeaea3d58158d867417e74a46b453ccbc36666dc006d0fdd1670317fded163"
+          ],
+          "size": 2
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 5,
+            "nonce": 0,
+            "payload": "q",
+            "sender": "alice"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "7a156d189efd882839843b68ac5da8dc1bced90b716abb7a0d30b7b5b14a6b8e",
+          "ids": [
+            "9dbeaea3d58158d867417e74a46b453ccbc36666dc006d0fdd1670317fded163",
+            "ff16b43c1844464f908eeac28eb115d8e6b522015a81ae8e92fe1c3c32f81191"
+          ],
+          "size": 2
+        }
+      ]
+    },
+    {
+      "name": "full pool evicts lowest fee",
+      "note": "ties keep the earlier insertion",
+      "capacity": 2,
+      "min_fee": 0,
+      "ttl_ms": 60000,
+      "max_per_sender": 0,
+      "rbf_min_increase": 1,
+      "steps": [
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 1,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "a"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "0fb4adcd8a4431618ddccdc384f862513cad3613bb1ac25a34caf8acaded8ffa"
+          ],
+          "size": 1
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 5,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "b"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "0fb4adcd8a4431618ddccdc384f862513cad3613bb1ac25a34caf8acaded8ffa",
+            "93e210ed3de8b7a1d4059f8e1d1ecfb42e8f0f645b705ecae770877bdbb9c9df"
+          ],
+          "size": 2
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 9,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "c"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "0fb4adcd8a4431618ddccdc384f862513cad3613bb1ac25a34caf8acaded8ffa",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "93e210ed3de8b7a1d4059f8e1d1ecfb42e8f0f645b705ecae770877bdbb9c9df",
+            "d64349298a4d664d54b87597b80a7cbc8fd01dbd7cbf5e57d944fbbc8cd40cf4"
+          ],
+          "size": 2
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 2,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "d"
+          },
+          "now_ms": 1757430000000,
+          "accepted": false,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "93e210ed3de8b7a1d4059f8e1d1ecfb42e8f0f645b705ecae770877bdbb9c9df",
+            "d64349298a4d664d54b87597b80a7cbc8fd01dbd7cbf5e57d944fbbc8cd40cf4"
+          ],
+          "size": 2
+        }
+      ]
+    },
+    {
+      "name": "ttl sweep and remove",
+      "note": "expiry uses the injected clock",
+      "capacity": 8,
+      "min_fee": 0,
+      "ttl_ms": 10,
+      "max_per_sender": 0,
+      "rbf_min_increase": 1,
+      "steps": [
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 1,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "a"
+          },
+          "now_ms": 1757430000000,
+          "accepted": true,
+          "evicted": "",
+          "expired": 0,
+          "replaced": "",
+          "ids": [
+            "0fb4adcd8a4431618ddccdc384f862513cad3613bb1ac25a34caf8acaded8ffa"
+          ],
+          "size": 1
+        },
+        {
+          "op": "insert",
+          "tx": {
+            "fee": 5,
+            "nonce": 0,
+            "payload": "p",
+            "sender": "b"
+          },
+          "now_ms": 1757430000015,
+          "accepted": true,
+          "evicted": "",
+          "expired": 1,
+          "replaced": "",
+          "ids": [
+            "93e210ed3de8b7a1d4059f8e1d1ecfb42e8f0f645b705ecae770877bdbb9c9df"
+          ],
+          "size": 1
+        },
+        {
+          "op": "remove",
+          "id": "93e210ed3de8b7a1d4059f8e1d1ecfb42e8f0f645b705ecae770877bdbb9c9df",
+          "removed": true,
+          "ids": [],
+          "size": 0
+        },
+        {
+          "op": "sweep",
+          "now_ms": 1757430000015,
+          "expired": 0,
+          "ids": [],
+          "size": 0
+        }
+      ]
+    }
+  ]
+}

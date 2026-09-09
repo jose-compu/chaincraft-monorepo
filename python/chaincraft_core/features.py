@@ -46,6 +46,8 @@ FEATURES = frozenset(
         "consensus.pbft",
         "ledger.balance",
         "ledger.utxo",
+        "mempool.basic",
+        "fees.policy",
     }
 )
 

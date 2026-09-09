@@ -25,8 +25,10 @@ from chaincraft_core import control, crypto, discovery, ecdsa, framing, vdf, vrf
 from chaincraft_core.consensus_pbft import PBFT  # noqa: E402
 from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
 from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
+from chaincraft_core.fees import charge, estimate, next_base_fee, select  # noqa: E402
 from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
 from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
+from chaincraft_core.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
 from chaincraft_core.canonical import canonical_json, payload_digest  # noqa: E402
 from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft_core.envelope import Envelope  # noqa: E402
@@ -1518,6 +1520,181 @@ def ledger_utxo_vectors() -> Dict[str, Any]:
     }
 
 
+def _tx(sender: str, nonce: int, fee: int, payload: str = "p") -> Dict[str, Any]:
+    return {"fee": fee, "nonce": nonce, "payload": payload, "sender": sender}
+
+
+def mempool_basic_vectors() -> Dict[str, Any]:
+    def run(name: str, note: str, kwargs: Dict[str, Any], ops) -> Dict[str, Any]:
+        pool = Mempool(**kwargs)
+        steps = []
+        for op in ops:
+            kind = op["op"]
+            if kind == "insert":
+                result = pool.insert(op["tx"], op["now_ms"])
+                step = {"op": "insert", "tx": op["tx"], "now_ms": op["now_ms"], **result}
+            elif kind == "remove":
+                step = {"op": "remove", "id": op["id"], "removed": pool.remove(op["id"])}
+            elif kind == "sweep":
+                step = {"op": "sweep", "now_ms": op["now_ms"], "expired": pool.sweep(op["now_ms"])}
+            else:
+                raise ValueError(kind)
+            step["ids"] = pool.ids()
+            step["size"] = len(pool)
+            steps.append(step)
+        return {"name": name, "note": note, **kwargs, "steps": steps}
+
+    now = NOW
+    low = _tx("a", 0, 1)
+    mid = _tx("b", 0, 5)
+    high = _tx("c", 0, 9)
+    first = _tx("alice", 0, 3)
+    better = _tx("alice", 0, 5, "q")
+    too_low = _tx("alice", 0, 3, "r")
+    alice1 = _tx("alice", 1, 3)
+    carol = _tx("carol", 0, 3)
+    sequence = [
+        run(
+            "min fee and duplicate rejected",
+            "floor then content-addressed id",
+            {"capacity": 8, "min_fee": 5, "ttl_ms": 60_000, "max_per_sender": 0, "rbf_min_increase": 1},
+            [
+                {"op": "insert", "tx": _tx("alice", 0, 4), "now_ms": now},
+                {"op": "insert", "tx": _tx("alice", 0, 5), "now_ms": now},
+                {"op": "insert", "tx": _tx("alice", 0, 5), "now_ms": now},
+            ],
+        ),
+        run(
+            "replace by fee",
+            "same sender and nonce, higher fee replaces",
+            {"capacity": 8, "min_fee": 0, "ttl_ms": 60_000, "max_per_sender": 0, "rbf_min_increase": 1},
+            [
+                {"op": "insert", "tx": first, "now_ms": now},
+                {"op": "insert", "tx": better, "now_ms": now},
+                {"op": "insert", "tx": too_low, "now_ms": now},
+            ],
+        ),
+        run(
+            "per-sender cap",
+            "a replacement is not a second slot",
+            {"capacity": 8, "min_fee": 0, "ttl_ms": 60_000, "max_per_sender": 1, "rbf_min_increase": 1},
+            [
+                {"op": "insert", "tx": first, "now_ms": now},
+                {"op": "insert", "tx": alice1, "now_ms": now},
+                {"op": "insert", "tx": carol, "now_ms": now},
+                {"op": "insert", "tx": better, "now_ms": now},
+            ],
+        ),
+        run(
+            "full pool evicts lowest fee",
+            "ties keep the earlier insertion",
+            {"capacity": 2, "min_fee": 0, "ttl_ms": 60_000, "max_per_sender": 0, "rbf_min_increase": 1},
+            [
+                {"op": "insert", "tx": low, "now_ms": now},
+                {"op": "insert", "tx": mid, "now_ms": now},
+                {"op": "insert", "tx": high, "now_ms": now},
+                {"op": "insert", "tx": _tx("d", 0, 2), "now_ms": now},
+            ],
+        ),
+        run(
+            "ttl sweep and remove",
+            "expiry uses the injected clock",
+            {"capacity": 8, "min_fee": 0, "ttl_ms": 10, "max_per_sender": 0, "rbf_min_increase": 1},
+            [
+                {"op": "insert", "tx": low, "now_ms": now},
+                {"op": "insert", "tx": mid, "now_ms": now + 15},
+                {"op": "remove", "id": mempool_tx_id(5, 0, "p", "b")},
+                {"op": "sweep", "now_ms": now + 15},
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "mempool.basic",
+            "SPEC/features/mempool-basic.md",
+            "Mempool: min fee, RBF, sender cap, lowest-fee eviction, TTL.",
+        ),
+        "now_ms": now,
+        "sequence": sequence,
+    }
+
+
+def fees_policy_vectors() -> Dict[str, Any]:
+    ranking = [
+        {"id": "b", "fee": 1},
+        {"id": "a", "fee": 9},
+        {"id": "c", "fee": 9},
+        {"id": "d", "fee": 5},
+        {"id": "", "fee": 99},
+        {"id": "a", "fee": 1},
+    ]
+    select_cases = [
+        {
+            "name": "highest fee then lowest id",
+            "candidates": ranking,
+            "limit": 3,
+            "ids": select(ranking, 3),
+        },
+        {
+            "name": "limit one",
+            "candidates": ranking,
+            "limit": 1,
+            "ids": select(ranking, 1),
+        },
+    ]
+    charge_cases = [
+        {"name": "tip only", "fee": 7, "base": 0, **charge(7, 0)},
+        {"name": "base burned", "fee": 8, "base": 5, **charge(8, 5)},
+        {"name": "fee below base", "fee": 3, "base": 5, **charge(3, 5)},
+    ]
+    estimate_cases = [
+        {"name": "empty", "fees": [], "estimate": estimate([])},
+        {"name": "odd", "fees": [10, 6, 2], "estimate": estimate([10, 6, 2])},
+        {"name": "even floor average", "fees": [10, 7, 5, 2], "estimate": estimate([10, 7, 5, 2])},
+    ]
+    base_cases = [
+        {
+            "name": "at target",
+            "base": 100,
+            "parent_count": 5,
+            "target": 5,
+            "next": next_base_fee(100, 5, 5),
+        },
+        {
+            "name": "above target",
+            "base": 100,
+            "parent_count": 10,
+            "target": 5,
+            "next": next_base_fee(100, 10, 5),
+        },
+        {
+            "name": "below target",
+            "base": 100,
+            "parent_count": 0,
+            "target": 5,
+            "next": next_base_fee(100, 0, 5),
+        },
+        {
+            "name": "floor is one",
+            "base": 1,
+            "parent_count": 0,
+            "target": 5,
+            "next": next_base_fee(1, 0, 5),
+        },
+    ]
+    return {
+        **header(
+            "fees.policy",
+            "SPEC/features/fees-policy.md",
+            "Fee policy: rank, burn split, median estimate, integer base-fee step.",
+        ),
+        "select": select_cases,
+        "charge": charge_cases,
+        "estimate": estimate_cases,
+        "base_fee": base_cases,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -1545,6 +1722,9 @@ def main() -> int:
     print("\nLevel 2 — ledgers")
     write("ledger-balance.json", ledger_balance_vectors())
     write("ledger-utxo.json", ledger_utxo_vectors())
+    print("\nLevel 2 — mempool and fees")
+    write("mempool-basic.json", mempool_basic_vectors())
+    write("fees-policy.json", fees_policy_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

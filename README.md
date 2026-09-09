@@ -74,10 +74,10 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 9 | Mixed-language `nostraft` mesh | |
 
 Python, TypeScript and Rust all cover Level 0, Level 1, and Level 2 crypto,
-discovery, consensus and ledgers: 25 of 29 registry features each (TypeScript 24
-implemented plus the UDP exemption). The one exemption in the registry is
-`wire.framing-udp` for TypeScript, since browsers have no raw UDP socket and UDP
-is optional at Level 0.
+discovery, consensus, ledgers, mempool and fees: 27 of 29 registry features
+each (TypeScript 26 implemented plus the UDP exemption). The one exemption in
+the registry is `wire.framing-udp` for TypeScript, since browsers have no raw
+UDP socket and UDP is optional at Level 0.
 
 TypeScript was written from `SPEC/` alone, without reading the Python source, as a test of
 whether the specification was complete. It was not: the exercise found five defects,

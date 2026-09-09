@@ -18,10 +18,12 @@ use chaincraft_core::crypto::{public_key_hex, sign, verify, Algorithm};
 use chaincraft_core::dedup::Deduplicator;
 use chaincraft_core::discovery::{self, AddressBook, LocalDiscovery};
 use chaincraft_core::envelope::Envelope;
+use chaincraft_core::fees;
 use chaincraft_core::framing::{decode_datagram, encode_datagram, encode_frame, FrameReader};
 use chaincraft_core::ledger_balance::BalanceLedger;
 use chaincraft_core::ledger_utxo::UtxoLedger;
 use chaincraft_core::memento::StateMemento;
+use chaincraft_core::mempool::Mempool;
 use chaincraft_core::object::{
     frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
 };
@@ -1153,6 +1155,148 @@ fn ledger_utxo_replay() {
     }
 }
 
+fn as_core_json(value: &Value) -> JsonValue {
+    parse_json(&value.to_string()).unwrap()
+}
+
+#[test]
+fn mempool_basic_sequence() {
+    let doc = load("mempool-basic.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut pool = Mempool::new(
+            case["capacity"].as_u64().unwrap() as usize,
+            case["min_fee"].as_i64().unwrap(),
+            case["ttl_ms"].as_i64().unwrap(),
+            case["max_per_sender"].as_u64().unwrap() as usize,
+            case["rbf_min_increase"].as_i64().unwrap(),
+        )
+        .unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            match step["op"].as_str().unwrap() {
+                "insert" => {
+                    let result =
+                        pool.insert(&as_core_json(&step["tx"]), step["now_ms"].as_i64().unwrap());
+                    assert_eq!(
+                        result.accepted,
+                        step["accepted"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                    assert_eq!(
+                        result.replaced,
+                        step["replaced"].as_str().unwrap(),
+                        "{where_}"
+                    );
+                    assert_eq!(
+                        result.evicted,
+                        step["evicted"].as_str().unwrap(),
+                        "{where_}"
+                    );
+                    assert_eq!(
+                        result.expired,
+                        step["expired"].as_u64().unwrap() as usize,
+                        "{where_}"
+                    );
+                }
+                "remove" => {
+                    assert_eq!(
+                        pool.remove(step["id"].as_str().unwrap()),
+                        step["removed"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "sweep" => {
+                    assert_eq!(
+                        pool.sweep(step["now_ms"].as_i64().unwrap()),
+                        step["expired"].as_u64().unwrap() as usize,
+                        "{where_}"
+                    );
+                }
+                other => panic!("unknown op {other}"),
+            }
+            assert_eq!(pool.ids(), json_strings(&step["ids"]), "{where_} ids");
+            assert_eq!(
+                pool.len(),
+                step["size"].as_u64().unwrap() as usize,
+                "{where_} size"
+            );
+        }
+    }
+}
+
+#[test]
+fn fees_policy_select() {
+    let doc = load("fees-policy.json");
+    for case in doc["select"].as_array().unwrap() {
+        let candidates: Vec<JsonValue> = case["candidates"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(as_core_json)
+            .collect();
+        let ids = fees::select(&candidates, case["limit"].as_i64().unwrap()).unwrap();
+        assert_eq!(ids, json_strings(&case["ids"]), "{}", case["name"]);
+    }
+}
+
+#[test]
+fn fees_policy_charge() {
+    let doc = load("fees-policy.json");
+    for case in doc["charge"].as_array().unwrap() {
+        let (burned, charged, tip) = fees::charge(
+            case["fee"].as_i64().unwrap(),
+            case["base"].as_i64().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(burned, case["burned"].as_i64().unwrap(), "{}", case["name"]);
+        assert_eq!(
+            charged,
+            case["charged"].as_i64().unwrap(),
+            "{}",
+            case["name"]
+        );
+        assert_eq!(tip, case["tip"].as_i64().unwrap(), "{}", case["name"]);
+    }
+}
+
+#[test]
+fn fees_policy_estimate() {
+    let doc = load("fees-policy.json");
+    for case in doc["estimate"].as_array().unwrap() {
+        let fees_list: Vec<i64> = case["fees"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| item.as_i64().unwrap())
+            .collect();
+        assert_eq!(
+            fees::estimate(&fees_list).unwrap(),
+            case["estimate"].as_i64().unwrap(),
+            "{}",
+            case["name"]
+        );
+    }
+}
+
+#[test]
+fn fees_policy_base_fee() {
+    let doc = load("fees-policy.json");
+    for case in doc["base_fee"].as_array().unwrap() {
+        assert_eq!(
+            fees::next_base_fee(
+                case["base"].as_i64().unwrap(),
+                case["parent_count"].as_i64().unwrap(),
+                case["target"].as_i64().unwrap(),
+            )
+            .unwrap(),
+            case["next"].as_i64().unwrap(),
+            "{}",
+            case["name"]
+        );
+    }
+}
+
 #[test]
 fn vector_files_declare_feature() {
     for name in [
@@ -1175,6 +1319,8 @@ fn vector_files_declare_feature() {
         "consensus-pbft.json",
         "ledger-balance.json",
         "ledger-utxo.json",
+        "mempool-basic.json",
+        "fees-policy.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");
