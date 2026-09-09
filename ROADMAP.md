@@ -265,7 +265,7 @@ one registry entry at a time, agent-ported and human-reviewed:
 1. `crypto.*` — primitives, VDF, VRF ✅ (`crypto.ecdsa`, `crypto.vdf`, `crypto.vrf`)
 2. `object.*` — shared object model, mementos
 3. `discovery.*` — peer discovery, gossip policy ✅ (`discovery.peer`, `discovery.local`)
-4. `consensus.*` — PoW, PoS, PBFT examples
+4. `consensus.*` — PoW, PoS, PBFT examples ✅ (`consensus.pow`, `consensus.pos`, `consensus.pbft`)
 5. `ledger.*` — balance and UTXO models
 6. `mempool.*`, `fees.*`
 7. `storage.*` — persistence semantics

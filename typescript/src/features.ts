@@ -38,6 +38,9 @@ export const FEATURES: readonly string[] = [
   'crypto.vrf',
   'discovery.peer',
   'discovery.local',
+  'consensus.pow',
+  'consensus.pos',
+  'consensus.pbft',
 ];
 
 export interface Manifest {

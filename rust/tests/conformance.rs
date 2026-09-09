@@ -10,6 +10,9 @@ use std::path::PathBuf;
 use chaincraft_core::canonical::{
     canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue,
 };
+use chaincraft_core::consensus_pbft::Pbft;
+use chaincraft_core::consensus_pos::ProofOfStake;
+use chaincraft_core::consensus_pow::ProofOfWork;
 use chaincraft_core::control;
 use chaincraft_core::crypto::{public_key_hex, sign, verify, Algorithm};
 use chaincraft_core::dedup::Deduplicator;
@@ -963,6 +966,120 @@ fn discovery_local_sequence() {
 }
 
 #[test]
+fn consensus_pow_replay() {
+    let doc = load("consensus-pow.json");
+    let difficulty = doc["difficulty"].as_u64().unwrap() as u32;
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = ProofOfWork::new(difficulty).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (blocks, height, tip) = obj.state();
+            assert_eq!(blocks, json_strings(&step["blocks"]), "{where_} blocks");
+            assert_eq!(height, step["height"].as_i64().unwrap(), "{where_} height");
+            assert_eq!(tip, step["tip"].as_str().unwrap(), "{where_} tip");
+        }
+    }
+}
+
+#[test]
+fn consensus_pos_schedule() {
+    let doc = load("consensus-pos.json");
+    let seed = doc["seed"].as_str().unwrap();
+    let mut validators = std::collections::BTreeMap::new();
+    for (id, stake) in doc["validators"].as_object().unwrap() {
+        validators.insert(id.clone(), stake.as_i64().unwrap());
+    }
+    for case in doc["schedule"].as_array().unwrap() {
+        let slot = case["slot"].as_i64().unwrap();
+        assert_eq!(
+            chaincraft_core::consensus_pos::proposer_for(slot, seed, &validators),
+            case["proposer"].as_str().unwrap(),
+            "slot {slot}"
+        );
+    }
+}
+
+#[test]
+fn consensus_pos_replay() {
+    let doc = load("consensus-pos.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = ProofOfStake::default_set();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (head, last, slot) = obj.state();
+            assert_eq!(head, step["head"].as_str().unwrap(), "{where_} head");
+            assert_eq!(
+                last,
+                step["last_proposer"].as_str().unwrap(),
+                "{where_} proposer"
+            );
+            assert_eq!(slot, step["slot"].as_i64().unwrap(), "{where_} slot");
+        }
+    }
+}
+
+#[test]
+fn consensus_pbft_replay() {
+    let doc = load("consensus-pbft.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = Pbft::default_set();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (view, sequence, prepares, commits, executed) = obj.state();
+            assert_eq!(view, step["view"].as_i64().unwrap(), "{where_} view");
+            assert_eq!(
+                sequence,
+                step["sequence"].as_i64().unwrap(),
+                "{where_} sequence"
+            );
+            assert_eq!(
+                prepares,
+                step["prepares"].as_u64().unwrap() as usize,
+                "{where_} prepares"
+            );
+            assert_eq!(
+                commits,
+                step["commits"].as_u64().unwrap() as usize,
+                "{where_} commits"
+            );
+            let expected: Vec<(String, i64)> = step["executed"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|item| {
+                    (
+                        item["digest"].as_str().unwrap().to_owned(),
+                        item["seq"].as_i64().unwrap(),
+                    )
+                })
+                .collect();
+            assert_eq!(executed, expected, "{where_} executed");
+        }
+    }
+}
+
+#[test]
 fn vector_files_declare_feature() {
     for name in [
         "canonical-json.json",
@@ -979,6 +1096,9 @@ fn vector_files_declare_feature() {
         "vrf.json",
         "discovery-peer.json",
         "discovery-local.json",
+        "consensus-pow.json",
+        "consensus-pos.json",
+        "consensus-pbft.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

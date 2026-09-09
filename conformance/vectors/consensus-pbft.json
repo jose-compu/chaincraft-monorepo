@@ -1,0 +1,118 @@
+{
+  "feature": "consensus.pbft",
+  "spec": "SPEC/features/consensus-pbft.md",
+  "description": "PBFT object: pre-prepare / prepare / commit, quorum 2f+1.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "replicas": [
+    "r0",
+    "r1",
+    "r2",
+    "r3"
+  ],
+  "quorum": 3,
+  "value_digest": "5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a",
+  "replay": [
+    {
+      "name": "quorum execute",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"pre-prepare\",\"replica\":\"r0\",\"sequence\":1,\"value\":\"hello\",\"view\":0}",
+          "accepted": true,
+          "commits": 0,
+          "executed": [],
+          "prepares": 0,
+          "sequence": 1,
+          "view": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"prepare\",\"replica\":\"r0\",\"sequence\":1,\"view\":0}",
+          "accepted": true,
+          "commits": 0,
+          "executed": [],
+          "prepares": 1,
+          "sequence": 1,
+          "view": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"prepare\",\"replica\":\"r1\",\"sequence\":1,\"view\":0}",
+          "accepted": true,
+          "commits": 0,
+          "executed": [],
+          "prepares": 2,
+          "sequence": 1,
+          "view": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"prepare\",\"replica\":\"r2\",\"sequence\":1,\"view\":0}",
+          "accepted": true,
+          "commits": 0,
+          "executed": [],
+          "prepares": 3,
+          "sequence": 1,
+          "view": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"commit\",\"replica\":\"r0\",\"sequence\":1,\"view\":0}",
+          "accepted": true,
+          "commits": 1,
+          "executed": [],
+          "prepares": 3,
+          "sequence": 1,
+          "view": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"commit\",\"replica\":\"r1\",\"sequence\":1,\"view\":0}",
+          "accepted": true,
+          "commits": 2,
+          "executed": [],
+          "prepares": 3,
+          "sequence": 1,
+          "view": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"commit\",\"replica\":\"r2\",\"sequence\":1,\"view\":0}",
+          "accepted": true,
+          "commits": 0,
+          "executed": [
+            {
+              "digest": "5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a",
+              "seq": 1
+            }
+          ],
+          "prepares": 0,
+          "sequence": 2,
+          "view": 0
+        }
+      ]
+    },
+    {
+      "name": "non-primary pre-prepare rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"pre-prepare\",\"replica\":\"r1\",\"sequence\":1,\"value\":\"hello\",\"view\":0}",
+          "accepted": false,
+          "commits": 0,
+          "executed": [],
+          "prepares": 0,
+          "sequence": 1,
+          "view": 0
+        }
+      ]
+    },
+    {
+      "name": "out-of-sequence prepare is valid but ignored",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pbft\",\"digest\":\"5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a\",\"phase\":\"prepare\",\"replica\":\"r1\",\"sequence\":9,\"view\":0}",
+          "accepted": true,
+          "commits": 0,
+          "executed": [],
+          "prepares": 0,
+          "sequence": 1,
+          "view": 0
+        }
+      ]
+    }
+  ]
+}

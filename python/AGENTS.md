@@ -26,6 +26,9 @@ chaincraft_core/
   vdf.py         Sloth VDF (crypto-vdf.md)
   vrf.py         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.py   Address book and local-discovery policy
+  consensus_pow.py   Pedagogical PoW object
+  consensus_pos.py   Pedagogical PoS object
+  consensus_pbft.py  Pedagogical PBFT object
   dedup.py       Seen-digest set and relay gate (§7)
   memento.py     StateMemento (semantics-v1 §4)
   object.py      SharedObject contract, digests, tie-break (§2, §5, §6)

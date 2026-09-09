@@ -282,41 +282,41 @@ features:
   - id: consensus.pow
     level: 2
     spec: SPEC/features/consensus-pow.md
-    summary: Proof-of-work consensus object
-    vectors: null
+    summary: Pedagogical PoW object with leading-zero work and longest-tip choice
+    vectors: conformance/vectors/consensus-pow.json
     backfill: true
     legacy: python/chaincraft@0.7 consensus
     milestone: "2026-11-30"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: consensus.pos
     level: 2
     spec: SPEC/features/consensus-pos.md
-    summary: Proof-of-stake consensus object
-    vectors: null
+    summary: Pedagogical PoS object with a deterministic weighted lottery
+    vectors: conformance/vectors/consensus-pos.json
     backfill: true
     legacy: python/chaincraft@0.7 consensus
     milestone: "2026-11-30"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: consensus.pbft
     level: 2
     spec: SPEC/features/consensus-pbft.md
-    summary: PBFT consensus object
-    vectors: null
+    summary: Pedagogical PBFT object, pre-prepare / prepare / commit
+    vectors: conformance/vectors/consensus-pbft.json
     backfill: true
     legacy: python/chaincraft@0.7 consensus
     milestone: "2026-11-30"
     status:
-      python:     { state: planned }
-      rust:       { state: planned }
-      typescript: { state: planned }
+      python:     { state: implemented, since: "2026-09-09" }
+      rust:       { state: implemented, since: "2026-09-09" }
+      typescript: { state: implemented, since: "2026-09-09" }
 
   - id: ledger.balance
     level: 2

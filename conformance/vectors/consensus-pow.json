@@ -1,0 +1,116 @@
+{
+  "feature": "consensus.pow",
+  "spec": "SPEC/features/consensus-pow.md",
+  "description": "PoW object: leading-zero work, longest tip, lowest-id tie-break.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "difficulty": 2,
+  "replay": [
+    {
+      "name": "empty then two-block chain",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":1,\"id\":\"0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25\",\"miner\":\"alice\",\"nonce\":0,\"parent\":\"\",\"payload\":\"one\"}",
+          "accepted": true,
+          "blocks": [
+            "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+          ],
+          "height": 1,
+          "tip": "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+        },
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":2,\"id\":\"005acf4dd90a5803659391e9330835567ff67d441bebaebfe3325701c1966a72\",\"miner\":\"alice\",\"nonce\":447,\"parent\":\"0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25\",\"payload\":\"two\"}",
+          "accepted": true,
+          "blocks": [
+            "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25",
+            "005acf4dd90a5803659391e9330835567ff67d441bebaebfe3325701c1966a72"
+          ],
+          "height": 2,
+          "tip": "005acf4dd90a5803659391e9330835567ff67d441bebaebfe3325701c1966a72"
+        }
+      ]
+    },
+    {
+      "name": "same-height fork prefers lowest id",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":1,\"id\":\"004ca6991dd451f1c73aac5ac9278e0eb434e3f39fd9ee0f81501c1162937aea\",\"miner\":\"bob\",\"nonce\":171,\"parent\":\"\",\"payload\":\"alt\"}",
+          "accepted": true,
+          "blocks": [
+            "004ca6991dd451f1c73aac5ac9278e0eb434e3f39fd9ee0f81501c1162937aea"
+          ],
+          "height": 1,
+          "tip": "004ca6991dd451f1c73aac5ac9278e0eb434e3f39fd9ee0f81501c1162937aea"
+        },
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":1,\"id\":\"0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25\",\"miner\":\"alice\",\"nonce\":0,\"parent\":\"\",\"payload\":\"one\"}",
+          "accepted": true,
+          "blocks": [
+            "004ca6991dd451f1c73aac5ac9278e0eb434e3f39fd9ee0f81501c1162937aea",
+            "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+          ],
+          "height": 1,
+          "tip": "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+        }
+      ]
+    },
+    {
+      "name": "duplicate block rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":1,\"id\":\"0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25\",\"miner\":\"alice\",\"nonce\":0,\"parent\":\"\",\"payload\":\"one\"}",
+          "accepted": true,
+          "blocks": [
+            "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+          ],
+          "height": 1,
+          "tip": "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+        },
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":1,\"id\":\"0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25\",\"miner\":\"alice\",\"nonce\":0,\"parent\":\"\",\"payload\":\"one\"}",
+          "accepted": false,
+          "blocks": [
+            "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+          ],
+          "height": 1,
+          "tip": "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+        }
+      ]
+    },
+    {
+      "name": "wrong parent height rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":1,\"id\":\"0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25\",\"miner\":\"alice\",\"nonce\":0,\"parent\":\"\",\"payload\":\"one\"}",
+          "accepted": true,
+          "blocks": [
+            "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+          ],
+          "height": 1,
+          "tip": "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+        },
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":2,\"id\":\"005acf4dd90a5803659391e9330835567ff67d441bebaebfe3325701c1966a72\",\"miner\":\"alice\",\"nonce\":447,\"parent\":\"\",\"payload\":\"two\"}",
+          "accepted": false,
+          "blocks": [
+            "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+          ],
+          "height": 1,
+          "tip": "0000889ea06161fe55ef390c3f33711c9321d84cbc7ca0746ba41fcb0ecb9a25"
+        }
+      ]
+    },
+    {
+      "name": "insufficient work rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pow\",\"height\":1,\"miner\":\"alice\",\"nonce\":1,\"parent\":\"\",\"payload\":\"one\"}",
+          "accepted": false,
+          "blocks": [],
+          "height": 0,
+          "tip": ""
+        }
+      ]
+    }
+  ]
+}

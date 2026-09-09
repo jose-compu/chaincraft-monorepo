@@ -1,0 +1,83 @@
+{
+  "feature": "consensus.pos",
+  "spec": "SPEC/features/consensus-pos.md",
+  "description": "PoS object: weighted lottery over a fixed validator set.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "seed": "chaincraft-pos-v1",
+  "validators": {
+    "alice": 2,
+    "bob": 1,
+    "carol": 1
+  },
+  "schedule": [
+    {
+      "slot": 1,
+      "proposer": "bob"
+    },
+    {
+      "slot": 2,
+      "proposer": "carol"
+    },
+    {
+      "slot": 3,
+      "proposer": "alice"
+    },
+    {
+      "slot": 4,
+      "proposer": "bob"
+    }
+  ],
+  "replay": [
+    {
+      "name": "two scheduled slots",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pos\",\"payload\":\"p1\",\"proposer\":\"bob\",\"slot\":1}",
+          "accepted": true,
+          "head": "d700feb4d10ec6dbcbfe0f84fa31656ce4c9b5a04ff276ff278762481ca41faf",
+          "last_proposer": "bob",
+          "slot": 1
+        },
+        {
+          "message_json": "{\"consensus\":\"pos\",\"payload\":\"p2\",\"proposer\":\"carol\",\"slot\":2}",
+          "accepted": true,
+          "head": "4a1be06120765aca3dff8f84fb7e439fbd3a86ae12fcb79083da69fef50eb356",
+          "last_proposer": "carol",
+          "slot": 2
+        }
+      ]
+    },
+    {
+      "name": "wrong proposer rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pos\",\"payload\":\"p1\",\"proposer\":\"carol\",\"slot\":1}",
+          "accepted": false,
+          "head": "",
+          "last_proposer": "",
+          "slot": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"pos\",\"payload\":\"p1\",\"proposer\":\"bob\",\"slot\":1}",
+          "accepted": true,
+          "head": "d700feb4d10ec6dbcbfe0f84fa31656ce4c9b5a04ff276ff278762481ca41faf",
+          "last_proposer": "bob",
+          "slot": 1
+        }
+      ]
+    },
+    {
+      "name": "skipping a slot rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"pos\",\"payload\":\"p2\",\"proposer\":\"carol\",\"slot\":2}",
+          "accepted": false,
+          "head": "",
+          "last_proposer": "",
+          "slot": 0
+        }
+      ]
+    }
+  ]
+}

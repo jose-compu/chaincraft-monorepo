@@ -15,6 +15,9 @@ import { fileURLToPath } from 'node:url';
 import {
   AddressBook,
   CanonicalError,
+  PBFT,
+  ProofOfStake,
+  ProofOfWork,
   Deduplicator,
   LocalDiscovery,
   Envelope,
@@ -426,6 +429,61 @@ eachCase('discovery-local.json', 'sequence', (c) => {
   }
 });
 
+eachCase('consensus-pow.json', 'replay', (c, doc) => {
+  const obj = new ProofOfWork(doc['difficulty']);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      blocks: step['blocks'],
+      height: step['height'],
+      tip: step['tip'],
+    }, where);
+  }
+});
+
+eachCase('consensus-pos.json', 'schedule', (c, doc) => {
+  const obj = new ProofOfStake(doc['seed'], doc['validators']);
+  assert.equal(obj.proposer(c['slot']), c['proposer']);
+});
+
+eachCase('consensus-pos.json', 'replay', (c) => {
+  const obj = new ProofOfStake();
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      head: step['head'],
+      last_proposer: step['last_proposer'],
+      slot: step['slot'],
+    }, where);
+  }
+});
+
+eachCase('consensus-pbft.json', 'replay', (c) => {
+  const obj = new PBFT();
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      commits: step['commits'],
+      executed: step['executed'],
+      prepares: step['prepares'],
+      sequence: step['sequence'],
+      view: step['view'],
+    }, where);
+  }
+});
+
 // --- vector hygiene ---------------------------------------------------------
 
 test('every vector file declares its feature', () => {
@@ -444,6 +502,9 @@ test('every vector file declares its feature', () => {
     'vrf.json',
     'discovery-peer.json',
     'discovery-local.json',
+    'consensus-pow.json',
+    'consensus-pos.json',
+    'consensus-pbft.json',
   ];
   for (const name of files) {
     const doc = load(name);

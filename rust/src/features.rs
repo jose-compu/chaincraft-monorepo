@@ -26,6 +26,9 @@ pub const FEATURES: &[&str] = &[
     "crypto.vrf",
     "discovery.peer",
     "discovery.local",
+    "consensus.pow",
+    "consensus.pos",
+    "consensus.pbft",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.

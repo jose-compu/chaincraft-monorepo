@@ -3,6 +3,9 @@
 //! Implements SPEC/wire-v1.md and SPEC/semantics-v1.md.
 
 pub mod canonical;
+pub mod consensus_pbft;
+pub mod consensus_pos;
+pub mod consensus_pow;
 pub mod control;
 pub mod crypto;
 pub mod dedup;

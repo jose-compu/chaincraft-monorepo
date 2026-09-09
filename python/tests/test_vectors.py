@@ -453,6 +453,77 @@ def test_discovery_local_sequence(case):
         assert book.advertise() == step["advertised"], where
 
 
+# --- Level 2 consensus ------------------------------------------------------
+
+
+@cases("consensus-pow.json", "replay")
+def test_consensus_pow_replay(case):
+    from chaincraft_core.consensus_pow import ProofOfWork
+
+    obj = ProofOfWork(load("consensus-pow.json")["difficulty"])
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "blocks": step["blocks"],
+            "height": step["height"],
+            "tip": step["tip"],
+        }, where
+
+
+@cases("consensus-pos.json", "schedule")
+def test_consensus_pos_schedule(case):
+    from chaincraft_core.consensus_pos import ProofOfStake
+
+    doc = load("consensus-pos.json")
+    obj = ProofOfStake(seed=doc["seed"], validators=doc["validators"])
+    assert obj.proposer(case["slot"]) == case["proposer"]
+
+
+@cases("consensus-pos.json", "replay")
+def test_consensus_pos_replay(case):
+    from chaincraft_core.consensus_pos import ProofOfStake
+
+    obj = ProofOfStake()
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "head": step["head"],
+            "last_proposer": step["last_proposer"],
+            "slot": step["slot"],
+        }, where
+
+
+@cases("consensus-pbft.json", "replay")
+def test_consensus_pbft_replay(case):
+    from chaincraft_core.consensus_pbft import PBFT
+
+    obj = PBFT()
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "commits": step["commits"],
+            "executed": step["executed"],
+            "prepares": step["prepares"],
+            "sequence": step["sequence"],
+            "view": step["view"],
+        }, where
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

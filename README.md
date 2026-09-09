@@ -73,11 +73,11 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 8 | Level 2 feature backfill | |
 | 9 | Mixed-language `nostraft` mesh | |
 
-Python, TypeScript and Rust all cover Level 0, Level 1, Level 2 crypto
-(`ecdsa`, `vdf`, `vrf`) and discovery (`peer`, `local`): 20 of 29 registry features
-each (TypeScript 19 implemented plus the UDP exemption). The one exemption in the
-registry is `wire.framing-udp` for TypeScript, since browsers have no raw UDP socket
-and UDP is optional at Level 0.
+Python, TypeScript and Rust all cover Level 0, Level 1, and Level 2 crypto,
+discovery and consensus: 23 of 29 registry features each (TypeScript 22
+implemented plus the UDP exemption). The one exemption in the registry is
+`wire.framing-udp` for TypeScript, since browsers have no raw UDP socket and UDP
+is optional at Level 0.
 
 TypeScript was written from `SPEC/` alone, without reading the Python source, as a test of
 whether the specification was complete. It was not: the exercise found five defects,

@@ -22,6 +22,9 @@ sys.path.insert(0, str(REPO / "python"))
 sys.path.insert(0, str(REPO / "python" / "tests"))
 
 from chaincraft_core import control, crypto, discovery, ecdsa, framing, vdf, vrf  # noqa: E402
+from chaincraft_core.consensus_pbft import PBFT  # noqa: E402
+from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
+from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
 from chaincraft_core.canonical import canonical_json, payload_digest  # noqa: E402
 from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft_core.envelope import Envelope  # noqa: E402
@@ -1238,6 +1241,151 @@ def discovery_local_vectors() -> Dict[str, Any]:
     }
 
 
+def _replay_object(name: str, factory, messages: List[Any]) -> Dict[str, Any]:
+    obj = factory()
+    steps = []
+    for message in messages:
+        accepted = obj.is_valid(message)
+        if accepted:
+            obj.add_message(message)
+        steps.append(
+            {
+                "message_json": canonical_json(message),
+                "accepted": accepted,
+                **obj.state(),
+            }
+        )
+    return {"name": name, "steps": steps}
+
+
+def consensus_pow_vectors() -> Dict[str, Any]:
+    difficulty = 2
+    genesis = mine("", 1, "alice", "one", difficulty)
+    child = mine(genesis["id"], 2, "alice", "two", difficulty)
+    fork = mine("", 1, "bob", "alt", difficulty)
+    low, high = (genesis, fork) if genesis["id"] < fork["id"] else (fork, genesis)
+    wire = {k: genesis[k] for k in ("consensus", "height", "miner", "nonce", "parent", "payload")}
+    weak_nonce = 0
+    while True:
+        digest = block_id(1, "alice", weak_nonce, "", "one")
+        if not digest.startswith("00"):
+            break
+        weak_nonce += 1
+    replay = [
+        _replay_object("empty then two-block chain", lambda: ProofOfWork(difficulty), [genesis, child]),
+        _replay_object(
+            "same-height fork prefers lowest id",
+            lambda: ProofOfWork(difficulty),
+            [high, low],
+        ),
+        _replay_object(
+            "duplicate block rejected",
+            lambda: ProofOfWork(difficulty),
+            [genesis, genesis],
+        ),
+        _replay_object(
+            "wrong parent height rejected",
+            lambda: ProofOfWork(difficulty),
+            [genesis, {**child, "parent": "", "height": 2}],
+        ),
+        _replay_object(
+            "insufficient work rejected",
+            lambda: ProofOfWork(difficulty),
+            [{**wire, "nonce": weak_nonce}],
+        ),
+    ]
+    return {
+        **header(
+            "consensus.pow",
+            "SPEC/features/consensus-pow.md",
+            "PoW object: leading-zero work, longest tip, lowest-id tie-break.",
+        ),
+        "difficulty": difficulty,
+        "replay": replay,
+    }
+
+
+def consensus_pos_vectors() -> Dict[str, Any]:
+    pos = ProofOfStake()
+    schedule = [
+        {"slot": slot, "proposer": proposer_for(slot, pos.seed, pos.validators)}
+        for slot in range(1, 5)
+    ]
+    good = [
+        {
+            "consensus": "pos",
+            "payload": f"p{item['slot']}",
+            "proposer": item["proposer"],
+            "slot": item["slot"],
+        }
+        for item in schedule[:2]
+    ]
+    wrong = {**good[0], "proposer": "carol" if good[0]["proposer"] != "carol" else "bob"}
+    replay = [
+        _replay_object("two scheduled slots", ProofOfStake, good),
+        _replay_object("wrong proposer rejected", ProofOfStake, [wrong, good[0]]),
+        _replay_object("skipping a slot rejected", ProofOfStake, [{**good[1]}]),
+    ]
+    return {
+        **header(
+            "consensus.pos",
+            "SPEC/features/consensus-pos.md",
+            "PoS object: weighted lottery over a fixed validator set.",
+        ),
+        "seed": pos.seed,
+        "validators": pos.validators,
+        "schedule": schedule,
+        "replay": replay,
+    }
+
+
+def consensus_pbft_vectors() -> Dict[str, Any]:
+    value = "hello"
+    digest = merkle_digest(value)
+    view, seq = 0, 1
+
+    def vote(phase: str, replica: str) -> Dict[str, Any]:
+        msg: Dict[str, Any] = {
+            "consensus": "pbft",
+            "digest": digest,
+            "phase": phase,
+            "replica": replica,
+            "sequence": seq,
+            "view": view,
+        }
+        if phase == "pre-prepare":
+            msg["value"] = value
+        return msg
+
+    happy = [
+        vote("pre-prepare", "r0"),
+        vote("prepare", "r0"),
+        vote("prepare", "r1"),
+        vote("prepare", "r2"),
+        vote("commit", "r0"),
+        vote("commit", "r1"),
+        vote("commit", "r2"),
+    ]
+    bad_primary = {**vote("pre-prepare", "r1"), "value": value}
+    future = {**vote("prepare", "r1"), "sequence": 9}
+    replay = [
+        _replay_object("quorum execute", PBFT, happy),
+        _replay_object("non-primary pre-prepare rejected", PBFT, [bad_primary]),
+        _replay_object("out-of-sequence prepare is valid but ignored", PBFT, [future]),
+    ]
+    return {
+        **header(
+            "consensus.pbft",
+            "SPEC/features/consensus-pbft.md",
+            "PBFT object: pre-prepare / prepare / commit, quorum 2f+1.",
+        ),
+        "replicas": list(PBFT().replicas),
+        "quorum": PBFT().quorum,
+        "value_digest": digest,
+        "replay": replay,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -1258,6 +1406,10 @@ def main() -> int:
     print("\nLevel 2 — discovery")
     write("discovery-peer.json", discovery_peer_vectors())
     write("discovery-local.json", discovery_local_vectors())
+    print("\nLevel 2 — consensus")
+    write("consensus-pow.json", consensus_pow_vectors())
+    write("consensus-pos.json", consensus_pos_vectors())
+    write("consensus-pbft.json", consensus_pbft_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

@@ -39,6 +39,9 @@ src/
   vdf.ts         Sloth VDF (crypto-vdf.md)
   vrf.ts         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.ts   Address book and local-discovery policy
+  consensusPow.ts    Pedagogical PoW object
+  consensusPos.ts    Pedagogical PoS object
+  consensusPbft.ts   Pedagogical PBFT object
   dedup.ts       Seen-digest set and relay gate (§7)
   memento.ts     StateMemento (semantics-v1 §4)
   object.ts      Object contract and digests (§2, §5, §6)
