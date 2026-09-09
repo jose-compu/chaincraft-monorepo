@@ -524,6 +524,48 @@ def test_consensus_pbft_replay(case):
         }, where
 
 
+# --- Level 2 ledgers --------------------------------------------------------
+
+
+@cases("ledger-balance.json", "replay")
+def test_ledger_balance_replay(case):
+    from chaincraft_core.ledger_balance import BalanceLedger
+
+    obj = BalanceLedger(load("ledger-balance.json")["allocations"])
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "balances": step["balances"],
+            "burned": step["burned"],
+            "nonces": step["nonces"],
+            "supply": step["supply"],
+        }, where
+
+
+@cases("ledger-utxo.json", "replay")
+def test_ledger_utxo_replay(case):
+    from chaincraft_core.ledger_utxo import UtxoLedger
+
+    obj = UtxoLedger(load("ledger-utxo.json")["allocations"])
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "burned": step["burned"],
+            "supply": step["supply"],
+            "utxos": step["utxos"],
+        }, where
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

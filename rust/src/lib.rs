@@ -15,6 +15,8 @@ pub mod envelope;
 pub mod error;
 pub mod features;
 pub mod framing;
+pub mod ledger_balance;
+pub mod ledger_utxo;
 pub mod memento;
 pub mod object;
 pub mod pipeline;

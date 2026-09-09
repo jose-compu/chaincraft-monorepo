@@ -1,0 +1,132 @@
+{
+  "feature": "ledger.balance",
+  "spec": "SPEC/features/ledger-balance.md",
+  "description": "Account ledger: nonce, no overdraft, fee burned.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "allocations": {
+    "alice": 100
+  },
+  "replay": [
+    {
+      "name": "transfer and fee burn",
+      "steps": [
+        {
+          "message_json": "{\"amount\":10,\"fee\":2,\"ledger\":\"balance\",\"nonce\":0,\"recipient\":\"bob\",\"sender\":\"alice\"}",
+          "accepted": true,
+          "balances": {
+            "alice": 88,
+            "bob": 10
+          },
+          "burned": 2,
+          "nonces": {
+            "alice": 1,
+            "bob": 0
+          },
+          "supply": 98
+        }
+      ]
+    },
+    {
+      "name": "second nonce accepted",
+      "steps": [
+        {
+          "message_json": "{\"amount\":10,\"fee\":2,\"ledger\":\"balance\",\"nonce\":0,\"recipient\":\"bob\",\"sender\":\"alice\"}",
+          "accepted": true,
+          "balances": {
+            "alice": 88,
+            "bob": 10
+          },
+          "burned": 2,
+          "nonces": {
+            "alice": 1,
+            "bob": 0
+          },
+          "supply": 98
+        },
+        {
+          "message_json": "{\"amount\":1,\"fee\":0,\"ledger\":\"balance\",\"nonce\":1,\"recipient\":\"bob\",\"sender\":\"alice\"}",
+          "accepted": true,
+          "balances": {
+            "alice": 87,
+            "bob": 11
+          },
+          "burned": 2,
+          "nonces": {
+            "alice": 2,
+            "bob": 0
+          },
+          "supply": 98
+        }
+      ]
+    },
+    {
+      "name": "insufficient balance rejected",
+      "steps": [
+        {
+          "message_json": "{\"amount\":5,\"fee\":1,\"ledger\":\"balance\",\"nonce\":0,\"recipient\":\"alice\",\"sender\":\"bob\"}",
+          "accepted": false,
+          "balances": {
+            "alice": 100
+          },
+          "burned": 0,
+          "nonces": {
+            "alice": 0
+          },
+          "supply": 100
+        }
+      ]
+    },
+    {
+      "name": "wrong nonce rejected",
+      "steps": [
+        {
+          "message_json": "{\"amount\":1,\"fee\":0,\"ledger\":\"balance\",\"nonce\":5,\"recipient\":\"bob\",\"sender\":\"alice\"}",
+          "accepted": false,
+          "balances": {
+            "alice": 100
+          },
+          "burned": 0,
+          "nonces": {
+            "alice": 0
+          },
+          "supply": 100
+        }
+      ]
+    },
+    {
+      "name": "self-transfer burns fee",
+      "steps": [
+        {
+          "message_json": "{\"amount\":10,\"fee\":3,\"ledger\":\"balance\",\"nonce\":0,\"recipient\":\"alice\",\"sender\":\"alice\"}",
+          "accepted": true,
+          "balances": {
+            "alice": 97
+          },
+          "burned": 3,
+          "nonces": {
+            "alice": 1
+          },
+          "supply": 97
+        }
+      ]
+    },
+    {
+      "name": "zero amount rejected",
+      "steps": [
+        {
+          "message_json": "{\"amount\":0,\"fee\":0,\"ledger\":\"balance\",\"nonce\":0,\"recipient\":\"bob\",\"sender\":\"alice\"}",
+          "accepted": false,
+          "balances": {
+            "alice": 100
+          },
+          "burned": 0,
+          "nonces": {
+            "alice": 0
+          },
+          "supply": 100
+        }
+      ]
+    }
+  ]
+}

@@ -36,6 +36,8 @@ src/
   consensus_pow.rs   Pedagogical PoW object
   consensus_pos.rs   Pedagogical PoS object
   consensus_pbft.rs  Pedagogical PBFT object
+  ledger_balance.rs  Pedagogical account ledger
+  ledger_utxo.rs     Pedagogical UTXO ledger
   dedup.rs       Seen-digest set and relay gate (§7)
   memento.rs     StateMemento (semantics-v1 §4)
   object.rs      ApplicationObject contract, digests, tie-break (§2, §5, §6)

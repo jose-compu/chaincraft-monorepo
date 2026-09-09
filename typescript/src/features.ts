@@ -41,6 +41,8 @@ export const FEATURES: readonly string[] = [
   'consensus.pow',
   'consensus.pos',
   'consensus.pbft',
+  'ledger.balance',
+  'ledger.utxo',
 ];
 
 export interface Manifest {

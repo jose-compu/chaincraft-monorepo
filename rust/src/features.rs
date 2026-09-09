@@ -29,6 +29,8 @@ pub const FEATURES: &[&str] = &[
     "consensus.pow",
     "consensus.pos",
     "consensus.pbft",
+    "ledger.balance",
+    "ledger.utxo",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.

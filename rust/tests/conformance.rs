@@ -19,6 +19,8 @@ use chaincraft_core::dedup::Deduplicator;
 use chaincraft_core::discovery::{self, AddressBook, LocalDiscovery};
 use chaincraft_core::envelope::Envelope;
 use chaincraft_core::framing::{decode_datagram, encode_datagram, encode_frame, FrameReader};
+use chaincraft_core::ledger_balance::BalanceLedger;
+use chaincraft_core::ledger_utxo::UtxoLedger;
 use chaincraft_core::memento::StateMemento;
 use chaincraft_core::object::{
     frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
@@ -1079,6 +1081,78 @@ fn consensus_pbft_replay() {
     }
 }
 
+fn json_i64_map(value: &Value) -> std::collections::BTreeMap<String, i64> {
+    value
+        .as_object()
+        .unwrap()
+        .iter()
+        .map(|(k, v)| (k.clone(), v.as_i64().unwrap()))
+        .collect()
+}
+
+#[test]
+fn ledger_balance_replay() {
+    let doc = load("ledger-balance.json");
+    let allocations = json_i64_map(&doc["allocations"]);
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = BalanceLedger::new(allocations.clone()).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (balances, burned, nonces, supply) = obj.state();
+            assert_eq!(
+                balances,
+                json_i64_map(&step["balances"]),
+                "{where_} balances"
+            );
+            assert_eq!(burned, step["burned"].as_i64().unwrap(), "{where_} burned");
+            assert_eq!(nonces, json_i64_map(&step["nonces"]), "{where_} nonces");
+            assert_eq!(supply, step["supply"].as_i64().unwrap(), "{where_} supply");
+        }
+    }
+}
+
+#[test]
+fn ledger_utxo_replay() {
+    let doc = load("ledger-utxo.json");
+    let allocations = json_i64_map(&doc["allocations"]);
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = UtxoLedger::new(allocations.clone()).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (burned, supply, utxos) = obj.state();
+            assert_eq!(burned, step["burned"].as_i64().unwrap(), "{where_} burned");
+            assert_eq!(supply, step["supply"].as_i64().unwrap(), "{where_} supply");
+            let expected: Vec<(String, String, i64)> = step["utxos"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|item| {
+                    (
+                        item["id"].as_str().unwrap().to_owned(),
+                        item["owner"].as_str().unwrap().to_owned(),
+                        item["value"].as_i64().unwrap(),
+                    )
+                })
+                .collect();
+            assert_eq!(utxos, expected, "{where_} utxos");
+        }
+    }
+}
+
 #[test]
 fn vector_files_declare_feature() {
     for name in [
@@ -1099,6 +1173,8 @@ fn vector_files_declare_feature() {
         "consensus-pow.json",
         "consensus-pos.json",
         "consensus-pbft.json",
+        "ledger-balance.json",
+        "ledger-utxo.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

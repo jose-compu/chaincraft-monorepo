@@ -76,6 +76,8 @@ export { type ApplyResult, ObjectRegistry } from './pipeline.ts';
 export { PBFT, DEFAULT_REPLICAS as PBFT_DEFAULT_REPLICAS } from './consensusPbft.ts';
 export { ProofOfStake, DEFAULT_SEED, DEFAULT_VALIDATORS, proposerFor } from './consensusPos.ts';
 export { ProofOfWork, DEFAULT_DIFFICULTY, blockId, meetsWork } from './consensusPow.ts';
+export { BalanceLedger, DEFAULT_ALLOCATIONS as BALANCE_DEFAULT_ALLOCATIONS } from './ledgerBalance.ts';
+export { UtxoLedger, DEFAULT_ALLOCATIONS as UTXO_DEFAULT_ALLOCATIONS, transactionId } from './ledgerUtxo.ts';
 export * as ecdsa from './ecdsa.ts';
 export * as vdf from './vdf.ts';
 export * as vrf from './vrf.ts';

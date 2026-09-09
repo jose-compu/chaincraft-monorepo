@@ -25,6 +25,8 @@ from chaincraft_core import control, crypto, discovery, ecdsa, framing, vdf, vrf
 from chaincraft_core.consensus_pbft import PBFT  # noqa: E402
 from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
 from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
+from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
+from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
 from chaincraft_core.canonical import canonical_json, payload_digest  # noqa: E402
 from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft_core.envelope import Envelope  # noqa: E402
@@ -1386,6 +1388,136 @@ def consensus_pbft_vectors() -> Dict[str, Any]:
     }
 
 
+def ledger_balance_vectors() -> Dict[str, Any]:
+    def transfer(
+        sender: str, recipient: str, amount: int, fee: int, nonce: int
+    ) -> Dict[str, Any]:
+        return {
+            "ledger": "balance",
+            "sender": sender,
+            "recipient": recipient,
+            "amount": amount,
+            "fee": fee,
+            "nonce": nonce,
+        }
+
+    first = transfer("alice", "bob", 10, 2, 0)
+    second = transfer("alice", "bob", 1, 0, 1)
+    replay = [
+        _replay_object("transfer and fee burn", BalanceLedger, [first]),
+        _replay_object("second nonce accepted", BalanceLedger, [first, second]),
+        _replay_object(
+            "insufficient balance rejected",
+            BalanceLedger,
+            [transfer("bob", "alice", 5, 1, 0)],
+        ),
+        _replay_object(
+            "wrong nonce rejected",
+            BalanceLedger,
+            [transfer("alice", "bob", 1, 0, 5)],
+        ),
+        _replay_object(
+            "self-transfer burns fee",
+            BalanceLedger,
+            [transfer("alice", "alice", 10, 3, 0)],
+        ),
+        _replay_object(
+            "zero amount rejected",
+            BalanceLedger,
+            [transfer("alice", "bob", 0, 0, 0)],
+        ),
+    ]
+    return {
+        **header(
+            "ledger.balance",
+            "SPEC/features/ledger-balance.md",
+            "Account ledger: nonce, no overdraft, fee burned.",
+        ),
+        "allocations": {"alice": 100},
+        "replay": replay,
+    }
+
+
+def ledger_utxo_vectors() -> Dict[str, Any]:
+    spend = {
+        "ledger": "utxo",
+        "fee": 2,
+        "inputs": ["genesis:alice"],
+        "outputs": [
+            {"owner": "bob", "value": 70},
+            {"owner": "alice", "value": 28},
+        ],
+    }
+    first_id = transaction_id(2, spend["inputs"], spend["outputs"])
+    chained = {
+        "ledger": "utxo",
+        "fee": 0,
+        "inputs": [f"{first_id}:0"],
+        "outputs": [{"owner": "carol", "value": 70}],
+    }
+    burn = {
+        "ledger": "utxo",
+        "fee": 100,
+        "inputs": ["genesis:alice"],
+        "outputs": [],
+    }
+    replay = [
+        _replay_object("spend with change and fee", UtxoLedger, [spend]),
+        _replay_object("spend a created output", UtxoLedger, [spend, chained]),
+        _replay_object("full burn", UtxoLedger, [burn]),
+        _replay_object(
+            "double spend rejected",
+            UtxoLedger,
+            [spend, {**spend, "outputs": [{"owner": "carol", "value": 98}]}],
+        ),
+        _replay_object(
+            "duplicate input rejected",
+            UtxoLedger,
+            [
+                {
+                    "ledger": "utxo",
+                    "fee": 0,
+                    "inputs": ["genesis:alice", "genesis:alice"],
+                    "outputs": [{"owner": "bob", "value": 100}],
+                }
+            ],
+        ),
+        _replay_object(
+            "value mismatch rejected",
+            UtxoLedger,
+            [
+                {
+                    "ledger": "utxo",
+                    "fee": 0,
+                    "inputs": ["genesis:alice"],
+                    "outputs": [{"owner": "bob", "value": 200}],
+                }
+            ],
+        ),
+        _replay_object(
+            "missing input rejected",
+            UtxoLedger,
+            [
+                {
+                    "ledger": "utxo",
+                    "fee": 0,
+                    "inputs": ["does-not-exist"],
+                    "outputs": [{"owner": "bob", "value": 1}],
+                }
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "ledger.utxo",
+            "SPEC/features/ledger-utxo.md",
+            "UTXO ledger: structural fee, insertion-order store, fee burned.",
+        ),
+        "allocations": {"alice": 100},
+        "replay": replay,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -1410,6 +1542,9 @@ def main() -> int:
     write("consensus-pow.json", consensus_pow_vectors())
     write("consensus-pos.json", consensus_pos_vectors())
     write("consensus-pbft.json", consensus_pbft_vectors())
+    print("\nLevel 2 — ledgers")
+    write("ledger-balance.json", ledger_balance_vectors())
+    write("ledger-utxo.json", ledger_utxo_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

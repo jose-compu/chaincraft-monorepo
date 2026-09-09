@@ -1,0 +1,183 @@
+{
+  "feature": "ledger.utxo",
+  "spec": "SPEC/features/ledger-utxo.md",
+  "description": "UTXO ledger: structural fee, insertion-order store, fee burned.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "allocations": {
+    "alice": 100
+  },
+  "replay": [
+    {
+      "name": "spend with change and fee",
+      "steps": [
+        {
+          "message_json": "{\"fee\":2,\"inputs\":[\"genesis:alice\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"bob\",\"value\":70},{\"owner\":\"alice\",\"value\":28}]}",
+          "accepted": true,
+          "burned": 2,
+          "supply": 98,
+          "utxos": [
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:0",
+              "owner": "bob",
+              "value": 70
+            },
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:1",
+              "owner": "alice",
+              "value": 28
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "spend a created output",
+      "steps": [
+        {
+          "message_json": "{\"fee\":2,\"inputs\":[\"genesis:alice\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"bob\",\"value\":70},{\"owner\":\"alice\",\"value\":28}]}",
+          "accepted": true,
+          "burned": 2,
+          "supply": 98,
+          "utxos": [
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:0",
+              "owner": "bob",
+              "value": 70
+            },
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:1",
+              "owner": "alice",
+              "value": 28
+            }
+          ]
+        },
+        {
+          "message_json": "{\"fee\":0,\"inputs\":[\"4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:0\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"carol\",\"value\":70}]}",
+          "accepted": true,
+          "burned": 2,
+          "supply": 98,
+          "utxos": [
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:1",
+              "owner": "alice",
+              "value": 28
+            },
+            {
+              "id": "d4ed3406bde93f3f4e2b32649273ff4eb194a73a3b14b2d3c752f88c0971154f:0",
+              "owner": "carol",
+              "value": 70
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "full burn",
+      "steps": [
+        {
+          "message_json": "{\"fee\":100,\"inputs\":[\"genesis:alice\"],\"ledger\":\"utxo\",\"outputs\":[]}",
+          "accepted": true,
+          "burned": 100,
+          "supply": 0,
+          "utxos": []
+        }
+      ]
+    },
+    {
+      "name": "double spend rejected",
+      "steps": [
+        {
+          "message_json": "{\"fee\":2,\"inputs\":[\"genesis:alice\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"bob\",\"value\":70},{\"owner\":\"alice\",\"value\":28}]}",
+          "accepted": true,
+          "burned": 2,
+          "supply": 98,
+          "utxos": [
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:0",
+              "owner": "bob",
+              "value": 70
+            },
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:1",
+              "owner": "alice",
+              "value": 28
+            }
+          ]
+        },
+        {
+          "message_json": "{\"fee\":2,\"inputs\":[\"genesis:alice\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"carol\",\"value\":98}]}",
+          "accepted": false,
+          "burned": 2,
+          "supply": 98,
+          "utxos": [
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:0",
+              "owner": "bob",
+              "value": 70
+            },
+            {
+              "id": "4c8b9fc3182432de95001db1040b74fd3b1cba81226f98656050f775e7566d76:1",
+              "owner": "alice",
+              "value": 28
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duplicate input rejected",
+      "steps": [
+        {
+          "message_json": "{\"fee\":0,\"inputs\":[\"genesis:alice\",\"genesis:alice\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"bob\",\"value\":100}]}",
+          "accepted": false,
+          "burned": 0,
+          "supply": 100,
+          "utxos": [
+            {
+              "id": "genesis:alice",
+              "owner": "alice",
+              "value": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "value mismatch rejected",
+      "steps": [
+        {
+          "message_json": "{\"fee\":0,\"inputs\":[\"genesis:alice\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"bob\",\"value\":200}]}",
+          "accepted": false,
+          "burned": 0,
+          "supply": 100,
+          "utxos": [
+            {
+              "id": "genesis:alice",
+              "owner": "alice",
+              "value": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "missing input rejected",
+      "steps": [
+        {
+          "message_json": "{\"fee\":0,\"inputs\":[\"does-not-exist\"],\"ledger\":\"utxo\",\"outputs\":[{\"owner\":\"bob\",\"value\":1}]}",
+          "accepted": false,
+          "burned": 0,
+          "supply": 100,
+          "utxos": [
+            {
+              "id": "genesis:alice",
+              "owner": "alice",
+              "value": 100
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

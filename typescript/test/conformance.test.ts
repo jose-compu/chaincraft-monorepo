@@ -18,6 +18,8 @@ import {
   PBFT,
   ProofOfStake,
   ProofOfWork,
+  BalanceLedger,
+  UtxoLedger,
   Deduplicator,
   LocalDiscovery,
   Envelope,
@@ -466,6 +468,39 @@ eachCase('consensus-pos.json', 'replay', (c) => {
   }
 });
 
+eachCase('ledger-balance.json', 'replay', (c, doc) => {
+  const obj = new BalanceLedger(doc['allocations']);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      balances: step['balances'],
+      burned: step['burned'],
+      nonces: step['nonces'],
+      supply: step['supply'],
+    }, where);
+  }
+});
+
+eachCase('ledger-utxo.json', 'replay', (c, doc) => {
+  const obj = new UtxoLedger(doc['allocations']);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      burned: step['burned'],
+      supply: step['supply'],
+      utxos: step['utxos'],
+    }, where);
+  }
+});
+
 eachCase('consensus-pbft.json', 'replay', (c) => {
   const obj = new PBFT();
   for (const [index, step] of c['steps'].entries()) {
@@ -505,6 +540,8 @@ test('every vector file declares its feature', () => {
     'consensus-pow.json',
     'consensus-pos.json',
     'consensus-pbft.json',
+    'ledger-balance.json',
+    'ledger-utxo.json',
   ];
   for (const name of files) {
     const doc = load(name);
