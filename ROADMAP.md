@@ -264,7 +264,7 @@ one registry entry at a time, agent-ported and human-reviewed:
 
 1. `crypto.*` — primitives, VDF, VRF ✅ (`crypto.ecdsa`, `crypto.vdf`, `crypto.vrf`)
 2. `object.*` — shared object model, mementos
-3. `discovery.*` — peer discovery, gossip policy ✅ (`discovery.peer`, `discovery.local`)
+3. `discovery.*` — peer discovery, gossip policy ✅ (`discovery.peer`, `discovery.local`, `discovery.nat`)
 4. `consensus.*` — PoW, PoS, PBFT examples ✅ (`consensus.pow`, `consensus.pos`, `consensus.pbft`)
 5. `ledger.*` — balance and UTXO models ✅ (`ledger.balance`, `ledger.utxo`)
 6. `mempool.*`, `fees.*` ✅ (`mempool.basic`, `fees.policy`)
@@ -285,7 +285,13 @@ two leech the same info-hash. `nostraft` remains a later out-of-repo consumer.
 
 `wire.channel`: URI grammar (`tcp`, `udp`, `mailto`, `webrtc`, `forum`,
 `loop`) and an in-process loop bus for vectors. Live adapters are later
-issues (#1, #2, #30–#32). `ctl.hello.listen` stays a single `host:port`.
+issues (#2, #30–#32). `ctl.hello.listen` stays a single `host:port`.
+
+### Stage 11 — NAT traversal ✅
+
+`discovery.nat`: RFC 5389 STUN Binding, a one-byte UDP hole punch, and an
+`app.nat` relay. It is a Mesh client. The core node binaries do not import
+it, and `ctl.hello` is unchanged. Tracked as issue #1.
 
 ---
 

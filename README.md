@@ -73,10 +73,11 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 8 | Level 2 feature backfill | done |
 | 9 | Mixed-language BitTorrent swarm | done |
 | 10 | Address URIs and channel abstraction | done |
+| 11 | NAT traversal (STUN, hole punch, relay) | done |
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
-registry, a pedagogical BitTorrent swarm, and address URIs: 31 of 31
-features each (TypeScript 30 implemented plus the UDP exemption). The
+registry, a pedagogical BitTorrent swarm, address URIs, and NAT traversal:
+32 of 32 features each (TypeScript 31 implemented plus the UDP exemption). The
 one exemption in
 the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.

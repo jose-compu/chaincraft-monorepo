@@ -102,6 +102,20 @@ export {
   splitPayload,
 } from './bittorrent.ts';
 export { Mesh } from './mesh.ts';
+export {
+  type CodecResult as NatCodecResult,
+  type HandleOut as NatHandle,
+  type NatMessage,
+  type ParsedBinding,
+  type Punch as NatPunch,
+  type RelayOut as NatRelay,
+  APP_NAT,
+  NatTraversal,
+  PUNCH_HEX,
+  bindingRequest,
+  bindingSuccess,
+  parseBindingResponse,
+} from './nat.ts';
 export * as ecdsa from './ecdsa.ts';
 export * as vdf from './vdf.ts';
 export * as vrf from './vrf.ts';

@@ -396,6 +396,19 @@ features:
       rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
+  - id: discovery.nat
+    level: 2
+    spec: SPEC/features/discovery-nat.md
+    summary: STUN binding, one-byte UDP hole punch, and an app.nat relay
+    vectors: conformance/vectors/discovery-nat.json
+    backfill: true
+    legacy: python/chaincraft@0.8 nat_traversal
+    milestone: "2026-10-31"
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }
+
   - id: bittorrent.swarm
     level: 2
     spec: SPEC/features/bittorrent-swarm.md

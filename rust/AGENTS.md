@@ -43,6 +43,7 @@ src/
   storage.rs     Pedagogical message store
   cli.rs         JSON-lines node command surface
   bittorrent.rs  Pedagogical BitTorrent swarm + client
+  nat.rs         STUN, hole punch, and app.nat relay
   channel.rs     Address URIs and in-process loop channel
   mesh.rs        TCP mesh (listen, hello, dedup, relay)
   dedup.rs       Seen-digest set and relay gate (§7)

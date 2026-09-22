@@ -24,6 +24,10 @@ import {
   MessageStore,
   NodeSession,
   Swarm,
+  NatTraversal,
+  bindingRequest,
+  bindingSuccess,
+  parseBindingResponse,
   LoopBus,
   LoopChannel,
   isChannelConnectAllowed,
@@ -666,6 +670,78 @@ eachCase('consensus-pbft.json', 'replay', (c) => {
   }
 });
 
+// --- Level 2 NAT ------------------------------------------------------------
+
+eachCase('discovery-nat.json', 'request', (c) => {
+  assert.deepEqual(bindingRequest(c['txid']), { ok: c['ok'], packet: c['packet'] });
+});
+
+eachCase('discovery-nat.json', 'success', (c) => {
+  assert.deepEqual(bindingSuccess(c['txid'], c['host'], c['port']), {
+    ok: c['ok'],
+    packet: c['packet'],
+  });
+});
+
+eachCase('discovery-nat.json', 'response', (c) => {
+  assert.deepEqual(parseBindingResponse(c['packet'], c['txid']), {
+    ok: c['ok'],
+    host: c['host'],
+    port: c['port'],
+  });
+});
+
+eachCase('discovery-nat.json', 'construct', (c) => {
+  if (!c['ok']) {
+    assert.throws(
+      () => new NatTraversal(c['listen'], c['external'], c['relay']),
+      ProtocolError,
+    );
+    return;
+  }
+  const node = new NatTraversal(c['listen'], c['external'], c['relay']);
+  assert.equal(node.advertise(), c['advertise']);
+});
+
+eachCase('discovery-nat.json', 'sequence', (c) => {
+  const node = new NatTraversal(c['listen'], c['external'], c['relay']);
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    const op = step['op'];
+    if (op === 'arm') {
+      assert.equal(node.arm(step['transport']), step['ok'], where);
+    } else if (op === 'observe_stun') {
+      assert.equal(node.observeStun(step['packet'], step['txid']), step['ok'], where);
+    } else if (op === 'punch') {
+      assert.deepEqual(node.punch(step['peer']), {
+        ok: step['ok'],
+        datagram: step['datagram'],
+        addr: step['addr'],
+      }, where);
+    } else if (op === 'observe_punch') {
+      assert.equal(node.observePunch(step['datagram'], step['from']), step['ok'], where);
+    } else if (op === 'relay_request') {
+      assert.deepEqual(node.relayRequest(step['target']), {
+        ok: step['ok'],
+        message: step['message'],
+      }, where);
+    } else if (op === 'handle') {
+      assert.deepEqual(node.handle(step['message']), {
+        ok: step['ok'],
+        action: step['action'],
+        addr: step['addr'],
+        reply: step['reply'],
+      }, where);
+    } else {
+      throw new Error(`unknown op ${op}`);
+    }
+    assert.equal(node.advertise(), step['advertise'], where);
+    assert.equal(node.armed(), step['armed'], where);
+    assert.equal(node.externalAddress(), step['external'], where);
+    assert.deepEqual(node.opened(), step['opened'], where);
+  }
+});
+
 // --- vector hygiene ---------------------------------------------------------
 
 test('every vector file declares its feature', () => {
@@ -694,6 +770,7 @@ test('every vector file declares its feature', () => {
     'storage-persistent.json',
     'cli-node.json',
     'bittorrent-swarm.json',
+    'discovery-nat.json',
     'wire-channel.json',
   ];
   for (const name of files) {

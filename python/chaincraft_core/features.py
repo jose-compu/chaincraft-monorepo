@@ -41,6 +41,7 @@ FEATURES = frozenset(
         "crypto.vrf",
         "discovery.peer",
         "discovery.local",
+        "discovery.nat",
         "consensus.pow",
         "consensus.pos",
         "consensus.pbft",

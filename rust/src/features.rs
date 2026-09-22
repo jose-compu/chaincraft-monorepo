@@ -26,6 +26,7 @@ pub const FEATURES: &[&str] = &[
     "crypto.vrf",
     "discovery.peer",
     "discovery.local",
+    "discovery.nat",
     "consensus.pow",
     "consensus.pos",
     "consensus.pbft",

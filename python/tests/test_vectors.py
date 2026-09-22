@@ -772,6 +772,89 @@ def test_bittorrent_swarm_replay(case):
         assert obj.state() == step["state"], where
 
 
+# --- Level 2 NAT ------------------------------------------------------------
+
+
+@cases("discovery-nat.json", "request")
+def test_nat_request(case):
+    from chaincraft_core.nat import binding_request
+
+    assert binding_request(case["txid"]) == {"ok": case["ok"], "packet": case["packet"]}
+
+
+@cases("discovery-nat.json", "success")
+def test_nat_success(case):
+    from chaincraft_core.nat import binding_success
+
+    assert binding_success(case["txid"], case["host"], case["port"]) == {
+        "ok": case["ok"],
+        "packet": case["packet"],
+    }
+
+
+@cases("discovery-nat.json", "response")
+def test_nat_response(case):
+    from chaincraft_core.nat import parse_binding_response
+
+    assert parse_binding_response(case["packet"], case["txid"]) == {
+        "ok": case["ok"],
+        "host": case["host"],
+        "port": case["port"],
+    }
+
+
+@cases("discovery-nat.json", "construct")
+def test_nat_construct(case):
+    from chaincraft_core.nat import NatTraversal
+
+    if not case["ok"]:
+        with pytest.raises(ProtocolError):
+            NatTraversal(case["listen"], external=case["external"], relay=case["relay"])
+        return
+    node = NatTraversal(case["listen"], external=case["external"], relay=case["relay"])
+    assert node.advertise() == case["advertise"]
+
+
+@cases("discovery-nat.json", "sequence")
+def test_nat_sequence(case):
+    from chaincraft_core.nat import NatTraversal
+
+    node = NatTraversal(case["listen"], external=case["external"], relay=case["relay"])
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "arm":
+            assert node.arm(step["transport"]) is step["ok"], where
+        elif op == "observe_stun":
+            assert node.observe_stun(step["packet"], step["txid"]) is step["ok"], where
+        elif op == "punch":
+            assert node.punch(step["peer"]) == {
+                "ok": step["ok"],
+                "datagram": step["datagram"],
+                "addr": step["addr"],
+            }, where
+        elif op == "observe_punch":
+            assert node.observe_punch(step["datagram"], step["from"]) is step["ok"], where
+        elif op == "relay_request":
+            assert node.relay_request(step["target"]) == {
+                "ok": step["ok"],
+                "message": step["message"],
+            }, where
+        elif op == "handle":
+            assert node.handle(step["message"]) == {
+                "ok": step["ok"],
+                "action": step["action"],
+                "addr": step["addr"],
+                "reply": step["reply"],
+            }, where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert node.advertise() == step["advertise"], where
+        assert node.armed() is step["armed"], where
+        assert node.external_address() == step["external"], where
+        assert node.opened() == step["opened"], where
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

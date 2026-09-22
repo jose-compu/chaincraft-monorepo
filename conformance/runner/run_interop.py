@@ -81,7 +81,7 @@ class Node:
         self.impl = ""
         self.events: List[Dict[str, Any]] = []
         # select() on a text pipe misses lines already sitting in the
-        # TextIOWrapper. A reader thread keeps readline and the buffer in one place.
+        # TextIOWrapper. A reader thread keeps readline and the buffer together.
         self._lines: queue.Queue = queue.Queue()
         self._stderr_chunks: List[str] = []
         self._stderr_lock = threading.Lock()
