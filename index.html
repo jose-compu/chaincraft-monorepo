@@ -30,9 +30,9 @@
       <img class="hero-logo" src="chaincraft-logo-full.png" alt="Chaincraft voxel chain logo" width="280" height="280">
       <h1>Building blocks<br>for decentralized protocols</h1>
       <p class="tagline">
-        Open-source toolkit for gossip networks, consensus, and modular
-        blockchains. You implement the object contract; the mesh handles
-        transport, deduplication, and sync — in Python, Rust, and TypeScript.
+        Open-source toolkit for gossip protocols. A chat room, a topic, a
+        BitTorrent swarm, or a store is a local object. Consensus is a
+        feature you add when peers must agree — in Python, Rust, and TypeScript.
       </p>
       <div class="hero-cta">
         <a class="btn" href="#hello">Hello World</a>
@@ -43,8 +43,8 @@
     <section id="why" aria-labelledby="why-heading">
       <h2 id="why-heading">Why Chaincraft?</h2>
       <p class="section-lead">
-        Chaincraft separates <em>protocol rules</em> from <em>network plumbing</em>
-        so you can prototype gossip networks, consensus, and modular blockchains.
+        Most objects do not agree on a head. Publish-subscribe, chat, BitTorrent,
+        and the content-addressed store keep whatever they have received.
         Version 1.0.0 is the same behaviour in three languages.
       </p>
       <div class="why-grid">
@@ -58,17 +58,17 @@
         <article class="why-card">
           <h3>Verifiable</h3>
           <p>
-            <code>id</code> is SHA-256 of the canonical payload. Merkelized
-            objects expose digests so nodes can request missing history and
-            detect reorgs, including multi-block proof-of-work reorgs.
+            <code>id</code> is SHA-256 of the canonical payload, so a relay
+            can rebuild a message. A missing message is a gap, not a fork,
+            unless you opted into a consensus object.
           </p>
         </article>
         <article class="why-card">
           <h3>Composable</h3>
           <p>
-            Ledgers, fee policy, mempool, and consensus are separate objects.
-            Swap <code>balance</code> for <code>utxo</code>, or proof-of-work
-            for proof-of-stake, without forking the mesh.
+            Consensus is optional. Proof-of-work, proof-of-stake, and PBFT,
+            with a balance or UTXO ledger, attach to the same mesh when a
+            protocol needs a head.
           </p>
         </article>
       </div>
@@ -97,12 +97,17 @@
           <tr>
             <td>1</td>
             <td>Objects</td>
-            <td><code>receive</code> for a prototype. <code>is_valid</code> to reject. Mementos only when a consensus object syncs</td>
+            <td><code>receive</code> for a prototype. Gossip is relayed. <code>link.*</code> stays on that peer. Mementos only when a consensus object syncs</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Protocols</td>
+            <td>Publish-subscribe and chat rooms, a BitTorrent swarm, a content-addressed store. No shared head.</td>
           </tr>
           <tr>
             <td>2</td>
             <td>Consensus</td>
-            <td><code>pow</code>, <code>pos</code>, <code>pbft</code></td>
+            <td><code>pow</code>, <code>pos</code>, <code>pbft</code> — only when peers must agree</td>
           </tr>
           <tr>
             <td>2</td>
@@ -186,7 +191,7 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
     <section id="parity" class="alt-bg" aria-labelledby="parity-heading">
       <h2 id="parity-heading">Parity</h2>
       <p class="section-lead">
-        33 of 33 features. Python, Rust, and TypeScript accept and reject the
+        34 of 34 features. Python, Rust, and TypeScript accept and reject the
         same inputs and emit the same bytes. The registry is
         <code>SPEC/features.yaml</code>. CI fails when a language drifts.
       </p>
@@ -212,7 +217,7 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
           <tr>
             <td>TypeScript</td>
             <td><code>@chaincraft/core</code></td>
-            <td>32 features. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0.</td>
+            <td>33 features. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0.</td>
           </tr>
         </tbody>
       </table>
