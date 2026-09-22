@@ -24,6 +24,10 @@ import {
   MessageStore,
   NodeSession,
   Swarm,
+  LoopBus,
+  LoopChannel,
+  isChannelConnectAllowed,
+  parseAddress,
   Deduplicator,
   fees,
   LocalDiscovery,
@@ -591,6 +595,46 @@ eachCase('cli-node.json', 'sequence', (c) => {
   }
 });
 
+eachCase('wire-channel.json', 'parse', (c) => {
+  assert.deepEqual(parseAddress(c['input']), {
+    ok: c['ok'],
+    scheme: c['scheme'],
+    canonical: c['canonical'],
+    cap: c['cap'],
+  });
+});
+
+eachCase('wire-channel.json', 'connect', (c) => {
+  assert.equal(isChannelConnectAllowed(c['input']), c['allowed']);
+});
+
+eachCase('wire-channel.json', 'sequence', (c) => {
+  const bus = new LoopBus();
+  const peers = { a: new LoopChannel(bus), b: new LoopChannel(bus) };
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    const actor = peers[step['who'] as 'a' | 'b'];
+    const op = step['op'];
+    if (op === 'listen') {
+      assert.equal(actor.listen(step['addr']), step['ok'], where);
+    } else if (op === 'dial') {
+      assert.equal(actor.dial(step['addr']), step['ok'], where);
+    } else if (op === 'send') {
+      assert.equal(actor.send(step['addr'], step['data']), step['ok'], where);
+    } else if (op === 'recv') {
+      assert.deepEqual(actor.recv(), step['returned'], where);
+    } else if (op === 'close') {
+      actor.close();
+    } else {
+      assert.fail(`unknown op ${op}`);
+    }
+    assert.equal(peers.a.listenAddr, step['a_listen'], where);
+    assert.equal(peers.b.listenAddr, step['b_listen'], where);
+    assert.deepEqual(peers.a.inbox(), step['a_inbox'], where);
+    assert.deepEqual(peers.b.inbox(), step['b_inbox'], where);
+  }
+});
+
 eachCase('bittorrent-swarm.json', 'replay', (c) => {
   const obj = new Swarm();
   const digest = c['info_hash'];
@@ -650,6 +694,7 @@ test('every vector file declares its feature', () => {
     'storage-persistent.json',
     'cli-node.json',
     'bittorrent-swarm.json',
+    'wire-channel.json',
   ];
   for (const name of files) {
     const doc = load(name);

@@ -281,6 +281,12 @@ A mixed Rust/Python/TypeScript BitTorrent swarm
 (`conformance/runner/run_bittorrent.py`). Each language seeds once; the other
 two leech the same info-hash. `nostraft` remains a later out-of-repo consumer.
 
+### Stage 10 — Channel abstraction ✅
+
+`wire.channel`: URI grammar (`tcp`, `udp`, `mailto`, `webrtc`, `forum`,
+`loop`) and an in-process loop bus for vectors. Live adapters are later
+issues (#1, #2, #30–#32). `ctl.hello.listen` stays a single `host:port`.
+
 ---
 
 ## 6. Versioning
