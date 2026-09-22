@@ -58,10 +58,30 @@ Store the block under its id. The **tip** is the stored block of greatest
 ## Snapshot
 
 `height` of the tip (0 when empty), `tip` (empty string when empty),
-`blocks` in insertion order.
+`blocks` in insertion order, and `canonical`.
+
+`canonical` is the chosen chain from the oldest block to the tip. Walk
+`parent` from the tip until the parent is empty, then reverse that walk.
+It is empty when there is no tip. The first id has height 1. Each later
+id's stored parent is the previous id and its height is one greater.
+Every accepted block stays in `blocks`, including blocks that are no
+longer on `canonical`.
+
+## Reorg
+
+The tip rule is the whole fork choice: greatest height, then lowest id.
+Extending the current tip is not a reorg. A reorg is an accept whose new
+`canonical` does not contain the previous tip.
+
+`reorg_depth` is the number of blocks on the previous canonical chain
+that are absent from the new one (the dropped suffix after the common
+prefix). It is 0 when the step is not a reorg. A multi-block reorg has
+`reorg_depth >= 2`.
 
 `emit_state_memento()` returns `normalize(merkle_digest({"height":h,"tip":t,"v":1}), [])`.
 `is_merkelized()` is true.
 
-`conformance/vectors/consensus-pow.json` pins mining, rejection, and a
-same-height fork resolved by id.
+`conformance/vectors/consensus-pow.json` pins mining, rejection, a
+same-height fork resolved by id, and two successive multi-block reorgs:
+a side chain that drops three canonical blocks, then the original chain
+extended until it becomes canonical again.
