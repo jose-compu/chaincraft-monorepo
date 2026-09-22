@@ -47,30 +47,33 @@ export class AdapterBus {
 export class AdapterChannel {
   listenAddr = '';
   readonly #inbox: InboxItem[] = [];
+  readonly #bus: AdapterBus;
 
-  constructor(private readonly bus: AdapterBus) {}
+  constructor(bus: AdapterBus) {
+    this.#bus = bus;
+  }
 
   listen(addr: string): boolean {
     const parsed = parseAddress(addr);
-    if (!parsed.ok || parsed.scheme !== this.bus.scheme || this.listenAddr !== '') return false;
-    if (this.bus.bound.has(parsed.canonical)) return false;
+    if (!parsed.ok || parsed.scheme !== this.#bus.scheme || this.listenAddr !== '') return false;
+    if (this.#bus.bound.has(parsed.canonical)) return false;
     this.listenAddr = parsed.canonical;
-    this.bus.bound.set(parsed.canonical, this);
+    this.#bus.bound.set(parsed.canonical, this);
     return true;
   }
 
   dial(addr: string): boolean {
     const parsed = parseAddress(addr);
-    if (!parsed.ok || parsed.scheme !== this.bus.scheme) return false;
-    return this.bus.bound.has(parsed.canonical);
+    if (!parsed.ok || parsed.scheme !== this.#bus.scheme) return false;
+    return this.#bus.bound.has(parsed.canonical);
   }
 
   send(addr: string, data: string): boolean {
     const parsed = parseAddress(addr);
-    if (!parsed.ok || parsed.scheme !== this.bus.scheme || !validPayload(data, this.bus.maxBytes)) {
+    if (!parsed.ok || parsed.scheme !== this.#bus.scheme || !validPayload(data, this.#bus.maxBytes)) {
       return false;
     }
-    const dest = this.bus.bound.get(parsed.canonical);
+    const dest = this.#bus.bound.get(parsed.canonical);
     if (dest === undefined) return false;
     dest.#inbox.push({ data, from: this.listenAddr });
     return true;
@@ -86,7 +89,7 @@ export class AdapterChannel {
 
   close(): void {
     if (this.listenAddr !== '') {
-      if (this.bus.bound.get(this.listenAddr) === this) this.bus.bound.delete(this.listenAddr);
+      if (this.#bus.bound.get(this.listenAddr) === this) this.#bus.bound.delete(this.listenAddr);
       this.listenAddr = '';
     }
     this.#inbox.splice(0, this.#inbox.length);
@@ -100,10 +103,13 @@ function validPayload(data: string, maxBytes: number): boolean {
 }
 
 export class UdpLink {
-  private constructor(
-    private readonly socket: dgram.Socket,
-    readonly hostPort: string,
-  ) {}
+  readonly #socket: dgram.Socket;
+  readonly hostPort: string;
+
+  private constructor(socket: dgram.Socket, hostPort: string) {
+    this.#socket = socket;
+    this.hostPort = hostPort;
+  }
 
   static bind(): Promise<UdpLink> {
     return new Promise((resolve, reject) => {
@@ -122,7 +128,7 @@ export class UdpLink {
     const host = hostPort.slice(0, idx);
     const port = Number(hostPort.slice(idx + 1));
     return new Promise((resolve, reject) => {
-      this.socket.send(Buffer.from(body), port, host, (error) => {
+      this.#socket.send(Buffer.from(body), port, host, (error) => {
         if (error) reject(error);
         else resolve();
       });
@@ -132,7 +138,7 @@ export class UdpLink {
   recv(): Promise<{ from: string; body: Uint8Array }> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('udp timeout')), 2000);
-      this.socket.once('message', (msg, rinfo) => {
+      this.#socket.once('message', (msg, rinfo) => {
         clearTimeout(timer);
         const body = decodeDatagram(new Uint8Array(msg));
         resolve({ from: `${rinfo.address}:${rinfo.port}`, body });
@@ -142,7 +148,7 @@ export class UdpLink {
 
   close(): Promise<void> {
     return new Promise((resolve) => {
-      this.socket.close(() => resolve());
+      this.#socket.close(() => resolve());
     });
   }
 }
