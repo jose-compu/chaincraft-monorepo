@@ -1,6 +1,6 @@
 # consensus.pos
 
-Pedagogical proof-of-stake object. Weighted, deterministic proposer
+Prototype proof-of-stake object. Weighted, deterministic proposer
 selection. No tokens move; stake is a constructor parameter.
 
 Implements the Level 1 object contract. Applied through the pipeline.

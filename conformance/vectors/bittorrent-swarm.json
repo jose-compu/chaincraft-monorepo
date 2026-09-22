@@ -1,7 +1,7 @@
 {
   "feature": "bittorrent.swarm",
   "spec": "SPEC/features/bittorrent-swarm.md",
-  "description": "Pedagogical BitTorrent: metainfo, verified pieces, have-set.",
+  "description": "Prototype BitTorrent: metainfo, verified pieces, have-set.",
   "generator": "conformance/generate_vectors.py",
   "wire_version": 1,
   "assembled": "4142434445464748494a4b4c",

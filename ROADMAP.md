@@ -1,6 +1,7 @@
 # Chaincraft — Full Parity Roadmap
 
-Three implementations — Python, Rust, TypeScript — held at **100% feature parity**.
+Chaincraft is for blockchain development and prototyping. Three implementations —
+Python, Rust, TypeScript — are held at **100% feature parity**.
 
 This document defines what that commitment means, why it is achievable, and the
 machinery that enforces it. The enforcement is automated: parity is a CI gate, not a

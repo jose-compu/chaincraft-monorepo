@@ -1,6 +1,6 @@
 # discovery.nat
 
-Pedagogical NAT traversal for a Mesh client. STUN Binding (RFC 5389, IPv4
+Prototype NAT traversal for a Mesh client. STUN Binding (RFC 5389, IPv4
 only), a one-byte UDP hole punch, and an `app.nat` introduction relay.
 
 This module does not open sockets and it is not imported by the core node

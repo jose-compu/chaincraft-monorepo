@@ -243,7 +243,7 @@ features:
   - id: crypto.vrf
     level: 2
     spec: SPEC/features/crypto-vrf.md
-    summary: Pedagogical VRF — SHA-256 domain then ECDSA, output SHA-256(proof||pk||msg)
+    summary: Prototype VRF — SHA-256 domain then ECDSA, output SHA-256(proof||pk||msg)
     vectors: conformance/vectors/vrf.json
     backfill: true
     legacy: python/chaincraft@0.7 crypto_primitives
@@ -282,7 +282,7 @@ features:
   - id: consensus.pow
     level: 2
     spec: SPEC/features/consensus-pow.md
-    summary: Pedagogical PoW object with leading-zero work and longest-tip choice
+    summary: Prototype PoW object with leading-zero work and longest-tip choice
     vectors: conformance/vectors/consensus-pow.json
     backfill: true
     legacy: python/chaincraft@0.7 consensus
@@ -295,7 +295,7 @@ features:
   - id: consensus.pos
     level: 2
     spec: SPEC/features/consensus-pos.md
-    summary: Pedagogical PoS object with a deterministic weighted lottery
+    summary: Prototype PoS object with a deterministic weighted lottery
     vectors: conformance/vectors/consensus-pos.json
     backfill: true
     legacy: python/chaincraft@0.7 consensus
@@ -308,7 +308,7 @@ features:
   - id: consensus.pbft
     level: 2
     spec: SPEC/features/consensus-pbft.md
-    summary: Pedagogical PBFT object, pre-prepare / prepare / commit
+    summary: Prototype PBFT object, pre-prepare / prepare / commit
     vectors: conformance/vectors/consensus-pbft.json
     backfill: true
     legacy: python/chaincraft@0.7 consensus
@@ -321,7 +321,7 @@ features:
   - id: ledger.balance
     level: 2
     spec: SPEC/features/ledger-balance.md
-    summary: Pedagogical account ledger with nonces and burned fees
+    summary: Prototype account ledger with nonces and burned fees
     vectors: conformance/vectors/ledger-balance.json
     backfill: true
     legacy: python/chaincraft@0.7 ledger; rust/chaincraft-rust application objects
@@ -334,7 +334,7 @@ features:
   - id: ledger.utxo
     level: 2
     spec: SPEC/features/ledger-utxo.md
-    summary: Pedagogical UTXO ledger with structural fees
+    summary: Prototype UTXO ledger with structural fees
     vectors: conformance/vectors/ledger-utxo.json
     backfill: true
     legacy: python/chaincraft@0.7 ledger
@@ -347,7 +347,7 @@ features:
   - id: mempool.basic
     level: 2
     spec: SPEC/features/mempool-basic.md
-    summary: Pedagogical mempool with RBF, sender cap, TTL and lowest-fee eviction
+    summary: Prototype mempool with RBF, sender cap, TTL and lowest-fee eviction
     vectors: conformance/vectors/mempool-basic.json
     backfill: true
     legacy: python/chaincraft@0.7 mempool
@@ -360,7 +360,7 @@ features:
   - id: fees.policy
     level: 2
     spec: SPEC/features/fees-policy.md
-    summary: Pedagogical fee ranking, burn split, median estimate and base-fee step
+    summary: Prototype fee ranking, burn split, median estimate and base-fee step
     vectors: conformance/vectors/fees-policy.json
     backfill: true
     legacy: python/chaincraft@0.7 fees
@@ -373,7 +373,7 @@ features:
   - id: storage.persistent
     level: 2
     spec: SPEC/features/storage-persistent.md
-    summary: Pedagogical content-addressed store with FIFO eviction and dump/load
+    summary: Prototype content-addressed store with FIFO eviction and dump/load
     vectors: conformance/vectors/storage-persistent.json
     backfill: true
     legacy: python/chaincraft@0.7 storage
@@ -412,7 +412,7 @@ features:
   - id: bittorrent.swarm
     level: 2
     spec: SPEC/features/bittorrent-swarm.md
-    summary: Pedagogical BitTorrent metainfo, verified pieces and have-set
+    summary: Prototype BitTorrent metainfo, verified pieces and have-set
     vectors: conformance/vectors/bittorrent-swarm.json
     status:
       python:     { state: implemented, since: "2026-09-09" }

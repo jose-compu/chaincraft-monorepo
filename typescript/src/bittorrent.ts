@@ -1,4 +1,4 @@
-/** Pedagogical BitTorrent swarm — SPEC/features/bittorrent-swarm.md. */
+/** Prototype BitTorrent swarm — SPEC/features/bittorrent-swarm.md. */
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import {

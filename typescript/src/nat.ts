@@ -1,4 +1,4 @@
-/** Pedagogical NAT traversal — SPEC/features/discovery-nat.md. */
+/** Prototype NAT traversal — SPEC/features/discovery-nat.md. */
 
 import { isValidAddress } from './discovery.ts';
 import { ProtocolError } from './errors.ts';

@@ -2012,7 +2012,7 @@ def bittorrent_swarm_vectors() -> Dict[str, Any]:
         **header(
             "bittorrent.swarm",
             "SPEC/features/bittorrent-swarm.md",
-            "Pedagogical BitTorrent: metainfo, verified pieces, have-set.",
+            "Prototype BitTorrent: metainfo, verified pieces, have-set.",
         ),
         "assembled": bytes("ABCDEFGHIJKL", "utf-8").hex(),
         "info_hash": digest,

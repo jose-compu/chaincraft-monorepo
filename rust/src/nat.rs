@@ -1,4 +1,4 @@
-//! Pedagogical NAT traversal — SPEC/features/discovery-nat.md.
+//! Prototype NAT traversal — SPEC/features/discovery-nat.md.
 
 use serde_json::{json, Value};
 

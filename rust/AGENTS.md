@@ -33,16 +33,16 @@ src/
   vdf.rs         Sloth VDF (crypto-vdf.md)
   vrf.rs         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.rs   Address book and local-discovery policy
-  consensus_pow.rs   Pedagogical PoW object
-  consensus_pos.rs   Pedagogical PoS object
-  consensus_pbft.rs  Pedagogical PBFT object
-  ledger_balance.rs  Pedagogical account ledger
-  ledger_utxo.rs     Pedagogical UTXO ledger
-  mempool.rs     Pedagogical transaction pool
-  fees.rs        Pedagogical fee policy
-  storage.rs     Pedagogical message store
+  consensus_pow.rs   Prototype PoW object
+  consensus_pos.rs   Prototype PoS object
+  consensus_pbft.rs  Prototype PBFT object
+  ledger_balance.rs  Prototype account ledger
+  ledger_utxo.rs     Prototype UTXO ledger
+  mempool.rs     Prototype transaction pool
+  fees.rs        Prototype fee policy
+  storage.rs     Prototype message store
   cli.rs         JSON-lines node command surface
-  bittorrent.rs  Pedagogical BitTorrent swarm + client
+  bittorrent.rs  Prototype BitTorrent swarm + client
   nat.rs         STUN, hole punch, and app.nat relay
   channel.rs     Address URIs and in-process loop channel
   mesh.rs        TCP mesh (listen, hello, dedup, relay)

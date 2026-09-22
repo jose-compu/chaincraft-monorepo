@@ -4,8 +4,9 @@ Chaincraft in three languages — Python, Rust and TypeScript — held at **100%
 parity** by a specification, shared conformance vectors, and a CI gate that fails on
 drift.
 
-Chaincraft is a platform for blockchain education and prototyping: a gossip mesh, a
-shared-object model, and cryptographic primitives you can build protocols on top of.
+Chaincraft is a platform for blockchain development and prototyping. It gives you a
+gossip mesh, a shared-object model, and the consensus, ledger, and cryptographic
+primitives a new chain is built from.
 
 ---
 
@@ -76,7 +77,7 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 11 | NAT traversal (STUN, hole punch, relay) | done |
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
-registry, a pedagogical BitTorrent swarm, address URIs, and NAT traversal:
+registry, a BitTorrent swarm, address URIs, and NAT traversal:
 32 of 32 features each (TypeScript 31 implemented plus the UDP exemption). The
 one exemption in
 the registry is `wire.framing-udp` for TypeScript, since browsers have no

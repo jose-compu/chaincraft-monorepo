@@ -1,6 +1,6 @@
 # mempool.basic
 
-Pedagogical transaction pool. It governs admission and retention: size,
+Prototype transaction pool. It governs admission and retention: size,
 minimum fee, per-sender cap, time-to-live and replace-by-fee.
 
 This is not a block producer and not a ledger. Selection of which

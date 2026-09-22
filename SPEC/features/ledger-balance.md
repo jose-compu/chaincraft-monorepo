@@ -1,6 +1,6 @@
 # ledger.balance
 
-Pedagogical account-balance ledger. It implements the Level 1 object
+Prototype account-balance ledger. It implements the Level 1 object
 contract (`SPEC/semantics-v1.md` §2) and is applied through the ordinary
 pipeline.
 

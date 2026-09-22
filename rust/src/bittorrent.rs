@@ -1,4 +1,4 @@
-//! Pedagogical BitTorrent swarm — SPEC/features/bittorrent-swarm.md.
+//! Prototype BitTorrent swarm — SPEC/features/bittorrent-swarm.md.
 
 use std::any::Any;
 use std::collections::{BTreeMap, BTreeSet, HashMap};

@@ -1,6 +1,6 @@
 # storage.persistent
 
-Pedagogical content-addressed message store. It specifies the *semantics*
+Prototype content-addressed message store. It specifies the *semantics*
 of persistence: keys, insertion order, capacity, dump and load.
 
 This is not a filesystem and not a database engine. Opening files, fsync

@@ -1,6 +1,6 @@
 # fees.policy
 
-Pedagogical fee policy. It ranks candidates for a block, splits a fee
+Prototype fee policy. It ranks candidates for a block, splits a fee
 into burned and tip portions, estimates a clearing fee, and steps a
 base fee.
 

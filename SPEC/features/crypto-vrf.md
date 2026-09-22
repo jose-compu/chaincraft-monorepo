@@ -2,7 +2,7 @@
 
 Deterministic uniqueness VRF built on `crypto.ecdsa`.
 
-This is a pedagogical VRF: uniqueness comes from RFC 6979, not from a
+This is a prototype VRF: uniqueness comes from RFC 6979, not from a
 hash-to-curve construction. It is specified here because the legacy
 `ECDSAVRFPrimitive` used non-deterministic DER signatures and could not
 interoperate. A later revision MAY replace this with RFC 9381; the feature id

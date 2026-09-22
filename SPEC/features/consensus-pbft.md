@@ -1,6 +1,6 @@
 # consensus.pbft
 
-Pedagogical Castro–Liskov three-phase object (pre-prepare / prepare /
+Prototype Castro–Liskov three-phase object (pre-prepare / prepare /
 commit). One replica's log, driven by messages — it does not broadcast.
 
 View changes and timeouts are out of scope.

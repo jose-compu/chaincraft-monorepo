@@ -1,4 +1,4 @@
-"""Pedagogical NAT traversal — SPEC/features/discovery-nat.md."""
+"""Prototype NAT traversal — SPEC/features/discovery-nat.md."""
 
 from __future__ import annotations
 

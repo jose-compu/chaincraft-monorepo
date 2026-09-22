@@ -26,16 +26,16 @@ chaincraft_core/
   vdf.py         Sloth VDF (crypto-vdf.md)
   vrf.py         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.py   Address book and local-discovery policy
-  consensus_pow.py   Pedagogical PoW object
-  consensus_pos.py   Pedagogical PoS object
-  consensus_pbft.py  Pedagogical PBFT object
-  ledger_balance.py  Pedagogical account ledger
-  ledger_utxo.py     Pedagogical UTXO ledger
-  mempool.py     Pedagogical transaction pool
-  fees.py        Pedagogical fee policy
-  storage.py     Pedagogical message store
+  consensus_pow.py   Prototype PoW object
+  consensus_pos.py   Prototype PoS object
+  consensus_pbft.py  Prototype PBFT object
+  ledger_balance.py  Prototype account ledger
+  ledger_utxo.py     Prototype UTXO ledger
+  mempool.py     Prototype transaction pool
+  fees.py        Prototype fee policy
+  storage.py     Prototype message store
   cli.py         JSON-lines node command surface
-  bittorrent.py  Pedagogical BitTorrent swarm + client
+  bittorrent.py  Prototype BitTorrent swarm + client
   nat.py         STUN, hole punch, and app.nat relay
   channel.py     Address URIs and in-process loop channel
   mesh.py        TCP mesh (listen, hello, dedup, relay)

@@ -1,6 +1,6 @@
 # bittorrent.swarm
 
-Pedagogical BitTorrent swarm. It tracks one or more torrents: metainfo,
+Prototype BitTorrent swarm. It tracks one or more torrents: metainfo,
 verified piece bytes, and which peers have which pieces.
 
 This is not a tracker, a DHT, or a wire-protocol replica of BEP 3. Piece
