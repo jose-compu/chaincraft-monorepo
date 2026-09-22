@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parity · Chaincraft 1.0.0</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site">
+    <a class="brand" href="index.html">Chaincraft</a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="parity.html" aria-current="page">Parity</a>
+      <a href="wire.html">Wire</a>
+      <a href="start.html">Develop</a>
+    </nav>
+  </header>
+
+  <p class="kicker">Version 1.0.0 · registry</p>
+  <h1>Feature parity</h1>
+  <p>
+    A feature is done when Python, Rust, and TypeScript make the same accept
+    and reject decisions and emit the same bytes. <code>SPEC/features.yaml</code>
+    is the registry. <code>tools/parity_check.py</code> fails the build when a
+    manifest disagrees with it.
+  </p>
+  <p>
+    TypeScript is 31 implemented features plus one exemption. Browsers have no
+    raw UDP socket, and a Node-only UDP path would not be the same capability.
+    UDP is optional at Level 0 and is negotiated in <code>ctl.hello</code>, so a
+    TypeScript node still speaks the protocol over TCP.
+  </p>
+
+  <h2>Level 0 — wire</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Behaviour</th><th>Py</th><th>Rs</th><th>Ts</th></tr></thead>
+    <tbody>
+      <tr><td>wire.canonical-json</td><td>Canonical JSON, no floating point</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.payload-digest</td><td>SHA-256 over canonical data, lowercase hex</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.envelope</td><td>Build, serialize, and validate in the specified order</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.framing-tcp</td><td>u32 length prefix, 16 MiB cap, stream reassembly</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.framing-udp</td><td>One envelope per datagram, 65507 byte cap</td><td class="yes">yes</td><td class="yes">yes</td><td class="exempt">exempt</td></tr>
+      <tr><td>wire.control</td><td>ctl.hello, peers, digest, messages</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.version-negotiation</td><td>Capability set, clean disconnect on mismatch</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.sig-schnorr</td><td>BIP-340 Schnorr over the 32-byte id</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.sig-ed25519</td><td>RFC 8032 Ed25519 over the 32-byte id</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.dedup</td><td>Seen-digest set. Control messages are never relayed</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Level 1 — objects</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Behaviour</th><th>Py</th><th>Rs</th><th>Ts</th></tr></thead>
+    <tbody>
+      <tr><td>object.contract</td><td>is_valid, add_message, digests</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>object.pipeline</td><td>Validate all, then apply. Commit only on success</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>object.memento</td><td>State normalization and reorg detection</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>object.merkle-digest</td><td>Object digest and frontier digest</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>object.tiebreak</td><td>Lowest digest wins an exact tie</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Level 2 — chain building</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Behaviour</th><th>Py</th><th>Rs</th><th>Ts</th></tr></thead>
+    <tbody>
+      <tr><td>crypto.ecdsa</td><td>secp256k1, compact r||s, low-S, compressed key</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>crypto.vdf</td><td>Sloth over a fixed prime</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>crypto.vrf</td><td>Prototype VRF on ECDSA, RFC 6979 uniqueness</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>discovery.peer</td><td>Address book for host:port over ctl.peers</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>discovery.local</td><td>Policy for local peer lists</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>discovery.nat</td><td>STUN binding, one-byte hole punch, app.nat relay</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>consensus.pow</td><td>Leading-zero work, longest tip, multi-block reorgs</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>consensus.pos</td><td>Deterministic weighted proposer</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>consensus.pbft</td><td>Pre-prepare, prepare, commit</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>ledger.balance</td><td>Account ledger, nonces, burned fees</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>ledger.utxo</td><td>UTXO ledger with structural fees</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>mempool.basic</td><td>RBF, sender cap, TTL, lowest-fee eviction</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>fees.policy</td><td>Ranking, burn split, estimate, base-fee step</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>storage.persistent</td><td>Content-addressed store, FIFO eviction, dump and load</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>cli.node</td><td>JSON-lines start, connect, send, ids, quit</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>wire.channel</td><td>Address URIs and an in-process loop channel</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>bittorrent.swarm</td><td>Metainfo, verified pieces, have-set on the mesh</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    Chaincraft 1.0.0 · source on
+    <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chaincraft 1.0.0</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site">
+    <a class="brand" href="index.html">Chaincraft</a>
+    <nav>
+      <a href="index.html" aria-current="page">Overview</a>
+      <a href="parity.html">Parity</a>
+      <a href="wire.html">Wire</a>
+      <a href="start.html">Develop</a>
+    </nav>
+  </header>
+
+  <p class="kicker">Version 1.0.0</p>
+  <h1>A platform for building and prototyping blockchains.</h1>
+  <p>
+    Chaincraft is a gossip mesh, a shared-object model, and the consensus, ledger,
+    and cryptographic primitives a new chain is built from. The same behaviour
+    ships in Python, Rust, and TypeScript.
+  </p>
+  <p>
+    Version 1.0.0 is the first lockstep release of those three cores. Parity is
+    32 of 32 features. Observable behaviour is pinned by shared conformance
+    vectors, not by copying one language into another.
+  </p>
+
+  <h2>Three cores, one protocol</h2>
+  <table>
+    <thead>
+      <tr><th>Language</th><th>Package</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Python</td><td><code>chaincraft-core</code></td><td>Reference implementation. Vectors are generated from it.</td></tr>
+      <tr><td>Rust</td><td><code>chaincraft-core</code></td><td>Same wire bytes, same accept and reject decisions.</td></tr>
+      <tr><td>TypeScript</td><td><code>@chaincraft/core</code></td><td>Same contract. Raw UDP is the one exemption.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What 1.0.0 contains</h2>
+  <ul>
+    <li>Level 0 wire: canonical JSON, content-addressed envelopes, TCP framing, <code>ctl.hello</code>, Schnorr and Ed25519.</li>
+    <li>Level 1 objects: validate-then-apply, mementos, merkle and frontier digests, tie-break.</li>
+    <li>Level 2: peer discovery, NAT traversal, proof-of-work with multi-block reorgs, proof-of-stake, PBFT, account and UTXO ledgers, mempool, fees, storage, a node command surface, address URIs, and a BitTorrent swarm on the mesh.</li>
+  </ul>
+  <p>The registry and the per-language status are on the <a href="parity.html">parity page</a>. The byte rules are on the <a href="wire.html">wire page</a>.</p>
+
+  <footer>
+    Chaincraft 1.0.0 · source on
+    <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a>
+  </footer>
+</body>
+</html>

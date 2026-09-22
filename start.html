@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Develop · Chaincraft 1.0.0</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site">
+    <a class="brand" href="index.html">Chaincraft</a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="parity.html">Parity</a>
+      <a href="wire.html">Wire</a>
+      <a href="start.html" aria-current="page">Develop</a>
+    </nav>
+  </header>
+
+  <p class="kicker">Version 1.0.0 · from source</p>
+  <h1>Build on the three cores</h1>
+  <p>
+    1.0.0 is the tree on <code>main</code>. Each language exposes the same
+    envelope: a type, a payload, and an id that is the SHA-256 of the canonical
+    payload.
+  </p>
+
+  <h2>Python</h2>
+  <pre>cd python
+pip install -e ".[dev]"
+python -m pytest tests/ -v</pre>
+  <pre>from chaincraft_core import Envelope, encode_frame
+
+env = Envelope.build("app.counter", {"by": "alice", "delta": 1})
+print(env.id)
+frame = encode_frame(env.to_bytes())</pre>
+
+  <h2>Rust</h2>
+  <pre>cd rust
+cargo test --all-features</pre>
+  <pre>let env = Envelope::build("app.counter", json!({"by": "alice", "delta": 1}), None)?;
+println!("{}", env.id);</pre>
+
+  <h2>TypeScript</h2>
+  <pre>cd typescript
+npm install
+npm test</pre>
+  <pre>import { Envelope, encodeFrame } from "@chaincraft/core";
+
+const env = Envelope.build("app.counter", { by: "alice", delta: 1 });
+const frame = encodeFrame(env.toBytes());</pre>
+
+  <h2>Prove the three agree</h2>
+  <pre>python3 conformance/run_all.py
+python3 conformance/runner/run_interop.py
+python3 tools/parity_check.py --summary</pre>
+  <p>
+    The interop runner connects one node of each language and checks that an
+    application message from each sender arrives at the other two with the same
+    payload digest.
+  </p>
+
+  <footer>
+    Chaincraft 1.0.0 · source on
+    <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a>
+  </footer>
+</body>
+</html>
