@@ -50,6 +50,7 @@ export const FEATURES: readonly string[] = [
   'cli.node',
   'bittorrent.swarm',
   'wire.channel',
+  'app.pubsub',
 ];
 
 export interface Manifest {

@@ -45,6 +45,7 @@ src/
   bittorrent.rs  Prototype BitTorrent swarm + client
   nat.rs         STUN, hole punch, and app.nat relay
   channel.rs     Address URIs and in-process loop channel
+  pubsub.rs      Topic publish-subscribe (chat rooms)
   mesh.rs        TCP mesh (listen, hello, dedup, relay)
   dedup.rs       Seen-digest set and relay gate (§7)
   memento.rs     StateMemento (semantics-v1 §4)
@@ -79,7 +80,8 @@ cargo clippy --all-targets --all-features -- -D warnings
 - Signature verification returns `bool` and never a `Result`. Malformed input is `false`.
 - Clippy runs with `-D warnings`.
 - The object trait is named `ApplicationObject`. Python and TypeScript call it
-  `SharedObject`. The names differ; the contract does not.
+  `SharedObject`. A prototype implements `Protocol` and `receive`. Consensus
+  objects implement `ApplicationObject` and return a memento.
 
 ## Crypto backend
 

@@ -19,6 +19,7 @@ import {
   ProofOfStake,
   ProofOfWork,
   BalanceLedger,
+  PubSub,
   UtxoLedger,
   Mempool,
   MessageStore,
@@ -489,6 +490,23 @@ eachCase('consensus-pos.json', 'replay', (c) => {
   }
 });
 
+eachCase('app-pubsub.json', 'replay', (c) => {
+  const obj = new PubSub();
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `${c['name']} step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) assert.equal(obj.addMessage(message), undefined, where);
+    assert.equal(obj.isMerkelized(), false, where);
+    assert.deepEqual(obj.getStateDigests(), [], where);
+    const memo = obj.emitStateMemento();
+    assert.equal(memo.canonicalDigest, '', where);
+    assert.deepEqual(memo.frontierDigests, [], where);
+    assert.deepEqual(obj.state(), { rooms: step['rooms'] }, where);
+  }
+});
+
 eachCase('ledger-balance.json', 'replay', (c, doc) => {
   const obj = new BalanceLedger(doc['allocations']);
   for (const [index, step] of c['steps'].entries()) {
@@ -780,6 +798,7 @@ test('every vector file declares its feature', () => {
     'bittorrent-swarm.json',
     'discovery-nat.json',
     'wire-channel.json',
+    'app-pubsub.json',
   ];
   for (const name of files) {
     const doc = load(name);

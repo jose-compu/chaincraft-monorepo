@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Sequence
 
 from .canonical import canonical_bytes
@@ -58,32 +57,42 @@ def wins_replacement(
     return candidate_digest < incumbent_digest
 
 
-class SharedObject(ABC):
+class SharedObject:
     """The application object contract — semantics-v1.md section 2.
 
     Called ``SharedObject`` in Python and ``ApplicationObject`` in Rust. The
     names differ; the contract does not.
+
+    A prototype overrides ``receive`` only. Consensus objects override
+    ``add_message`` and the snapshot.
     """
 
-    @abstractmethod
     def is_valid(self, message: Any) -> bool:
         """Whether ``message`` is an acceptable transition.
 
         MUST be deterministic and side-effect free. The pipeline calls this on
         every object before any object mutates, so a mutation here breaks the
-        all-or-nothing guarantee in section 3.
+        all-or-nothing guarantee in section 3. The default accepts.
         """
+        return True
 
-    @abstractmethod
+    def receive(self, message: Any) -> None:
+        """Apply ``message`` locally. The default does nothing."""
+        return None
+
     def add_message(
-        self, message: Any, frontier_state: Optional[StateMemento] = None
+        self, message: Any, _frontier_state: Optional[StateMemento] = None
     ) -> Optional[StateMemento]:
-        """Apply ``message``. Returns a memento, or None to fall back to
-        ``emit_state_memento()``."""
+        """Apply ``message``. The default calls ``receive`` and returns nothing.
 
-    @abstractmethod
+        Override this only to read the frontier or to return a memento.
+        """
+        self.receive(message)
+        return None
+
     def emit_state_memento(self) -> StateMemento:
-        """Snapshot of current state."""
+        """Empty snapshot. Objects that sync override this."""
+        return StateMemento.normalize()
 
     def get_state_digests(self) -> List[str]:
         """Frontier digests for multi-head structures. Empty by default."""

@@ -428,3 +428,13 @@ features:
       python:     { state: implemented, since: "2026-09-14" }
       rust:       { state: implemented, since: "2026-09-14" }
       typescript: { state: implemented, since: "2026-09-14" }
+
+  - id: app.pubsub
+    level: 2
+    spec: SPEC/features/app-pubsub.md
+    summary: Topic publish-subscribe for chat rooms, with a deterministic log
+    vectors: conformance/vectors/app-pubsub.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }

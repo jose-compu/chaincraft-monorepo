@@ -27,28 +27,34 @@ D3 = "3" * 64
 
 
 class TestContract:
-    def test_contract_cannot_be_partially_implemented(self):
-        class Incomplete(SharedObject):
-            def is_valid(self, message: Any) -> bool:
-                return True
+    def test_a_prototype_only_implements_receive(self):
+        seen = []
 
-        with pytest.raises(TypeError):
-            Incomplete()
+        class Room(SharedObject):
+            def receive(self, message: Any) -> None:
+                seen.append(message["text"])
+
+        room = Room()
+        assert room.is_valid({"text": "hi"}) is True
+        assert room.add_message({"text": "hi"}) is None
+        assert seen == ["hi"]
+        assert room.is_merkelized() is False
+        assert room.get_state_digests() == []
+        assert room.emit_state_memento() == StateMemento.normalize()
+
+        registry = ObjectRegistry()
+        registry.register("room", Room())
+        result = registry.apply({"text": "hello"})
+        assert result.accepted is True
+        assert result.mementos["room"] == StateMemento.normalize()
 
     def test_defaults_are_the_non_merkelized_case(self):
-        class Minimal(SharedObject):
-            def is_valid(self, message: Any) -> bool:
-                return True
-
-            def add_message(self, message, frontier_state=None):
-                return None
-
-            def emit_state_memento(self) -> StateMemento:
-                return StateMemento.normalize()
-
-        obj = Minimal()
+        obj = SharedObject()
+        assert obj.is_valid({"text": "hi"}) is True
+        assert obj.add_message({"text": "hi"}) is None
         assert obj.is_merkelized() is False
         assert obj.get_state_digests() == []
+        assert obj.emit_state_memento() == StateMemento.normalize()
 
     def test_is_valid_is_side_effect_free(self):
         counter = Counter()

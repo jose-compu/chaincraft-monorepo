@@ -53,6 +53,7 @@ FEATURES = frozenset(
         "cli.node",
         "bittorrent.swarm",
         "wire.channel",
+        "app.pubsub",
     }
 )
 

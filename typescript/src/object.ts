@@ -65,10 +65,13 @@ export interface SharedObject {
    * object before any object mutates, so a mutation here breaks the
    * all-or-nothing guarantee in §3.
    */
+  /** Side-effect free. The default accepts. */
   isValid(message: JsonValue): boolean;
 
-  /** Apply the message. Returns a memento, or undefined to fall back to
-   * `emitStateMemento()`. */
+  /** Local apply. A prototype overrides this and nothing else. */
+  receive(message: JsonValue): void;
+
+  /** Defaults to `receive` and returns nothing. Override to sync. */
   addMessage(
     message: JsonValue,
     frontierState?: StateMemento | undefined,
@@ -84,16 +87,25 @@ export interface SharedObject {
   isMerkelized(): boolean;
 }
 
-/** Supplies the two defaulted members of the contract. */
-export abstract class BaseSharedObject implements SharedObject {
-  abstract isValid(message: JsonValue): boolean;
+/** Defaults: accept, apply locally, empty snapshot. Consensus objects override. */
+export class BaseSharedObject implements SharedObject {
+  isValid(_message: JsonValue): boolean {
+    return true;
+  }
 
-  abstract addMessage(
+  receive(_message: JsonValue): void {}
+
+  addMessage(
     message: JsonValue,
-    frontierState?: StateMemento | undefined,
-  ): StateMemento | undefined;
+    _frontierState?: StateMemento | undefined,
+  ): StateMemento | undefined {
+    this.receive(message);
+    return undefined;
+  }
 
-  abstract emitStateMemento(): StateMemento;
+  emitStateMemento(): StateMemento {
+    return StateMemento.normalize();
+  }
 
   getStateDigests(): string[] {
     return [];

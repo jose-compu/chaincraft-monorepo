@@ -860,6 +860,29 @@ def test_nat_sequence(case):
         assert node.opened() == step["opened"], where
 
 
+# --- Level 2 publish-subscribe ----------------------------------------------
+
+
+@cases("app-pubsub.json", "replay")
+def test_app_pubsub_replay(case):
+    from chaincraft_core.pubsub import PubSub
+
+    obj = PubSub()
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"{case['name']} step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            assert obj.add_message(message) is None, where
+        assert obj.is_merkelized() is False, where
+        assert obj.get_state_digests() == [], where
+        memo = obj.emit_state_memento()
+        assert memo.canonical_digest == "", where
+        assert memo.frontier_digests == [], where
+        assert obj.state() == {"rooms": step["rooms"]}, where
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

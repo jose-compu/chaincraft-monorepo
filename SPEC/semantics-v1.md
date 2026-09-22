@@ -28,14 +28,29 @@ An application object exposes, in whatever form is idiomatic for the language:
 
 | Operation | Contract |
 |---|---|
-| `is_valid(message) -> bool` | Deterministic and **side-effect free**. Same input, same answer, always. |
-| `add_message(message, frontier_state?) -> StateMemento?` | Mutates state. MAY return a new memento. |
+| `is_valid(message) -> bool` | Deterministic and **side-effect free**. Defaults to true. |
+| `receive(message)` | Local apply. Defaults to doing nothing. This is the method a prototype implements. |
+| `add_message(message, frontier_state?) -> StateMemento?` | Defaults to calling `receive` and returning nothing. |
 | `emit_state_memento() -> StateMemento` | Current snapshot. Used when `add_message` returns nothing. |
-| `get_state_digests() -> [string]` | Frontier digests for multi-head structures (DAGs, forks). |
-| `is_merkelized() -> bool` | Whether canonical digests are meaningful for this object. |
+| `get_state_digests() -> [string]` | Frontier digests for multi-head structures (DAGs, forks). Defaults to `[]`. |
+| `is_merkelized() -> bool` | Whether canonical digests are meaningful for this object. Defaults to false. |
 
-Naming differs per language (`SharedObject` in Python, `ApplicationObject` in Rust);
-the contract does not.
+A prototype implements `receive` and nothing else. `is_valid` stays true, so the
+message is applied locally. `add_message` ignores `frontier_state` and returns
+nothing. The snapshot is `normalize("", [])`: empty digest, empty frontier,
+revision 0, empty metadata. An empty digest never reports a reorg (§4.2).
+
+The pipeline is local. Peers are not required to hold the same messages. A
+disconnect may drop one. An object that is not a consensus protocol tolerates
+that: its state is the messages it has applied, and a later message may fill a
+gap. Shared state, when it is required, is the job of a consensus object such
+as `pbft`. That object overrides `add_message` and the snapshot. A chat room
+does not.
+
+Naming differs per language (`SharedObject` in Python, `ApplicationObject` in Rust).
+Rust prototypes implement `Protocol`, which supplies `ApplicationObject`.
+Python and TypeScript override `receive` on the shared object. The contract
+does not change.
 
 ---
 

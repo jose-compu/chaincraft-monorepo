@@ -78,7 +78,7 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, and NAT traversal:
-32 of 32 features each (TypeScript 31 implemented plus the UDP exemption). The
+33 of 33 features each (TypeScript 32 implemented plus the UDP exemption). The
 one exemption in
 the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.
@@ -136,6 +136,23 @@ print(env.id)        # sha256 over the canonical payload
 print(env.to_json()) # canonical bytes, keys sorted
 frame = encode_frame(env.to_bytes())
 ```
+
+A protocol implements `receive`. Peers may miss a message. A memento is for a
+consensus object, not for a chat room.
+
+```python
+from chaincraft_core.object import SharedObject
+
+class Room(SharedObject):
+    def __init__(self):
+        self.lines = []
+
+    def receive(self, message):
+        self.lines.append(message["text"])
+```
+
+Rust implements `Protocol`. TypeScript extends `BaseSharedObject` and overrides
+`receive`. Reject a message by overriding `is_valid` (`accept` in Rust).
 
 ## Development
 
