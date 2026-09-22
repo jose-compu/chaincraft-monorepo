@@ -23,6 +23,7 @@ pub mod ledger_utxo;
 pub mod memento;
 pub mod mempool;
 pub mod mesh;
+pub mod nat;
 pub mod object;
 pub mod pipeline;
 pub mod storage;

@@ -29,6 +29,13 @@ from chaincraft_core.fees import charge, estimate, next_base_fee, select  # noqa
 from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
 from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
 from chaincraft_core.bittorrent import Swarm, split_payload  # noqa: E402
+from chaincraft_core.envelope import ProtocolError  # noqa: E402
+from chaincraft_core.nat import (  # noqa: E402
+    NatTraversal,
+    binding_request,
+    binding_success,
+    parse_binding_response,
+)
 from chaincraft_core.cli import NodeSession  # noqa: E402
 from chaincraft_core.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
 from chaincraft_core.storage import MessageStore  # noqa: E402
@@ -1962,6 +1969,273 @@ def bittorrent_swarm_vectors() -> Dict[str, Any]:
     }
 
 
+def discovery_nat_vectors() -> Dict[str, Any]:
+    txid = "0102030405060708090a0b0c"
+    mapped_host = "203.0.113.5"
+    mapped_port = 9735
+    success = binding_success(txid, mapped_host, mapped_port)
+    assert success["ok"]
+
+    def response_case(name: str, packet: str, ident: str = txid) -> Dict[str, Any]:
+        parsed = parse_binding_response(packet, ident)
+        return {
+            "name": name,
+            "packet": packet,
+            "txid": ident,
+            "ok": parsed["ok"],
+            "host": parsed["host"],
+            "port": parsed["port"],
+        }
+
+    raw = bytes.fromhex(success["packet"])
+    bad_magic = bytearray(raw)
+    bad_magic[4] ^= 0xFF
+    short = raw[:10].hex()
+    empty_attr = raw[:20]
+    empty_attr = empty_attr[:2] + struct_length(0) + empty_attr[4:]
+    unknown = prepend_attribute(raw, 0x8022, b"test")
+    bad_family = stun_value(txid, bytes([0x00, 0x02, 0x00, 0x01, 0, 0, 0, 0]))
+    port_zero = stun_value(txid, bytes([0x00, 0x01, 0x21, 0x12, 0, 0, 0, 0]))
+
+    requests = []
+    for name, ident in (
+        ("binding request", txid),
+        ("uppercase transaction id", txid.upper()),
+        ("short transaction id", "0102"),
+        ("empty transaction id", ""),
+    ):
+        produced = binding_request(ident)
+        requests.append(
+            {"name": name, "txid": ident, "ok": produced["ok"], "packet": produced["packet"]}
+        )
+
+    successes = []
+    for name, host, port in (
+        ("mapped", mapped_host, mapped_port),
+        ("leading zero", "203.0.113.05", mapped_port),
+        ("port zero", mapped_host, 0),
+        ("bool port", mapped_host, True),
+    ):
+        produced = binding_success(txid, host, port)
+        successes.append(
+            {
+                "name": name,
+                "txid": txid,
+                "host": host,
+                "port": port,
+                "ok": produced["ok"],
+                "packet": produced["packet"],
+            }
+        )
+
+    responses = [
+        response_case("xor-mapped address", success["packet"]),
+        response_case("unknown attribute ignored", unknown),
+        response_case("wrong transaction id", success["packet"], "ffffffffffffffffffffffff"),
+        response_case("bad magic", bad_magic.hex()),
+        response_case("truncated", short),
+        response_case("no attribute", empty_attr.hex()),
+        response_case("ipv6 family", bad_family),
+        response_case("port zero", port_zero),
+        response_case("uppercase packet", success["packet"].upper()),
+    ]
+
+    def play(
+        name: str, description: str, listen: str, ops: List[Dict[str, Any]], external: Any = None, relay: Any = None
+    ) -> Dict[str, Any]:
+        node = NatTraversal(listen, external=external, relay=relay)
+        steps = []
+        for op in ops:
+            result = _nat_step(node, op)
+            steps.append(
+                {
+                    **op,
+                    **result,
+                    "advertise": node.advertise(),
+                    "armed": node.armed(),
+                    "external": node.external_address(),
+                    "opened": node.opened(),
+                }
+            )
+        return {
+            "name": name,
+            "description": description,
+            "listen": listen,
+            "external": external,
+            "relay": relay,
+            "steps": steps,
+        }
+
+    packet = success["packet"]
+    request = {
+        "extra": 1,
+        "from": "198.51.100.10:4000",
+        "nat": "request",
+        "relay": "127.0.0.1:3478",
+        "target": "203.0.113.5:9735",
+    }
+    response = {
+        "from": "198.51.100.10:4000",
+        "nat": "response",
+        "target": "203.0.113.5:9735",
+    }
+    sequence = [
+        play(
+            "stun then punch",
+            "arm, learn a mapping, punch, observe the sentinel",
+            "127.0.0.1:9735",
+            [
+                {"op": "arm", "transport": "tcp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {"op": "arm", "transport": "UDP"},
+                {"op": "arm", "transport": "udp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {"op": "punch", "peer": "198.51.100.10:4000"},
+                {"op": "punch", "peer": "127.0.0.1:9735"},
+                {"op": "punch", "peer": "203.0.113.5:9735"},
+                {"op": "observe_punch", "datagram": "00", "from": "198.51.100.10:4000"},
+                {"op": "observe_punch", "datagram": "00", "from": "198.51.100.10:4000"},
+                {"op": "observe_punch", "datagram": "01", "from": "198.51.100.20:4001"},
+            ],
+        ),
+        play(
+            "external skips stun",
+            "a configured external address is not replaced",
+            "10.0.0.2:9735",
+            [
+                {"op": "arm", "transport": "udp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {"op": "punch", "peer": "198.51.100.10:4000"},
+            ],
+            external="203.0.113.5:9735",
+        ),
+        play(
+            "relay introduction",
+            "request, duplicate, forward, and response",
+            "127.0.0.1:3478",
+            [
+                {"op": "relay_request", "target": "198.51.100.10:4000"},
+                {"op": "arm", "transport": "udp"},
+                {"op": "handle", "message": "nope"},
+                {"op": "relay_request", "target": "198.51.100.10:4000"},
+                {"op": "relay_request", "target": "127.0.0.1:3478"},
+                {"op": "handle", "message": request},
+                {"op": "handle", "message": request},
+                {"op": "handle", "message": response},
+            ],
+            relay="10.0.0.9:3478",
+        ),
+        play(
+            "forward and accept",
+            "relay forwards a request; the mapped node accepts the response",
+            "10.0.0.8:3478",
+            [
+                {"op": "arm", "transport": "udp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {
+                    "op": "handle",
+                    "message": {
+                        "from": "10.0.0.2:9735",
+                        "nat": "request",
+                        "relay": "203.0.113.5:9735",
+                        "target": "198.51.100.10:4000",
+                    },
+                },
+                {"op": "handle", "message": response},
+                {"op": "relay_request", "target": "198.51.100.10:4000"},
+            ],
+        ),
+    ]
+
+    construct = []
+    for name, listen, external, relay in (
+        ("listen only", "127.0.0.1:9735", None, None),
+        ("with external and relay", "10.0.0.2:1", "203.0.113.5:9735", "10.0.0.9:3478"),
+        ("bad listen", "nope", None, None),
+        ("empty external", "127.0.0.1:1", "", None),
+        ("bad relay", "127.0.0.1:1", None, "10.0.0.1"),
+    ):
+        try:
+            node = NatTraversal(listen, external=external, relay=relay)
+        except ProtocolError:
+            construct.append(
+                {
+                    "name": name,
+                    "listen": listen,
+                    "external": external,
+                    "relay": relay,
+                    "ok": False,
+                    "advertise": "",
+                }
+            )
+        else:
+            construct.append(
+                {
+                    "name": name,
+                    "listen": listen,
+                    "external": external,
+                    "relay": relay,
+                    "ok": True,
+                    "advertise": node.advertise(),
+                }
+            )
+
+    return {
+        **header(
+            "discovery.nat",
+            "SPEC/features/discovery-nat.md",
+            "STUN binding, one-byte hole punch, and an app.nat relay.",
+        ),
+        "app_type": "app.nat",
+        "punch": "00",
+        "request": requests,
+        "success": successes,
+        "response": responses,
+        "construct": construct,
+        "sequence": sequence,
+    }
+
+
+def _nat_step(node: NatTraversal, op: Dict[str, Any]) -> Dict[str, Any]:
+    name = op["op"]
+    if name == "arm":
+        return {"ok": node.arm(op["transport"])}
+    if name == "observe_stun":
+        return {"ok": node.observe_stun(op["packet"], op["txid"])}
+    if name == "punch":
+        return node.punch(op["peer"])
+    if name == "observe_punch":
+        return {"ok": node.observe_punch(op["datagram"], op["from"])}
+    if name == "relay_request":
+        return node.relay_request(op["target"])
+    if name == "handle":
+        return node.handle(op["message"])
+    raise AssertionError(name)
+
+
+def struct_length(length: int) -> bytes:
+    import struct
+
+    return struct.pack(">H", length)
+
+
+def prepend_attribute(packet: bytes, atype: int, value: bytes) -> str:
+    import struct
+
+    attr = struct.pack(">HH", atype, len(value)) + value
+    length = struct.unpack(">H", packet[2:4])[0] + len(attr)
+    header = packet[:2] + struct.pack(">H", length) + packet[4:20]
+    return (header + attr + packet[20:]).hex()
+
+
+def stun_value(txid: str, value: bytes) -> str:
+    import struct
+
+    attr = struct.pack(">HH", 0x0020, len(value)) + value
+    header = struct.pack(">HHI", 0x0101, len(attr), 0x2112A442) + bytes.fromhex(txid)
+    return (header + attr).hex()
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -1997,6 +2271,8 @@ def main() -> int:
     write("cli-node.json", cli_node_vectors())
     print("\nLevel 2 — BitTorrent swarm")
     write("bittorrent-swarm.json", bittorrent_swarm_vectors())
+    print("\nLevel 2 — NAT traversal")
+    write("discovery-nat.json", discovery_nat_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0
