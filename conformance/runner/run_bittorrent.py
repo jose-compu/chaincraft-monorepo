@@ -110,24 +110,23 @@ def main() -> int:
             )
             seeded = nodes[seeder].wait_event("bt.seeded", timeout=10.0)
             digest = seeded["info_hash"]
-            print(f"    info_hash {digest}")
+            print(f"    info_hash {digest}", flush=True)
             leechers = [lang for lang in LANGUAGES if lang != seeder]
             wait_torrent(nodes, digest, leechers)
             for leecher in leechers:
                 nodes[leecher].send({"cmd": "bt.leech", "peer": leecher, "info_hash": digest})
                 nodes[leecher].wait_event("bt.leech", timeout=10.0)
-                print(f"    leech {leecher}")
+                print(f"    leech {leecher}", flush=True)
             wait_assembled(nodes, digest, hex_payload)
-            print(f"    {GREEN}all three assembled {hex_payload}{RESET}")
-        print(f"\n{GREEN}{BOLD}3-client BitTorrent swarm passed.{RESET}")
+            print(f"    {GREEN}all three assembled {hex_payload}{RESET}", flush=True)
+        print(f"\n{GREEN}{BOLD}3-client BitTorrent swarm passed.{RESET}", flush=True)
         return 0
     except Exception as exc:
-        print(f"\n{RED}{BOLD}BitTorrent swarm failed:{RESET} {exc}")
+        print(f"\n{RED}{BOLD}BitTorrent swarm failed:{RESET} {exc}", flush=True)
         for language, node in nodes.items():
-            if node.proc.stderr is not None:
-                err = node.proc.stderr.read()
-                if err:
-                    print(f"\n--- {language} stderr ---\n{err[-800:]}")
+            err = node.stderr_tail()
+            if err:
+                print(f"\n--- {language} stderr ---\n{err}", flush=True)
         return 1
     finally:
         for node in nodes.values():

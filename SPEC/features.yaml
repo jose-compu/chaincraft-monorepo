@@ -405,3 +405,13 @@ features:
       python:     { state: implemented, since: "2026-09-09" }
       rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
+
+  - id: wire.channel
+    level: 2
+    spec: SPEC/features/wire-channel.md
+    summary: Address URIs and an in-process loop channel
+    vectors: conformance/vectors/wire-channel.json
+    status:
+      python:     { state: implemented, since: "2026-09-14" }
+      rust:       { state: implemented, since: "2026-09-14" }
+      typescript: { state: implemented, since: "2026-09-14" }

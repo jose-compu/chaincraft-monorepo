@@ -16,7 +16,12 @@ import pytest
 from conformance_objects import build_registry, snapshot
 
 from chaincraft_core import control, crypto, framing
-from chaincraft_core.canonical import CanonicalError, canonical_json, parse_json, payload_digest
+from chaincraft_core.canonical import (
+    CanonicalError,
+    canonical_json,
+    parse_json,
+    payload_digest,
+)
 from chaincraft_core.dedup import Deduplicator
 from chaincraft_core.envelope import Envelope, ProtocolError
 from chaincraft_core.framing import FrameReader, FramingError, encode_frame
@@ -75,7 +80,9 @@ def test_envelope_valid(case):
     env = Envelope.build(case["type"], parse_json(case["data_json"]), ts=case["ts"])
     assert env.id == case["id"]
     assert env.to_json() == case["canonical"]
-    assert Envelope.parse(case["canonical"], now_ms=load("envelope.json")["now_ms"]) == env
+    assert (
+        Envelope.parse(case["canonical"], now_ms=load("envelope.json")["now_ms"]) == env
+    )
 
 
 @cases("envelope.json", "invalid")
@@ -317,7 +324,9 @@ def test_ecdsa_valid(case):
     message = bytes.fromhex(case["message_hex"])
     assert ecdsa.public_key(key).hex() == case["public_key"]
     assert ecdsa.sign(message, key).hex() == case["signature"]
-    assert ecdsa.verify(message, bytes.fromhex(case["signature"]), bytes.fromhex(case["public_key"]))
+    assert ecdsa.verify(
+        message, bytes.fromhex(case["signature"]), bytes.fromhex(case["public_key"])
+    )
 
 
 @cases("ecdsa.json", "invalid")
@@ -361,7 +370,9 @@ def test_vdf_invalid(case):
 def test_vrf_valid(case):
     from chaincraft_core import vrf
 
-    proof, output, pk = vrf.evaluate(bytes.fromhex(case["message_hex"]), bytes.fromhex(case["secret_key"]))
+    proof, output, pk = vrf.evaluate(
+        bytes.fromhex(case["message_hex"]), bytes.fromhex(case["secret_key"])
+    )
     assert pk.hex() == case["public_key"]
     assert proof.hex() == case["proof"]
     assert output.hex() == case["output"]
@@ -415,7 +426,10 @@ def test_discovery_peer_sequence(case):
         if op == "insert":
             assert book.insert(step["address"], step["now_ms"]) is step["added"], where
         elif op == "ingest":
-            assert book.ingest(step["addresses"], step["now_ms"], step["solicited"]) == step["added"], where
+            assert (
+                book.ingest(step["addresses"], step["now_ms"], step["solicited"])
+                == step["added"]
+            ), where
         elif op == "sweep":
             assert book.sweep(step["now_ms"]) == step["expired"], where
         elif op == "advertise":
@@ -444,7 +458,10 @@ def test_discovery_local_sequence(case):
         elif op == "reply":
             assert local.reply() == step["peers"], where
         elif op == "accept":
-            assert local.accept(step["from"], step["addresses"], step["now_ms"]) == step["added"], where
+            assert (
+                local.accept(step["from"], step["addresses"], step["now_ms"])
+                == step["added"]
+            ), where
             assert book.is_solicited(step["from"]) is step["solicited"], where
         else:
             raise AssertionError(f"unknown op {op}")
@@ -628,7 +645,10 @@ def test_fees_policy_estimate(case):
 def test_fees_policy_base_fee(case):
     from chaincraft_core.fees import next_base_fee
 
-    assert next_base_fee(case["base"], case["parent_count"], case["target"]) == case["next"]
+    assert (
+        next_base_fee(case["base"], case["parent_count"], case["target"])
+        == case["next"]
+    )
 
 
 # --- Level 2 storage and CLI ------------------------------------------------
@@ -645,7 +665,10 @@ def test_storage_persistent_sequence(case):
         if op == "put":
             assert store.put(step["id"], step["body"]) is step["added"], where
         elif op == "get":
-            assert store.get(step["id"]) == {"body": step["body"], "found": step["found"]}, where
+            assert store.get(step["id"]) == {
+                "body": step["body"],
+                "found": step["found"],
+            }, where
         elif op == "remove":
             assert store.remove(step["id"]) is step["removed"], where
         elif op == "load":
@@ -677,6 +700,57 @@ def test_cli_node_sequence(case):
             "ids": step["ids"],
             "peers": step["peers"],
         }, where
+
+
+# --- Level 2 channel --------------------------------------------------------
+
+
+@cases("wire-channel.json", "parse")
+def test_wire_channel_parse(case):
+    from chaincraft_core.channel import parse_address
+
+    assert parse_address(case["input"]) == {
+        "ok": case["ok"],
+        "scheme": case["scheme"],
+        "canonical": case["canonical"],
+        "cap": case["cap"],
+    }
+
+
+@cases("wire-channel.json", "connect")
+def test_wire_channel_connect(case):
+    from chaincraft_core.channel import is_connect_allowed
+
+    assert is_connect_allowed(case["input"]) is case["allowed"]
+
+
+@cases("wire-channel.json", "sequence")
+def test_wire_channel_sequence(case):
+    from chaincraft_core.channel import LoopBus, LoopChannel
+
+    bus = LoopBus()
+    peers = {"a": LoopChannel(bus), "b": LoopChannel(bus)}
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        actor = peers[step["who"]]
+        op = step["op"]
+        if op == "listen":
+            assert actor.listen(step["addr"]) is step["ok"], where
+        elif op == "dial":
+            assert actor.dial(step["addr"]) is step["ok"], where
+        elif op == "send":
+            assert actor.send(step["addr"], step["data"]) is step["ok"], where
+        elif op == "recv":
+            assert actor.recv() == step["returned"], where
+        elif op == "close":
+            actor.close()
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert actor.listen_addr == step[f"{step['who']}_listen"], where
+        assert peers["a"].listen_addr == step["a_listen"], where
+        assert peers["b"].listen_addr == step["b_listen"], where
+        assert peers["a"].inbox() == step["a_inbox"], where
+        assert peers["b"].inbox() == step["b_inbox"], where
 
 
 # --- Level 2 BitTorrent -----------------------------------------------------

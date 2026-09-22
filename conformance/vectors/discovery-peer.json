@@ -77,6 +77,14 @@
     {
       "name": "space",
       "address": "10.0.0.2: 9735"
+    },
+    {
+      "name": "unicode hostname",
+      "address": "é.local:1"
+    },
+    {
+      "name": "unicode ipv4 octet",
+      "address": "127.0.0.١:1"
     }
   ],
   "sequence": [

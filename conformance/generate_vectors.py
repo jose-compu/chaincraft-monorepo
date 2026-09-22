@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPO / "python"))
 # scaffolding, not shipped API. See SPEC/semantics-v1.md section 8.
 sys.path.insert(0, str(REPO / "python" / "tests"))
 
-from chaincraft_core import control, crypto, discovery, ecdsa, framing, vdf, vrf  # noqa: E402
+from chaincraft_core import channel, control, crypto, discovery, ecdsa, framing, vdf, vrf  # noqa: E402
 from chaincraft_core.consensus_pbft import PBFT  # noqa: E402
 from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
 from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
@@ -1028,6 +1028,8 @@ def discovery_peer_vectors() -> Dict[str, Any]:
         ("underscore host", "node_a:9735"),
         ("trailing hyphen", "node-.local:9735"),
         ("space", "10.0.0.2: 9735"),
+        ("unicode hostname", "é.local:1"),
+        ("unicode ipv4 octet", "127.0.0.١:1"),
     ]
 
     listen = "10.0.0.1:9735"
@@ -1962,6 +1964,157 @@ def bittorrent_swarm_vectors() -> Dict[str, Any]:
     }
 
 
+def wire_channel_vectors() -> Dict[str, Any]:
+    peer = "0" * 64
+    parse_inputs = [
+        ("bare loopback", "127.0.0.1:9735"),
+        ("tcp uri", "tcp://127.0.0.1:9735"),
+        ("udp lan", "udp://10.0.0.2:1"),
+        ("hostname local", "node.local:9735"),
+        ("mailto", "mailto:alice@example.com"),
+        ("webrtc", f"webrtc:{peer}"),
+        ("forum", "forum:disc:t1"),
+        ("loop", "loop:alice"),
+        ("empty", ""),
+        ("uppercase scheme", "TCP://127.0.0.1:9735"),
+        ("tcp without slashes", "tcp:127.0.0.1:9735"),
+        ("path rejected", "tcp://127.0.0.1:9735/x"),
+        ("query rejected", "tcp://127.0.0.1:9735?x=1"),
+        ("bad ipv4", "256.0.0.1:9735"),
+        ("unicode hostname", "tcp://é.local:1"),
+        ("unicode ipv4 octet", "tcp://127.0.0.١:1"),
+        ("leading zero port", "127.0.0.1:09735"),
+        ("mailto missing at", "mailto:alice"),
+        ("webrtc short", "webrtc:abcd"),
+        ("forum extra colon", "forum:disc:t:1"),
+        ("loop hyphen edge", "loop:-alice"),
+        ("loop uppercase", "loop:Alice"),
+    ]
+    parse = []
+    for name, raw in parse_inputs:
+        parsed = channel.parse_address(raw)
+        parse.append({"name": name, "input": raw, **parsed})
+
+    connect_inputs = [
+        ("loopback", "127.0.0.1:1"),
+        ("tcp rfc1918", "tcp://10.0.0.1:9735"),
+        ("udp localhost", "udp://localhost:9735"),
+        ("public ipv4", "8.8.8.8:53"),
+        ("link local", "169.254.1.1:9735"),
+        ("loop name", "loop:alice"),
+        ("mailto", "mailto:a@b.com"),
+        ("invalid", "nope"),
+    ]
+    connect = []
+    for name, raw in connect_inputs:
+        connect.append(
+            {
+                "name": name,
+                "input": raw,
+                "allowed": channel.is_connect_allowed(raw),
+            }
+        )
+
+    def snapshot(a: channel.LoopChannel, b: channel.LoopChannel) -> Dict[str, Any]:
+        return {
+            "a_inbox": a.inbox(),
+            "a_listen": a.listen_addr,
+            "b_inbox": b.inbox(),
+            "b_listen": b.listen_addr,
+        }
+
+    def run(name: str, note: str, ops) -> Dict[str, Any]:
+        bus = channel.LoopBus()
+        peers = {"a": channel.LoopChannel(bus), "b": channel.LoopChannel(bus)}
+        steps = []
+        for op in ops:
+            who = op.get("who")
+            actor = peers[who] if who else None
+            kind = op["op"]
+            if kind == "listen":
+                ok = actor.listen(op["addr"])
+                step = {"op": kind, "who": who, "addr": op["addr"], "ok": ok}
+            elif kind == "dial":
+                ok = actor.dial(op["addr"])
+                step = {"op": kind, "who": who, "addr": op["addr"], "ok": ok}
+            elif kind == "send":
+                ok = actor.send(op["addr"], op["data"])
+                step = {
+                    "op": kind,
+                    "who": who,
+                    "addr": op["addr"],
+                    "data": op["data"],
+                    "ok": ok,
+                }
+            elif kind == "recv":
+                returned = actor.recv()
+                step = {"op": kind, "who": who, "returned": returned}
+            elif kind == "close":
+                actor.close()
+                step = {"op": kind, "who": who}
+            else:
+                raise ValueError(kind)
+            step.update(snapshot(peers["a"], peers["b"]))
+            steps.append(step)
+        return {"name": name, "note": note, "steps": steps}
+
+    payload = "ab"
+    oversize = "00" * (channel.MAX_LOOP_BYTES + 1)
+    sequence = [
+        run(
+            "two peers exchange",
+            "send does not require dial; recv drains FIFO",
+            [
+                {"op": "listen", "who": "a", "addr": "loop:alice"},
+                {"op": "listen", "who": "b", "addr": "loop:bob"},
+                {"op": "dial", "who": "a", "addr": "loop:bob"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": "cd"},
+                {"op": "recv", "who": "b"},
+                {"op": "recv", "who": "b"},
+            ],
+        ),
+        run(
+            "unbound and closed",
+            "send fails when dest is not listening",
+            [
+                {"op": "listen", "who": "a", "addr": "loop:alice"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "listen", "who": "b", "addr": "loop:bob"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "close", "who": "b"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "dial", "who": "a", "addr": "loop:bob"},
+            ],
+        ),
+        run(
+            "rejects",
+            "double listen, bad scheme, bad hex, oversize",
+            [
+                {"op": "listen", "who": "a", "addr": "loop:alice"},
+                {"op": "listen", "who": "a", "addr": "loop:carol"},
+                {"op": "listen", "who": "b", "addr": "loop:alice"},
+                {"op": "listen", "who": "b", "addr": "tcp://127.0.0.1:1"},
+                {"op": "send", "who": "a", "addr": "loop:alice", "data": "AB"},
+                {"op": "send", "who": "a", "addr": "loop:alice", "data": "a"},
+                {"op": "send", "who": "a", "addr": "loop:alice", "data": oversize},
+                {"op": "send", "who": "b", "addr": "loop:alice", "data": payload},
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "wire.channel",
+            "SPEC/features/wire-channel.md",
+            "Address URIs and an in-process loop channel.",
+        ),
+        "max_loop_bytes": channel.MAX_LOOP_BYTES,
+        "parse": parse,
+        "connect": connect,
+        "sequence": sequence,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -1997,6 +2150,8 @@ def main() -> int:
     write("cli-node.json", cli_node_vectors())
     print("\nLevel 2 — BitTorrent swarm")
     write("bittorrent-swarm.json", bittorrent_swarm_vectors())
+    print("\nLevel 2 — channel")
+    write("wire-channel.json", wire_channel_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

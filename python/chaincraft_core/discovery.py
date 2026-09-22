@@ -21,9 +21,13 @@ DEFAULT_CAPACITY = 50
 DEFAULT_TIMEOUT_MS = 120_000
 
 
+def _ascii_digits(value: str) -> bool:
+    return bool(value) and all("0" <= ch <= "9" for ch in value)
+
+
 def is_resolved_ip_allowed(ip: str) -> bool:
     labels = ip.split(".")
-    if len(labels) != 4 or not all(label.isdigit() for label in labels):
+    if len(labels) != 4 or not all(_ascii_digits(label) for label in labels):
         return False
     a, b = int(labels[0]), int(labels[1])
     if a == 127:
@@ -55,7 +59,7 @@ def is_valid_address(address: str) -> bool:
 
 
 def _valid_port(port: str) -> bool:
-    if not port.isdigit():
+    if not _ascii_digits(port):
         return False
     if len(port) > 1 and port[0] == "0":
         return False
@@ -67,7 +71,7 @@ def _valid_host(host: str) -> bool:
     if not host or len(host) > 253:
         return False
     labels = host.split(".")
-    if len(labels) == 4 and all(label.isdigit() for label in labels):
+    if len(labels) == 4 and all(_ascii_digits(label) for label in labels):
         return _valid_ipv4(labels)
     return _valid_hostname(labels)
 
@@ -89,7 +93,7 @@ def _valid_hostname(labels: List[str]) -> bool:
             return False
         if label[0] == "-" or label[-1] == "-":
             return False
-        if not all(ch.isalnum() or ch == "-" for ch in label):
+        if not all(("0" <= ch <= "9") or ("A" <= ch <= "Z") or ("a" <= ch <= "z") or ch == "-" for ch in label):
             return False
     return True
 
