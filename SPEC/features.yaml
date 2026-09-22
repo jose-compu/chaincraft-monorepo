@@ -441,6 +441,46 @@ features:
       rust:       { state: implemented, since: "2026-09-14" }
       typescript: { state: implemented, since: "2026-09-14" }
 
+  - id: channel.udp
+    level: 2
+    spec: SPEC/features/channel-adapters.md
+    summary: Localhost UDP datagram link and an in-memory udp bus
+    vectors: conformance/vectors/channel-adapters.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }
+
+  - id: channel.mailto
+    level: 2
+    spec: SPEC/features/channel-adapters.md
+    summary: In-memory mailbox bus for mailto addresses
+    vectors: conformance/vectors/channel-adapters.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }
+
+  - id: channel.webrtc
+    level: 2
+    spec: SPEC/features/channel-adapters.md
+    summary: In-memory data-channel bus for webrtc peer ids
+    vectors: conformance/vectors/channel-adapters.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }
+
+  - id: channel.forum
+    level: 2
+    spec: SPEC/features/channel-adapters.md
+    summary: In-memory forum board keyed by profile and thread
+    vectors: conformance/vectors/channel-adapters.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }
+
   - id: app.pubsub
     level: 2
     spec: SPEC/features/app-pubsub.md

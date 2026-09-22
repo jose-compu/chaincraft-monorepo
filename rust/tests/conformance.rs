@@ -7,6 +7,7 @@ use std::any::Any;
 use std::fs;
 use std::path::PathBuf;
 
+use chaincraft_core::adapters::{AdapterBus, AdapterChannel};
 use chaincraft_core::bittorrent::Swarm;
 use chaincraft_core::canonical::{
     canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue,
@@ -1765,6 +1766,80 @@ fn wire_channel_sequence() {
 }
 
 #[test]
+fn channel_adapters_sequence() {
+    let doc = load("channel-adapters.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let scheme = case["scheme"].as_str().unwrap();
+        let bus = match scheme {
+            "udp" => AdapterBus::udp(),
+            "mailto" => AdapterBus::mail(),
+            "webrtc" => AdapterBus::webrtc(),
+            "forum" => AdapterBus::forum(),
+            other => panic!("unknown scheme {other}"),
+        };
+        let mut a = AdapterChannel::new(&bus);
+        let mut b = AdapterChannel::new(&bus);
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let who = step["who"].as_str().unwrap();
+            let actor = if who == "a" { &mut a } else { &mut b };
+            match step["op"].as_str().unwrap() {
+                "listen" => assert_eq!(
+                    actor.listen(step["addr"].as_str().unwrap()),
+                    step["ok"].as_bool().unwrap(),
+                    "{where_}"
+                ),
+                "dial" => assert_eq!(
+                    actor.dial(step["addr"].as_str().unwrap()),
+                    step["ok"].as_bool().unwrap(),
+                    "{where_}"
+                ),
+                "send" => assert_eq!(
+                    actor.send(
+                        step["addr"].as_str().unwrap(),
+                        step["data"].as_str().unwrap()
+                    ),
+                    step["ok"].as_bool().unwrap(),
+                    "{where_}"
+                ),
+                "recv" => {
+                    let got: Vec<(String, String)> = actor
+                        .recv()
+                        .into_iter()
+                        .map(|item| (item.from, item.data))
+                        .collect();
+                    let expected: Vec<(String, String)> = step["returned"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|item| {
+                            (
+                                item["from"].as_str().unwrap().to_owned(),
+                                item["data"].as_str().unwrap().to_owned(),
+                            )
+                        })
+                        .collect();
+                    assert_eq!(got, expected, "{where_}");
+                }
+                "close" => actor.close(),
+                other => panic!("unknown op {other}"),
+            }
+            assert_eq!(
+                a.listen_addr(),
+                step["a_listen"].as_str().unwrap(),
+                "{where_}"
+            );
+            assert_eq!(
+                b.listen_addr(),
+                step["b_listen"].as_str().unwrap(),
+                "{where_}"
+            );
+        }
+    }
+}
+
+#[test]
 fn app_pubsub_replay() {
     let doc = load("app-pubsub.json");
     for case in doc["replay"].as_array().unwrap() {
@@ -1857,6 +1932,7 @@ fn vector_files_declare_feature() {
         "bittorrent-swarm.json",
         "discovery-nat.json",
         "wire-channel.json",
+        "channel-adapters.json",
         "app-pubsub.json",
     ] {
         let doc = load(name);

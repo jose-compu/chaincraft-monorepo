@@ -2,9 +2,9 @@
 
 **Release:** 1.0.0
 
-Address URIs and an in-process loop channel. Connecting over TCP, UDP,
-email, WebRTC or a forum is out of scope here; those are later adapters
-on this grammar.
+Address URIs and an in-process loop channel. UDP, email, WebRTC, and
+forum delivery are `SPEC/features/channel-adapters.md`. TCP remains the
+mesh. `ctl.hello.listen` stays one `host:port`.
 
 Envelope bytes, payload digests and Level 1 objects MUST NOT depend on
 the channel. `ctl.hello.listen` remains a single `host:port` string

@@ -1,0 +1,407 @@
+{
+  "feature": "channel.udp",
+  "spec": "SPEC/features/channel-adapters.md",
+  "description": "UDP, mailto, webrtc, and forum adapters. Hello listen is unchanged.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "sequence": [
+    {
+      "name": "udp exchange",
+      "scheme": "udp",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "udp://127.0.0.1:1",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "udp://127.0.0.1:1",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "udp://127.0.0.1:2",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "udp://127.0.0.1:1",
+          "b_inbox": [],
+          "b_listen": "udp://127.0.0.1:2"
+        },
+        {
+          "op": "dial",
+          "who": "a",
+          "addr": "udp://127.0.0.1:2",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "udp://127.0.0.1:1",
+          "b_inbox": [],
+          "b_listen": "udp://127.0.0.1:2"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "udp://127.0.0.1:2",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "udp://127.0.0.1:1",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "udp://127.0.0.1:1"
+            }
+          ],
+          "b_listen": "udp://127.0.0.1:2"
+        },
+        {
+          "op": "recv",
+          "who": "b",
+          "returned": [
+            {
+              "data": "ab",
+              "from": "udp://127.0.0.1:1"
+            }
+          ],
+          "a_inbox": [],
+          "a_listen": "udp://127.0.0.1:1",
+          "b_inbox": [],
+          "b_listen": "udp://127.0.0.1:2"
+        },
+        {
+          "op": "close",
+          "who": "b",
+          "a_inbox": [],
+          "a_listen": "udp://127.0.0.1:1",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "udp://127.0.0.1:2",
+          "data": "ab",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "udp://127.0.0.1:1",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    },
+    {
+      "name": "mailto exchange",
+      "scheme": "mailto",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "mailto:a@example.com",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "mailto:b@example.com",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": "mailto:b@example.com"
+        },
+        {
+          "op": "dial",
+          "who": "a",
+          "addr": "mailto:b@example.com",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": "mailto:b@example.com"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "mailto:b@example.com",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "mailto:a@example.com"
+            }
+          ],
+          "b_listen": "mailto:b@example.com"
+        },
+        {
+          "op": "recv",
+          "who": "b",
+          "returned": [
+            {
+              "data": "ab",
+              "from": "mailto:a@example.com"
+            }
+          ],
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": "mailto:b@example.com"
+        },
+        {
+          "op": "close",
+          "who": "b",
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "mailto:b@example.com",
+          "data": "ab",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    },
+    {
+      "name": "webrtc exchange",
+      "scheme": "webrtc",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "webrtc:abababababababababababababababababababababababababababababababab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "webrtc:abababababababababababababababababababababababababababababababab",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "webrtc:abababababababababababababababababababababababababababababababab",
+          "b_inbox": [],
+          "b_listen": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        },
+        {
+          "op": "dial",
+          "who": "a",
+          "addr": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "webrtc:abababababababababababababababababababababababababababababababab",
+          "b_inbox": [],
+          "b_listen": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "webrtc:abababababababababababababababababababababababababababababababab",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "webrtc:abababababababababababababababababababababababababababababababab"
+            }
+          ],
+          "b_listen": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        },
+        {
+          "op": "recv",
+          "who": "b",
+          "returned": [
+            {
+              "data": "ab",
+              "from": "webrtc:abababababababababababababababababababababababababababababababab"
+            }
+          ],
+          "a_inbox": [],
+          "a_listen": "webrtc:abababababababababababababababababababababababababababababababab",
+          "b_inbox": [],
+          "b_listen": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        },
+        {
+          "op": "close",
+          "who": "b",
+          "a_inbox": [],
+          "a_listen": "webrtc:abababababababababababababababababababababababababababababababab",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "webrtc:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+          "data": "ab",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "webrtc:abababababababababababababababababababababababababababababababab",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    },
+    {
+      "name": "forum exchange",
+      "scheme": "forum",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "forum:disc:t1",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "forum:disc:t1",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "forum:disc:t2",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "forum:disc:t1",
+          "b_inbox": [],
+          "b_listen": "forum:disc:t2"
+        },
+        {
+          "op": "dial",
+          "who": "a",
+          "addr": "forum:disc:t2",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "forum:disc:t1",
+          "b_inbox": [],
+          "b_listen": "forum:disc:t2"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "forum:disc:t2",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "forum:disc:t1",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "forum:disc:t1"
+            }
+          ],
+          "b_listen": "forum:disc:t2"
+        },
+        {
+          "op": "recv",
+          "who": "b",
+          "returned": [
+            {
+              "data": "ab",
+              "from": "forum:disc:t1"
+            }
+          ],
+          "a_inbox": [],
+          "a_listen": "forum:disc:t1",
+          "b_inbox": [],
+          "b_listen": "forum:disc:t2"
+        },
+        {
+          "op": "close",
+          "who": "b",
+          "a_inbox": [],
+          "a_listen": "forum:disc:t1",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "forum:disc:t2",
+          "data": "ab",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "forum:disc:t1",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    },
+    {
+      "name": "mailto rejects",
+      "scheme": "mailto",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "mailto:a@example.com",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "mailto:c@example.com",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "udp://127.0.0.1:9",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "mailto:a@example.com",
+          "data": "AB",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "mailto:a@example.com",
+          "data": "a",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "mailto:a@example.com",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    }
+  ]
+}

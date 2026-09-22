@@ -29,6 +29,8 @@ import {
   bindingRequest,
   bindingSuccess,
   parseBindingResponse,
+  AdapterBus,
+  AdapterChannel,
   LoopBus,
   LoopChannel,
   isChannelConnectAllowed,
@@ -665,6 +667,32 @@ eachCase('wire-channel.json', 'sequence', (c) => {
   }
 });
 
+eachCase('channel-adapters.json', 'sequence', (c) => {
+  const factories = {
+    udp: () => AdapterBus.udp(),
+    mailto: () => AdapterBus.mail(),
+    webrtc: () => AdapterBus.webrtc(),
+    forum: () => AdapterBus.forum(),
+  };
+  const bus = factories[c['scheme'] as keyof typeof factories]();
+  const peers = { a: new AdapterChannel(bus), b: new AdapterChannel(bus) };
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    const actor = peers[step['who'] as 'a' | 'b'];
+    const op = step['op'];
+    if (op === 'listen') assert.equal(actor.listen(step['addr']), step['ok'], where);
+    else if (op === 'dial') assert.equal(actor.dial(step['addr']), step['ok'], where);
+    else if (op === 'send') assert.equal(actor.send(step['addr'], step['data']), step['ok'], where);
+    else if (op === 'recv') assert.deepEqual(actor.recv(), step['returned'], where);
+    else if (op === 'close') actor.close();
+    else assert.fail(`unknown op ${op}`);
+    assert.equal(peers.a.listenAddr, step['a_listen'], where);
+    assert.equal(peers.b.listenAddr, step['b_listen'], where);
+    assert.deepEqual(peers.a.inbox(), step['a_inbox'], where);
+    assert.deepEqual(peers.b.inbox(), step['b_inbox'], where);
+  }
+});
+
 eachCase('bittorrent-swarm.json', 'replay', (c) => {
   const obj = new Swarm();
   const digest = c['info_hash'];
@@ -814,6 +842,7 @@ test('every vector file declares its feature', () => {
     'bittorrent-swarm.json',
     'discovery-nat.json',
     'wire-channel.json',
+    'channel-adapters.json',
     'app-pubsub.json',
   ];
   for (const name of files) {

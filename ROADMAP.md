@@ -293,8 +293,8 @@ two leech the same info-hash. `nostraft` remains a later out-of-repo consumer.
 ### Stage 10 — Channel abstraction ✅
 
 `wire.channel`: URI grammar (`tcp`, `udp`, `mailto`, `webrtc`, `forum`,
-`loop`) and an in-process loop bus for vectors. Live adapters are later
-issues (#2, #30–#32). `ctl.hello.listen` stays a single `host:port`.
+`loop`) and an in-process loop bus for vectors. The live adapters are
+Stage 15. `ctl.hello.listen` stays a single `host:port`.
 
 ### Stage 11 — NAT traversal ✅
 
@@ -323,6 +323,14 @@ No field was added. The new vector files are `app-pubsub.json` and
 markdown file under `SPEC/` carries `**Release:** 1.0.0` and is listed there. The
 parity gate fails if a package version, an in-code version, the wire number, or a
 stamp drifts. Nothing is tagged and nothing is published.
+
+### Stage 15 — Channel adapters ✅
+
+`channel.udp`, `channel.mailto`, `channel.webrtc`, `channel.forum`.
+UDP binds `127.0.0.1` and sends one envelope per datagram. Mail, WebRTC,
+and forum are in-memory buses on the addresses from Stage 10: no SMTP
+server, no ICE agent, no HTTP forum. `ctl.hello.listen` stays a single
+`host:port`. Issues #2, #30, #31, and #32.
 
 ---
 

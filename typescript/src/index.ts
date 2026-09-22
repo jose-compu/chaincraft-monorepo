@@ -91,6 +91,15 @@ export {
   isConnectAllowed as isChannelConnectAllowed,
   parseAddress,
 } from './channel.ts';
+export {
+  AdapterBus,
+  AdapterChannel,
+  UdpLink,
+  MAX_FORUM_BYTES,
+  MAX_MAIL_BYTES,
+  MAX_UDP_PAYLOAD,
+  MAX_WEBRTC_BYTES,
+} from './adapters.ts';
 export { NodeSession } from './cli.ts';
 export {
   BitTorrentClient,

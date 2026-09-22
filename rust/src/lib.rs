@@ -2,6 +2,7 @@
 //!
 //! Implements SPEC/wire-v1.md and SPEC/semantics-v1.md.
 
+pub mod adapters;
 pub mod bittorrent;
 pub mod canonical;
 pub mod channel;

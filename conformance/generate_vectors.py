@@ -21,7 +21,17 @@ sys.path.insert(0, str(REPO / "python"))
 # scaffolding, not shipped API. See SPEC/semantics-v1.md section 8.
 sys.path.insert(0, str(REPO / "python" / "tests"))
 
-from chaincraft_core import channel, control, crypto, discovery, ecdsa, framing, vdf, vrf  # noqa: E402
+from chaincraft_core import (  # noqa: E402
+    adapters,
+    channel,
+    control,
+    crypto,
+    discovery,
+    ecdsa,
+    framing,
+    vdf,
+    vrf,
+)
 from chaincraft_core.consensus_pbft import PBFT  # noqa: E402
 from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
 from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
@@ -2177,6 +2187,103 @@ def wire_channel_vectors() -> Dict[str, Any]:
     }
 
 
+def adapter_vectors() -> Dict[str, Any]:
+    peer_a = "ab" * 32
+    peer_b = "cd" * 32
+    schemes = [
+        ("udp", adapters.udp_bus, "udp://127.0.0.1:1", "udp://127.0.0.1:2"),
+        ("mailto", adapters.mail_bus, "mailto:a@example.com", "mailto:b@example.com"),
+        ("webrtc", adapters.webrtc_bus, f"webrtc:{peer_a}", f"webrtc:{peer_b}"),
+        ("forum", adapters.forum_bus, "forum:disc:t1", "forum:disc:t2"),
+    ]
+
+    def snapshot(a: adapters.AdapterChannel, b: adapters.AdapterChannel) -> Dict[str, Any]:
+        return {
+            "a_inbox": a.inbox(),
+            "a_listen": a.listen_addr,
+            "b_inbox": b.inbox(),
+            "b_listen": b.listen_addr,
+        }
+
+    def run(name: str, scheme: str, bus: adapters.AdapterBus, ops) -> Dict[str, Any]:
+        peers = {
+            "a": adapters.AdapterChannel(bus),
+            "b": adapters.AdapterChannel(bus),
+        }
+        steps = []
+        for op in ops:
+            who = op["who"]
+            actor = peers[who]
+            kind = op["op"]
+            if kind == "listen":
+                ok = actor.listen(op["addr"])
+                step: Dict[str, Any] = {"op": kind, "who": who, "addr": op["addr"], "ok": ok}
+            elif kind == "dial":
+                ok = actor.dial(op["addr"])
+                step = {"op": kind, "who": who, "addr": op["addr"], "ok": ok}
+            elif kind == "send":
+                ok = actor.send(op["addr"], op["data"])
+                step = {
+                    "op": kind,
+                    "who": who,
+                    "addr": op["addr"],
+                    "data": op["data"],
+                    "ok": ok,
+                }
+            elif kind == "recv":
+                step = {"op": kind, "who": who, "returned": actor.recv()}
+            elif kind == "close":
+                actor.close()
+                step = {"op": kind, "who": who}
+            else:
+                raise ValueError(kind)
+            step.update(snapshot(peers["a"], peers["b"]))
+            steps.append(step)
+        return {"name": name, "scheme": scheme, "steps": steps}
+
+    payload = "ab"
+    sequence = []
+    for scheme, factory, addr_a, addr_b in schemes:
+        sequence.append(
+            run(
+                f"{scheme} exchange",
+                scheme,
+                factory(),
+                [
+                    {"op": "listen", "who": "a", "addr": addr_a},
+                    {"op": "listen", "who": "b", "addr": addr_b},
+                    {"op": "dial", "who": "a", "addr": addr_b},
+                    {"op": "send", "who": "a", "addr": addr_b, "data": payload},
+                    {"op": "recv", "who": "b"},
+                    {"op": "close", "who": "b"},
+                    {"op": "send", "who": "a", "addr": addr_b, "data": payload},
+                ],
+            )
+        )
+    sequence.append(
+        run(
+            "mailto rejects",
+            "mailto",
+            adapters.mail_bus(),
+            [
+                {"op": "listen", "who": "a", "addr": "mailto:a@example.com"},
+                {"op": "listen", "who": "a", "addr": "mailto:c@example.com"},
+                {"op": "listen", "who": "b", "addr": "udp://127.0.0.1:9"},
+                {"op": "send", "who": "a", "addr": "mailto:a@example.com", "data": "AB"},
+                {"op": "send", "who": "a", "addr": "mailto:a@example.com", "data": "a"},
+            ],
+        )
+    )
+    return {
+        **header(
+            "channel.udp",
+            "SPEC/features/channel-adapters.md",
+            "UDP, mailto, webrtc, and forum adapters. Hello listen is unchanged.",
+        ),
+        "sequence": sequence,
+    }
+
+
 def discovery_nat_vectors() -> Dict[str, Any]:
     txid = "0102030405060708090a0b0c"
     mapped_host = "203.0.113.5"
@@ -2691,6 +2798,7 @@ def main() -> int:
     write("discovery-nat.json", discovery_nat_vectors())
     print("\nLevel 2 — channel")
     write("wire-channel.json", wire_channel_vectors())
+    write("channel-adapters.json", adapter_vectors())
     print("\nLevel 2 — publish-subscribe")
     write("app-pubsub.json", app_pubsub_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
