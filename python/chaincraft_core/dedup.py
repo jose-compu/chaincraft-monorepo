@@ -58,8 +58,8 @@ class Deduplicator:
         self.seen = SeenDigests(capacity)
 
     def should_process(self, envelope: Envelope) -> bool:
-        # Control messages are point-to-point, so the same ctl.hello arriving on
-        # two connections must be handled twice, not dropped as a repeat.
+        # Control-path messages are point-to-point, so the same ctl.hello or
+        # link.* payload arriving twice must be handled twice, not dropped.
         if envelope.is_control():
             return True
         return self.seen.add(envelope.id)

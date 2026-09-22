@@ -4,9 +4,18 @@ Chaincraft in three languages — Python, Rust and TypeScript — held at **100%
 parity** by a specification, shared conformance vectors, and a CI gate that fails on
 drift.
 
-Chaincraft is a platform for blockchain development and prototyping. It gives you a
-gossip mesh, a shared-object model, and the consensus, ledger, and cryptographic
-primitives a new chain is built from.
+Chaincraft is a platform for decentralized protocols. The ordinary object is
+local: a chat room, a publish-subscribe topic, a BitTorrent swarm, or a
+content-addressed store. A node applies the messages it has. A gap after a
+disconnect is allowed.
+
+Consensus is a feature class in the same library, not the default. Proof of
+work, proof of stake, and PBFT, with a balance or UTXO ledger, are there when
+the protocol must agree on a head. Those objects keep a snapshot and may sync
+it with one peer. The others do not.
+
+Every protocol has two paths. Gossip is relayed. Control (`link.*`) is written
+to one peer and is not relayed. `ctl.*` remains the mesh's own control channel.
 
 ---
 
@@ -78,9 +87,9 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, and NAT traversal:
-32 of 32 features each (TypeScript 31 implemented plus the UDP exemption). The
-one exemption in
-the registry is `wire.framing-udp` for TypeScript, since browsers have no
+34 of 34 features each (TypeScript 33 implemented plus the UDP exemption).
+The spec release is 1.0.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.
 
 TypeScript was written from `SPEC/` alone, without reading the Python source, as a test of
@@ -114,6 +123,8 @@ Three properties do most of the work:
   "relay these bytes verbatim" fragility.
 - **Version negotiation.** `ctl.hello` on every connection. A peer speaking a version we
   cannot serve is disconnected cleanly instead of silently misunderstood.
+- **Two paths.** Gossip (`app.*`) is relayed. Control (`link.*`, and the mesh's
+  `ctl.*`) is delivered only on the peer link it arrived on.
 
 Full detail in `SPEC/wire-v1.md`.
 
@@ -136,6 +147,23 @@ print(env.id)        # sha256 over the canonical payload
 print(env.to_json()) # canonical bytes, keys sorted
 frame = encode_frame(env.to_bytes())
 ```
+
+A protocol implements `receive`. Peers may miss a message. A memento is for a
+consensus object, not for a chat room.
+
+```python
+from chaincraft_core.object import SharedObject
+
+class Room(SharedObject):
+    def __init__(self):
+        self.lines = []
+
+    def receive(self, message):
+        self.lines.append(message["text"])
+```
+
+Rust implements `Protocol`. TypeScript extends `BaseSharedObject` and overrides
+`receive`. Reject a message by overriding `is_valid` (`accept` in Rust).
 
 ## Development
 

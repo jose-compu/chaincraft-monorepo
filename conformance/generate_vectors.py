@@ -27,6 +27,7 @@ from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E4
 from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
 from chaincraft_core.fees import charge, estimate, next_base_fee, select  # noqa: E402
 from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
+from chaincraft_core.pubsub import MAX_MEMBERS, MAX_POSTS, MAX_ROOMS, MAX_TEXT, PubSub  # noqa: E402
 from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
 from chaincraft_core.bittorrent import Swarm, split_payload  # noqa: E402
 from chaincraft_core.envelope import ProtocolError  # noqa: E402
@@ -2444,6 +2445,212 @@ def stun_value(txid: str, value: bytes) -> str:
     return (header + attr).hex()
 
 
+def app_pubsub_vectors() -> Dict[str, Any]:
+    def sub(room: str, author: str) -> Dict[str, Any]:
+        return {"app": "pubsub", "author": author, "op": "subscribe", "room": room}
+
+    def unsub(room: str, author: str) -> Dict[str, Any]:
+        return {"app": "pubsub", "author": author, "op": "unsubscribe", "room": room}
+
+    def pub(room: str, author: str, text: str, seq: int) -> Dict[str, Any]:
+        return {
+            "app": "pubsub",
+            "author": author,
+            "op": "publish",
+            "room": room,
+            "seq": seq,
+            "text": text,
+        }
+
+    room_cap = [sub(f"room{i}", "alice") for i in range(MAX_ROOMS)]
+    room_cap.append(sub(f"room{MAX_ROOMS}", "alice"))
+    member_cap = [sub("general", f"m{i:02d}") for i in range(MAX_MEMBERS)]
+    member_cap.append(sub("general", f"m{MAX_MEMBERS:02d}"))
+    post_cap = [sub("general", "alice")]
+    post_cap.extend(pub("general", "alice", f"n{i}", i) for i in range(MAX_POSTS))
+    post_cap.append(pub("general", "alice", "overflow", MAX_POSTS))
+    replay = [
+        _replay_object(
+            "join and speak",
+            PubSub,
+            [sub("general", "alice"), pub("general", "alice", "hello", 0)],
+        ),
+        _replay_object(
+            "two chat rooms",
+            PubSub,
+            [
+                sub("general", "alice"),
+                sub("trading", "alice"),
+                sub("general", "bob"),
+                pub("general", "alice", "hello", 0),
+                pub("trading", "alice", "bid", 0),
+                pub("trading", "bob", "no", 0),
+                pub("general", "bob", "hi", 0),
+            ],
+        ),
+        _replay_object(
+            "log order ignores arrival",
+            PubSub,
+            [
+                sub("general", "alice"),
+                sub("general", "bob"),
+                pub("general", "bob", "from bob", 0),
+                pub("general", "alice", "from alice", 0),
+            ],
+        ),
+        _replay_object(
+            "same text new seq",
+            PubSub,
+            [
+                sub("general", "alice"),
+                pub("general", "alice", "ok", 0),
+                pub("general", "alice", "ok", 1),
+            ],
+        ),
+        _replay_object(
+            "duplicate seq rejected",
+            PubSub,
+            [
+                sub("general", "alice"),
+                pub("general", "alice", "one", 0),
+                pub("general", "alice", "two", 0),
+            ],
+        ),
+        _replay_object(
+            "outsider cannot publish",
+            PubSub,
+            [sub("general", "alice"), pub("general", "bob", "hi", 0)],
+        ),
+        _replay_object(
+            "leave keeps the log",
+            PubSub,
+            [
+                sub("general", "alice"),
+                pub("general", "alice", "hello", 0),
+                unsub("general", "alice"),
+                pub("general", "alice", "again", 1),
+            ],
+        ),
+        _replay_object(
+            "empty room disappears",
+            PubSub,
+            [sub("general", "alice"), unsub("general", "alice")],
+        ),
+        _replay_object(
+            "resubscribe and speak",
+            PubSub,
+            [
+                sub("general", "alice"),
+                unsub("general", "alice"),
+                sub("general", "alice"),
+                pub("general", "alice", "back", 0),
+            ],
+        ),
+        _replay_object(
+            "idempotent subscribe",
+            PubSub,
+            [sub("general", "alice"), sub("general", "alice")],
+        ),
+        _replay_object(
+            "unknown op rejected",
+            PubSub,
+            [{"app": "pubsub", "author": "alice", "op": "vote", "room": "general"}],
+        ),
+        _replay_object(
+            "empty text rejected",
+            PubSub,
+            [sub("general", "alice"), pub("general", "alice", "", 0)],
+        ),
+        _replay_object(
+            "text limits",
+            PubSub,
+            [
+                sub("general", "alice"),
+                pub("general", "alice", "a" * MAX_TEXT, 0),
+                pub("general", "alice", "a" * (MAX_TEXT + 1), 1),
+            ],
+        ),
+        _replay_object(
+            "emoji text",
+            PubSub,
+            [sub("general", "alice"), pub("general", "alice", "hello 😀", 0)],
+        ),
+        _replay_object(
+            "bad names rejected",
+            PubSub,
+            [
+                sub("general chat", "alice"),
+                sub("é", "alice"),
+                sub("r" * 65, "alice"),
+                sub("r" * 64, "alice"),
+            ],
+        ),
+        _replay_object(
+            "boolean seq rejected",
+            PubSub,
+            [sub("general", "alice"), {**pub("general", "alice", "x", 0), "seq": True}],
+        ),
+        _replay_object("room cap", PubSub, room_cap),
+        _replay_object("member cap", PubSub, member_cap),
+        _replay_object("post cap", PubSub, post_cap),
+        _replay_object(
+            "extra keys ignored",
+            PubSub,
+            [{**sub("general", "alice"), "note": "ignored"}],
+        ),
+    ]
+    return {
+        **header(
+            "app.pubsub",
+            "SPEC/features/app-pubsub.md",
+            "Topic publish-subscribe: rooms, membership, deterministic log.",
+        ),
+        "replay": replay,
+    }
+
+
+def paths_vectors() -> Dict[str, Any]:
+    types = [
+        "ctl.hello",
+        "ctl.digest",
+        "ctl.messages.request",
+        "link.pubsub.typing",
+        "link.bittorrent.request",
+        "app.pubsub",
+        "app.bittorrent",
+        "link",
+        "ctl",
+        "applink.test",
+    ]
+    classify = []
+    for type_name in types:
+        env = Envelope.build(type_name, {"n": 1}, ts=TS)
+        dedup = Deduplicator()
+        first = dedup.should_process(env)
+        repeat = dedup.should_process(env)
+        classify.append(
+            {
+                "name": type_name,
+                "type": type_name,
+                "ts": TS,
+                "path": env.path(),
+                "relay": dedup.should_relay(env),
+                "first_process": first,
+                "repeat_process": repeat,
+                "seen_size": len(dedup.seen),
+            }
+        )
+    return {
+        **header(
+            "wire.paths",
+            "SPEC/features/wire-paths.md",
+            "Gossip is relayed. ctl.* and link.* stay on the delivering peer.",
+        ),
+        "now_ms": NOW,
+        "classify": classify,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -2454,6 +2661,7 @@ def main() -> int:
     write("control.json", control_vectors())
     write("signatures.json", signature_vectors())
     write("dedup.json", dedup_vectors())
+    write("wire-paths.json", paths_vectors())
     print("\nLevel 1 — object semantics")
     write("memento.json", memento_vectors())
     write("pipeline.json", pipeline_vectors())
@@ -2483,6 +2691,8 @@ def main() -> int:
     write("discovery-nat.json", discovery_nat_vectors())
     print("\nLevel 2 — channel")
     write("wire-channel.json", wire_channel_vectors())
+    print("\nLevel 2 — publish-subscribe")
+    write("app-pubsub.json", app_pubsub_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

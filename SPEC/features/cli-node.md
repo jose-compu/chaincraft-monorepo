@@ -1,5 +1,7 @@
 # cli.node
 
+**Release:** 1.0.0
+
 JSON-lines command surface for a node process. The live interop runner
 (`conformance/runner/run_interop.py`) speaks this protocol on stdin and
 stdout.

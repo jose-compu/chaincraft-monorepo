@@ -27,11 +27,13 @@ use chaincraft_core::ledger_balance::BalanceLedger;
 use chaincraft_core::ledger_utxo::UtxoLedger;
 use chaincraft_core::memento::StateMemento;
 use chaincraft_core::mempool::Mempool;
+use chaincraft_core::mesh::to_json_value;
 use chaincraft_core::nat::{self, NatTraversal};
 use chaincraft_core::object::{
     frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
 };
 use chaincraft_core::pipeline::ObjectRegistry;
+use chaincraft_core::pubsub::PubSub;
 use chaincraft_core::storage::MessageStore;
 use chaincraft_core::{ecdsa, vdf, vrf};
 use serde_json::Value;
@@ -1435,8 +1437,12 @@ fn bittorrent_swarm_replay() {
             let accepted = obj.is_valid(&message);
             assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
             if accepted {
-                obj.add_message(&message, None);
+                assert!(obj.add_message(&message, None).is_none(), "{where_}");
             }
+            assert!(!obj.is_merkelized(), "{where_}");
+            let memo = obj.emit_state_memento();
+            assert!(memo.canonical_digest.is_empty(), "{where_}");
+            assert!(memo.frontier_digests.is_empty(), "{where_}");
             assert_eq!(
                 obj.assembled(digest),
                 step["assembled"].as_str().map(str::to_owned),
@@ -1759,6 +1765,69 @@ fn wire_channel_sequence() {
 }
 
 #[test]
+fn app_pubsub_replay() {
+    let doc = load("app-pubsub.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = PubSub::new();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                assert!(obj.add_message(&message, None).is_none(), "{where_}");
+            }
+            assert!(!obj.is_merkelized(), "{where_}");
+            assert!(obj.get_state_digests().is_empty(), "{where_}");
+            let memo = obj.emit_state_memento();
+            assert!(memo.canonical_digest.is_empty(), "{where_}");
+            assert!(memo.frontier_digests.is_empty(), "{where_}");
+            let expected =
+                JsonValue::object([("rooms".into(), to_json_value(&step["rooms"]).unwrap())]);
+            assert_eq!(obj.state_value(), expected, "{where_}");
+        }
+    }
+}
+
+#[test]
+fn wire_paths() {
+    let doc = load("wire-paths.json");
+    let now = doc["now_ms"].as_i64().unwrap();
+    for case in doc["classify"].as_array().unwrap() {
+        let type_name = case["type"].as_str().unwrap();
+        let env = Envelope::build(
+            type_name,
+            JsonValue::object([("n".into(), JsonValue::Number(1))]),
+            Some(now),
+        )
+        .unwrap();
+        assert_eq!(env.path(), case["path"].as_str().unwrap(), "{type_name}");
+        let mut dedup = Deduplicator::default();
+        assert_eq!(
+            dedup.should_process(&env),
+            case["first_process"].as_bool().unwrap(),
+            "{type_name} first"
+        );
+        assert_eq!(
+            dedup.should_process(&env),
+            case["repeat_process"].as_bool().unwrap(),
+            "{type_name} repeat"
+        );
+        assert_eq!(
+            dedup.should_relay(&env),
+            case["relay"].as_bool().unwrap(),
+            "{type_name} relay"
+        );
+        assert_eq!(
+            dedup.seen.len(),
+            case["seen_size"].as_u64().unwrap() as usize,
+            "{type_name} seen"
+        );
+    }
+}
+
+#[test]
 fn vector_files_declare_feature() {
     for name in [
         "canonical-json.json",
@@ -1768,6 +1837,7 @@ fn vector_files_declare_feature() {
         "control.json",
         "signatures.json",
         "dedup.json",
+        "wire-paths.json",
         "memento.json",
         "pipeline.json",
         "ecdsa.json",
@@ -1787,6 +1857,7 @@ fn vector_files_declare_feature() {
         "bittorrent-swarm.json",
         "discovery-nat.json",
         "wire-channel.json",
+        "app-pubsub.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

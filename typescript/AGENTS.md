@@ -51,12 +51,13 @@ src/
   bittorrent.ts  Prototype BitTorrent swarm + client
   nat.ts         STUN, hole punch, and app.nat relay
   channel.ts     Address URIs and in-process loop channel
+  pubsub.ts      Topic publish-subscribe (chat rooms)
   mesh.ts        TCP mesh (listen, hello, dedup, relay)
   node.ts        Wire CLI: connect / send / ids / quit
   btNode.ts      BitTorrent client on Mesh (`bt.*` commands)
   dedup.ts       Seen-digest set and relay gate (§7)
   memento.ts     StateMemento (semantics-v1 §4)
-  object.ts      Object contract and digests (§2, §5, §6)
+  object.ts      SharedObject contract; prototypes override receive
   pipeline.ts    Apply pipeline (§3)
   errors.ts      Error classes
   features.ts    Feature manifest
@@ -64,6 +65,7 @@ src/
   index.ts       Public entry point
 test/
   conformance.test.ts   The shared vectors — the real contract
+  object.test.ts        Prototype defaults: receive, empty snapshot
   hazards.test.ts       JavaScript-specific traps
   conformanceObjects.ts Counter and Mirror fixtures (semantics-v1 §8)
 ```

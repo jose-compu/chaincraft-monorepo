@@ -23,6 +23,8 @@
 #   in-progress  requires `issue`
 #   exempt       requires `reason` and a human reviewer
 
+# Registry schema version. The spec release the packages implement is
+# SPEC/release.yaml, not this number.
 version: 1
 grace_period_days: 14
 
@@ -149,6 +151,16 @@ features:
       rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
+  - id: wire.paths
+    level: 0
+    spec: SPEC/features/wire-paths.md
+    summary: Gossip is relayed; link and ctl stay on the peer that delivered them
+    vectors: conformance/vectors/wire-paths.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }
+
   # ----------------------------------------------------------------------
   # Level 1 — object semantics
   # ----------------------------------------------------------------------
@@ -156,7 +168,7 @@ features:
   - id: object.contract
     level: 1
     spec: SPEC/semantics-v1.md#2
-    summary: Application object contract — is_valid, add_message, digests
+    summary: Application object contract — receive by default, snapshot only for consensus
     vectors: conformance/vectors/pipeline.json
     status:
       python:     { state: implemented, since: "2026-09-09" }
@@ -428,3 +440,13 @@ features:
       python:     { state: implemented, since: "2026-09-14" }
       rust:       { state: implemented, since: "2026-09-14" }
       typescript: { state: implemented, since: "2026-09-14" }
+
+  - id: app.pubsub
+    level: 2
+    spec: SPEC/features/app-pubsub.md
+    summary: Topic publish-subscribe for chat rooms, with a deterministic log
+    vectors: conformance/vectors/app-pubsub.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }

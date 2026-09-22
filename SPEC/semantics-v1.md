@@ -1,6 +1,8 @@
 # Chaincraft Object Semantics — v1 (Level 1)
 
-**Status:** Draft
+**Release:** 1.0.0
+
+**Status:** Current
 **Scope:** Level 1. Behaviour that MUST match across implementations so that the same
 protocol, ported between languages, produces the same state. Unlike Level 0, a mismatch
 here does not prevent two nodes from talking — it makes them silently disagree about the
@@ -14,11 +16,12 @@ RFC 2119.
 
 ---
 
-## 1. Why this layer already almost agrees
+## 1. What Level 1 pins
 
-The Python and Rust implementations independently converged on the same object model:
-validate-all-then-apply, with a state snapshot threaded between objects. Level 1 exists
-to pin that convergence down before it drifts, not to invent something new.
+Level 1 pins the object contract and the local pipeline. A prototype implements
+`receive`. Gossip and link control are available to every protocol. A consensus
+object may return a snapshot and sync it with one peer. The same message
+sequence produces the same state in every language.
 
 ---
 
@@ -28,14 +31,38 @@ An application object exposes, in whatever form is idiomatic for the language:
 
 | Operation | Contract |
 |---|---|
-| `is_valid(message) -> bool` | Deterministic and **side-effect free**. Same input, same answer, always. |
-| `add_message(message, frontier_state?) -> StateMemento?` | Mutates state. MAY return a new memento. |
+| `is_valid(message) -> bool` | Deterministic and **side-effect free**. Defaults to true. |
+| `receive(message)` | Local apply. Defaults to doing nothing. This is the method a prototype implements. |
+| `add_message(message, frontier_state?) -> StateMemento?` | Defaults to calling `receive` and returning nothing. |
 | `emit_state_memento() -> StateMemento` | Current snapshot. Used when `add_message` returns nothing. |
-| `get_state_digests() -> [string]` | Frontier digests for multi-head structures (DAGs, forks). |
-| `is_merkelized() -> bool` | Whether canonical digests are meaningful for this object. |
+| `get_state_digests() -> [string]` | Frontier digests for multi-head structures (DAGs, forks). Defaults to `[]`. |
+| `is_merkelized() -> bool` | Whether canonical digests are meaningful for this object. Defaults to false. |
 
-Naming differs per language (`SharedObject` in Python, `ApplicationObject` in Rust);
-the contract does not.
+A prototype implements `receive` and nothing else. `is_valid` stays true, so the
+message is applied locally. `add_message` ignores `frontier_state` and returns
+nothing. The snapshot is `normalize("", [])`: empty digest, empty frontier,
+revision 0, empty metadata. An empty digest never reports a reorg (§4.2).
+
+The pipeline is local. Peers are not required to hold the same messages. A
+disconnect may drop one. An object that is not a consensus protocol tolerates
+that: its state is the messages it has applied, and a later message may fill a
+gap. Publish-subscribe, a chat room, a BitTorrent swarm, and the
+content-addressed store are this kind of object. Shared state, when it is
+required, is a separate feature class: `consensus.pow`, `consensus.pos`,
+and `consensus.pbft`, plus a ledger when the protocol is a chain. Those
+objects override `add_message` and the snapshot. The others do not.
+
+Every protocol has the same two paths. Gossip is relayed. Control is written
+to one peer and stops there; the handler receives that peer's address and
+nothing else. A consensus object adds a snapshot and may ask a peer for
+digests and backfill (`ctl.digest`, `ctl.messages` in wire-v1 §5.3 and §5.4).
+Those sync messages are mesh control, still not relayed. A chat room, a swarm,
+and a store do not use them.
+
+Naming differs per language (`SharedObject` in Python, `ApplicationObject` in Rust).
+Rust prototypes implement `Protocol`, which supplies `ApplicationObject`.
+Python and TypeScript override `receive` on the shared object. The contract
+does not change.
 
 ---
 

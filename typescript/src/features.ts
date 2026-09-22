@@ -26,6 +26,7 @@ export const FEATURES: readonly string[] = [
   'wire.sig-schnorr',
   'wire.sig-ed25519',
   'wire.dedup',
+  'wire.paths',
   // Level 1 — object semantics
   'object.contract',
   'object.pipeline',
@@ -50,6 +51,7 @@ export const FEATURES: readonly string[] = [
   'cli.node',
   'bittorrent.swarm',
   'wire.channel',
+  'app.pubsub',
 ];
 
 export interface Manifest {

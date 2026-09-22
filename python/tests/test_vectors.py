@@ -238,6 +238,21 @@ def test_dedup_sequence(case):
         assert len(dedup.seen) == step["seen_size"], where
 
 
+# --- wire.paths -------------------------------------------------------------
+
+
+@cases("wire-paths.json", "classify")
+def test_wire_paths(case):
+    env = Envelope.build(case["type"], {"n": 1}, ts=case["ts"])
+    assert env.path() == case["path"]
+    assert env.is_control() is (case["path"] == "control")
+    dedup = Deduplicator()
+    assert dedup.should_process(env) is case["first_process"]
+    assert dedup.should_process(env) is case["repeat_process"]
+    assert dedup.should_relay(env) is case["relay"]
+    assert len(dedup.seen) == case["seen_size"]
+
+
 # --- object.memento, object.merkle-digest -----------------------------------
 
 
@@ -772,7 +787,10 @@ def test_bittorrent_swarm_replay(case):
         accepted = obj.is_valid(step["message"])
         assert accepted is step["accepted"], where
         if accepted:
-            obj.add_message(step["message"])
+            assert obj.add_message(step["message"]) is None, where
+        assert obj.is_merkelized() is False, where
+        memo = obj.emit_state_memento()
+        assert memo.canonical_digest == "" and memo.frontier_digests == [], where
         assert obj.assembled(digest) == step["assembled"], where
         assert obj.state() == step["state"], where
 
@@ -858,6 +876,29 @@ def test_nat_sequence(case):
         assert node.armed() is step["armed"], where
         assert node.external_address() == step["external"], where
         assert node.opened() == step["opened"], where
+
+
+# --- Level 2 publish-subscribe ----------------------------------------------
+
+
+@cases("app-pubsub.json", "replay")
+def test_app_pubsub_replay(case):
+    from chaincraft_core.pubsub import PubSub
+
+    obj = PubSub()
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"{case['name']} step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            assert obj.add_message(message) is None, where
+        assert obj.is_merkelized() is False, where
+        assert obj.get_state_digests() == [], where
+        memo = obj.emit_state_memento()
+        assert memo.canonical_digest == "", where
+        assert memo.frontier_digests == [], where
+        assert obj.state() == {"rooms": step["rooms"]}, where
 
 
 # --- vector hygiene ---------------------------------------------------------

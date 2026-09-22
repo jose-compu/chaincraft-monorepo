@@ -77,6 +77,7 @@ export { PBFT, DEFAULT_REPLICAS as PBFT_DEFAULT_REPLICAS } from './consensusPbft
 export { ProofOfStake, DEFAULT_SEED, DEFAULT_VALIDATORS, proposerFor } from './consensusPos.ts';
 export { ProofOfWork, DEFAULT_DIFFICULTY, blockId, meetsWork } from './consensusPow.ts';
 export { BalanceLedger, DEFAULT_ALLOCATIONS as BALANCE_DEFAULT_ALLOCATIONS } from './ledgerBalance.ts';
+export { PubSub, MAX_MEMBERS, MAX_POSTS, MAX_ROOMS, MAX_TEXT } from './pubsub.ts';
 export { UtxoLedger, DEFAULT_ALLOCATIONS as UTXO_DEFAULT_ALLOCATIONS, transactionId } from './ledgerUtxo.ts';
 export { Mempool, transactionId as mempoolTransactionId } from './mempool.ts';
 export * as fees from './fees.ts';

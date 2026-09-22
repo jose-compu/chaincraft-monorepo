@@ -1,5 +1,7 @@
 # consensus.pos
 
+**Release:** 1.0.0
+
 Prototype proof-of-stake object. Weighted, deterministic proposer
 selection. No tokens move; stake is a constructor parameter.
 

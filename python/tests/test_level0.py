@@ -10,6 +10,7 @@ from chaincraft_core.dedup import Deduplicator, SeenDigests
 from chaincraft_core.envelope import Envelope, ProtocolError
 from chaincraft_core.discovery import is_connect_allowed, is_resolved_ip_allowed
 from chaincraft_core.framing import FrameReader, FramingError, encode_frame
+from chaincraft_core.mesh import Mesh
 
 
 # --- section 1: canonical JSON ---------------------------------------------
@@ -203,7 +204,22 @@ class TestEnvelope:
 
     def test_control_detection(self):
         assert control.hello("py/1.0").is_control()
-        assert not Envelope.build("app.test", {}).is_control()
+        assert control.hello("py/1.0").path() == "control"
+        link = Envelope.build("link.room.ping", {})
+        assert link.is_control()
+        assert link.path() == "control"
+        gossip = Envelope.build("app.test", {})
+        assert not gossip.is_control()
+        assert gossip.path() == "gossip"
+
+    def test_broadcast_and_send_stay_on_their_paths(self):
+        mesh = Mesh()
+        with pytest.raises(ProtocolError, match="gossip"):
+            mesh.broadcast("link.room.ping", {})
+        with pytest.raises(ProtocolError, match="control"):
+            mesh.send("127.0.0.1:1", "app.pubsub", {})
+        with pytest.raises(ProtocolError, match="no such link"):
+            mesh.send("127.0.0.1:9", "link.room.ping", {})
 
     def test_reserialization_preserves_digest(self):
         """A relay may rebuild the envelope without breaking downstream dedup."""

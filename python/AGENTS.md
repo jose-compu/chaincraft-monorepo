@@ -38,12 +38,13 @@ chaincraft_core/
   bittorrent.py  Prototype BitTorrent swarm + client
   nat.py         STUN, hole punch, and app.nat relay
   channel.py     Address URIs and in-process loop channel
+  pubsub.py      Topic publish-subscribe (chat rooms)
   mesh.py        TCP mesh (listen, hello, dedup, relay)
   node.py        Wire CLI: connect / send / ids / quit
   bt_node.py     BitTorrent client on Mesh (`bt.*` commands)
   dedup.py       Seen-digest set and relay gate (§7)
   memento.py     StateMemento (semantics-v1 §4)
-  object.py      SharedObject contract, digests, tie-break (§2, §5, §6)
+  object.py      SharedObject contract; prototypes override receive
   pipeline.py    ObjectRegistry, validate-all-then-apply (§3)
   features.py    Feature manifest — read by tools/parity_check.py
 tests/

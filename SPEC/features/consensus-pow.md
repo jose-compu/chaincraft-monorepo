@@ -1,5 +1,7 @@
 # consensus.pow
 
+**Release:** 1.0.0
+
 Prototype proof-of-work object. It implements the Level 1 contract
 (`SPEC/semantics-v1.md` §2) and is applied through the ordinary pipeline.
 

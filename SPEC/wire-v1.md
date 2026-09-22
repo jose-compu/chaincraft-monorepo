@@ -1,6 +1,8 @@
 # Chaincraft Wire Protocol — v1 (Level 0)
 
-**Status:** Draft
+**Release:** 1.0.0
+
+**Status:** Current
 **Protocol version on the wire:** `1`
 **Scope:** Level 0 only. Everything an implementation MUST do byte-for-byte to join a
 Chaincraft mesh. Nothing else.
@@ -189,9 +191,11 @@ Since keys are sorted, the on-wire field order is always:
 
 ### 3.2 The `type` namespace
 
-- `ctl.*` — reserved for control messages defined in §5. Implementations MUST NOT
-  invent new `ctl.*` types outside this spec.
-- Everything else — application-defined. Convention is `app.<name>`.
+- `ctl.*` — mesh control, defined in §5. Implementations MUST NOT invent new
+  `ctl.*` types outside this spec. Never relayed.
+- `link.*` — protocol control. Any protocol may use it. Delivered to that
+  protocol with the peer address of the link it arrived on. Never relayed.
+- Everything else — gossip. Convention is `app.<name>`. A node relays it.
 
 ### 3.3 Validation order
 
@@ -250,8 +254,12 @@ buys little on JSON of this size. Any future compression MUST be negotiated in
 
 ## 5. Control messages
 
-Control messages are ordinary envelopes with a `ctl.*` type. They are never stored in
-the application message set and never re-gossiped.
+The control path is an ordinary envelope whose `type` starts with `ctl.` or
+`link.`. It is never stored in the application message set and never relayed.
+`ctl.*` is handled by the mesh. `link.*` is delivered to the application with
+the peer address and no other context. Gossip is every other type: it is
+recorded, deduplicated, and relayed. Envelope `v` stays 1. No new field is
+added; the path is the type prefix.
 
 ### 5.1 `ctl.hello` — version and capability negotiation
 
@@ -359,8 +367,9 @@ A node maintains a bounded set of seen payload digests.
 - An envelope whose `id` is absent is processed, and its `id` is then added to the set.
 - A node MAY re-serialize an envelope before relaying. The digest is unaffected (§2), so
   a relayed copy is still recognized as a duplicate downstream.
-- Control messages (`ctl.*`) are point-to-point: they are never added to the set, never
-  deduplicated by digest, and never relayed.
+- Control-path messages (`ctl.*` and `link.*`) are point-to-point: they are never
+  added to the set, never deduplicated by digest, and never relayed. The same
+  `link.*` payload may arrive twice on one connection and both are delivered.
 
 ### 7.2 Capacity and eviction
 

@@ -1,5 +1,7 @@
 # crypto.vdf
 
+**Release:** 1.0.0
+
 Sloth VDF: sequential modular square roots, verified by modular squaring.
 
 Evaluate is intentionally slow. Verify is the same number of cheaper squarings.

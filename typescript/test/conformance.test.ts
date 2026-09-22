@@ -19,6 +19,7 @@ import {
   ProofOfStake,
   ProofOfWork,
   BalanceLedger,
+  PubSub,
   UtxoLedger,
   Mempool,
   MessageStore,
@@ -489,6 +490,23 @@ eachCase('consensus-pos.json', 'replay', (c) => {
   }
 });
 
+eachCase('app-pubsub.json', 'replay', (c) => {
+  const obj = new PubSub();
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `${c['name']} step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) assert.equal(obj.addMessage(message), undefined, where);
+    assert.equal(obj.isMerkelized(), false, where);
+    assert.deepEqual(obj.getStateDigests(), [], where);
+    const memo = obj.emitStateMemento();
+    assert.equal(memo.canonicalDigest, '', where);
+    assert.deepEqual(memo.frontierDigests, [], where);
+    assert.deepEqual(obj.state(), { rooms: step['rooms'] }, where);
+  }
+});
+
 eachCase('ledger-balance.json', 'replay', (c, doc) => {
   const obj = new BalanceLedger(doc['allocations']);
   for (const [index, step] of c['steps'].entries()) {
@@ -654,7 +672,11 @@ eachCase('bittorrent-swarm.json', 'replay', (c) => {
     const where = `step ${index}`;
     const accepted = obj.isValid(step['message']);
     assert.equal(accepted, step['accepted'], where);
-    if (accepted) obj.addMessage(step['message']);
+    if (accepted) assert.equal(obj.addMessage(step['message']), undefined, where);
+    assert.equal(obj.isMerkelized(), false, where);
+    const memo = obj.emitStateMemento();
+    assert.equal(memo.canonicalDigest, '', where);
+    assert.deepEqual(memo.frontierDigests, [], where);
     assert.equal(obj.assembled(digest), step['assembled'], where);
     assert.deepEqual(obj.state(), step['state'], where);
   }
@@ -750,6 +772,17 @@ eachCase('discovery-nat.json', 'sequence', (c) => {
   }
 });
 
+eachCase('wire-paths.json', 'classify', (c) => {
+  const env = Envelope.build(c['type'], { n: 1 }, { ts: c['ts'] });
+  assert.equal(env.path(), c['path']);
+  assert.equal(env.isControl(), c['path'] === 'control');
+  const dedup = new Deduplicator();
+  assert.equal(dedup.shouldProcess(env), c['first_process']);
+  assert.equal(dedup.shouldProcess(env), c['repeat_process']);
+  assert.equal(dedup.shouldRelay(env), c['relay']);
+  assert.equal(dedup.seen.size, c['seen_size']);
+});
+
 // --- vector hygiene ---------------------------------------------------------
 
 test('every vector file declares its feature', () => {
@@ -761,6 +794,7 @@ test('every vector file declares its feature', () => {
     'control.json',
     'signatures.json',
     'dedup.json',
+    'wire-paths.json',
     'memento.json',
     'pipeline.json',
     'ecdsa.json',
@@ -780,6 +814,7 @@ test('every vector file declares its feature', () => {
     'bittorrent-swarm.json',
     'discovery-nat.json',
     'wire-channel.json',
+    'app-pubsub.json',
   ];
   for (const name of files) {
     const doc = load(name);

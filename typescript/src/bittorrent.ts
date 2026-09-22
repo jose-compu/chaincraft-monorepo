@@ -7,7 +7,6 @@ import {
   compareCodePoints,
   hexToBytes,
 } from './canonical.ts';
-import { StateMemento } from './memento.ts';
 import { BaseSharedObject, merkleDigest } from './object.ts';
 
 export const WIRE_TYPE = 'app.bittorrent';
@@ -85,12 +84,9 @@ export class Swarm extends BaseSharedObject {
     return this.parse(message) !== undefined;
   }
 
-  override addMessage(
-    message: JsonValue,
-    _frontierState?: StateMemento | undefined,
-  ): StateMemento | undefined {
+  override receive(message: JsonValue): void {
     const parsed = this.parse(message);
-    if (parsed === undefined) return this.emitStateMemento();
+    if (parsed === undefined) return;
     if (parsed.kind === 'metainfo') {
       if (!this.torrents.has(parsed.digest)) {
         this.torrents.set(parsed.digest, {
@@ -109,20 +105,6 @@ export class Swarm extends BaseSharedObject {
         this.mark(parsed.digest, parsed.peer, parsed.index);
       }
     }
-    return this.emitStateMemento();
-  }
-
-  override emitStateMemento(): StateMemento {
-    return StateMemento.normalize(merkleDigest({ torrents: this.snapshot(), v: 1 }), []);
-  }
-
-  override getStateDigests(): string[] {
-    const digest = this.emitStateMemento().canonicalDigest;
-    return digest ? [digest] : [];
-  }
-
-  override isMerkelized(): boolean {
-    return true;
   }
 
   state(): { torrents: Record<string, JsonValue>; v: number } {

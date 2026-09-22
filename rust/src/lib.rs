@@ -27,6 +27,7 @@ pub mod mesh;
 pub mod nat;
 pub mod object;
 pub mod pipeline;
+pub mod pubsub;
 pub mod storage;
 pub mod vdf;
 pub mod vrf;
@@ -42,5 +43,5 @@ pub use framing::{
     decode_datagram, encode_datagram, encode_frame, FrameReader, MAX_FRAME_BYTES, MAX_UDP_BYTES,
 };
 pub use memento::StateMemento;
-pub use object::{frontier_digest, merkle_digest, wins_replacement, ApplicationObject};
+pub use object::{frontier_digest, merkle_digest, wins_replacement, ApplicationObject, Protocol};
 pub use pipeline::{ApplyResult, ObjectRegistry};

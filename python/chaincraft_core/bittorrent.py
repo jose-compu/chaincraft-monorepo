@@ -6,7 +6,6 @@ import hashlib
 import re
 from typing import Any, Callable, Dict, List, Optional, Set
 
-from .memento import StateMemento
 from .object import SharedObject, merkle_digest
 
 __all__ = [
@@ -89,12 +88,10 @@ class Swarm(SharedObject):
     def is_valid(self, message: Any) -> bool:
         return self._parse(message) is not None
 
-    def add_message(
-        self, message: Any, frontier_state: Optional[StateMemento] = None
-    ) -> Optional[StateMemento]:
+    def receive(self, message: Any) -> None:
         parsed = self._parse(message)
         if parsed is None:
-            return self.emit_state_memento()
+            return
         kind = parsed[0]
         if kind == "metainfo":
             _, name, pieces, digest = parsed
@@ -108,17 +105,6 @@ class Swarm(SharedObject):
             torrent = self._torrents[digest]
             torrent.data[index] = data
             torrent.mark(peer, index)
-        return self.emit_state_memento()
-
-    def emit_state_memento(self) -> StateMemento:
-        return StateMemento.normalize(merkle_digest({"torrents": self._snapshot(), "v": 1}), [])
-
-    def get_state_digests(self) -> list:
-        digest = self.emit_state_memento().canonical_digest
-        return [digest] if digest else []
-
-    def is_merkelized(self) -> bool:
-        return True
 
     def state(self) -> Dict[str, Any]:
         return {"torrents": self._snapshot(), "v": 1}

@@ -1,5 +1,7 @@
 # wire.channel
 
+**Release:** 1.0.0
+
 Address URIs and an in-process loop channel. Connecting over TCP, UDP,
 email, WebRTC or a forum is out of scope here; those are later adapters
 on this grammar.
