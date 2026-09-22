@@ -1028,6 +1028,8 @@ def discovery_peer_vectors() -> Dict[str, Any]:
         ("underscore host", "node_a:9735"),
         ("trailing hyphen", "node-.local:9735"),
         ("space", "10.0.0.2: 9735"),
+        ("unicode hostname", "é.local:1"),
+        ("unicode ipv4 octet", "127.0.0.١:1"),
     ]
 
     listen = "10.0.0.1:9735"
@@ -1979,6 +1981,8 @@ def wire_channel_vectors() -> Dict[str, Any]:
         ("path rejected", "tcp://127.0.0.1:9735/x"),
         ("query rejected", "tcp://127.0.0.1:9735?x=1"),
         ("bad ipv4", "256.0.0.1:9735"),
+        ("unicode hostname", "tcp://é.local:1"),
+        ("unicode ipv4 octet", "tcp://127.0.0.١:1"),
         ("leading zero port", "127.0.0.1:09735"),
         ("mailto missing at", "mailto:alice"),
         ("webrtc short", "webrtc:abcd"),

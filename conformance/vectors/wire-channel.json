@@ -119,6 +119,22 @@
       "cap": ""
     },
     {
+      "name": "unicode hostname",
+      "input": "tcp://é.local:1",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "unicode ipv4 octet",
+      "input": "tcp://127.0.0.١:1",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
       "name": "leading zero port",
       "input": "127.0.0.1:09735",
       "ok": false,
