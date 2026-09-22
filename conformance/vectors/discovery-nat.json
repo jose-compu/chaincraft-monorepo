@@ -50,6 +50,14 @@
       "packet": ""
     },
     {
+      "name": "unicode octet",
+      "txid": "0102030405060708090a0b0c",
+      "host": "203.0.113.١",
+      "port": 9735,
+      "ok": false,
+      "packet": ""
+    },
+    {
       "name": "port zero",
       "txid": "0102030405060708090a0b0c",
       "host": "203.0.113.5",

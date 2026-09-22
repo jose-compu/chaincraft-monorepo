@@ -22,7 +22,6 @@ from __future__ import annotations
 import json
 import os
 import queue
-import select
 import socket
 import subprocess
 import sys
@@ -312,10 +311,9 @@ def main() -> int:
     except Exception as exc:
         print(f"\n{RED}{BOLD}Interop failed:{RESET} {exc}")
         for language, node in nodes.items():
-            if node.proc.stderr is not None:
-                err = node.proc.stderr.read()
-                if err:
-                    print(f"\n{DIM}--- {language} stderr ---{RESET}\n{err[-800:]}")
+            err = node.stderr_tail()
+            if err:
+                print(f"\n{DIM}--- {language} stderr ---{RESET}\n{err}", flush=True)
         return 1
     finally:
         for node in nodes.values():

@@ -2013,6 +2013,7 @@ def discovery_nat_vectors() -> Dict[str, Any]:
     for name, host, port in (
         ("mapped", mapped_host, mapped_port),
         ("leading zero", "203.0.113.05", mapped_port),
+        ("unicode octet", "203.0.113.١", mapped_port),
         ("port zero", mapped_host, 0),
         ("bool port", mapped_host, True),
     ):

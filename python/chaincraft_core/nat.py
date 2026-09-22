@@ -253,7 +253,7 @@ def _ipv4(host: Any) -> Optional[List[int]]:
         return None
     octets: List[int] = []
     for label in labels:
-        if not label.isdigit() or (len(label) > 1 and label.startswith("0")):
+        if not label or not all("0" <= ch <= "9" for ch in label) or (len(label) > 1 and label.startswith("0")):
             return None
         octet = int(label)
         if octet > 255:
