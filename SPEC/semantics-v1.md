@@ -1,6 +1,8 @@
 # Chaincraft Object Semantics — v1 (Level 1)
 
-**Status:** Draft
+**Release:** 1.0.0
+
+**Status:** Current
 **Scope:** Level 1. Behaviour that MUST match across implementations so that the same
 protocol, ported between languages, produces the same state. Unlike Level 0, a mismatch
 here does not prevent two nodes from talking — it makes them silently disagree about the
@@ -14,11 +16,12 @@ RFC 2119.
 
 ---
 
-## 1. Why this layer already almost agrees
+## 1. What Level 1 pins
 
-The Python and Rust implementations independently converged on the same object model:
-validate-all-then-apply, with a state snapshot threaded between objects. Level 1 exists
-to pin that convergence down before it drifts, not to invent something new.
+Level 1 pins the object contract and the local pipeline. A prototype implements
+`receive`. Gossip and link control are available to every protocol. A consensus
+object may return a snapshot and sync it with one peer. The same message
+sequence produces the same state in every language.
 
 ---
 

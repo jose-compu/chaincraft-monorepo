@@ -15,6 +15,7 @@ SPEC/            Normative specifications. The source of truth.
   wire-v1.md       Level 0 — wire protocol, byte-exact
   semantics-v1.md  Level 1 — object and pipeline semantics
   features.yaml    Level 2 — the parity registry
+  release.yaml     Spec release, matched to the three package versions
   features/        Per-feature specs
 conformance/     Shared golden vectors and the live interop runner
   vectors/         Committed test vectors, generated from the reference impl
@@ -75,6 +76,14 @@ how three implementations drift while all their tests stay green.
 
 `SPEC/features.yaml` reflects reality as of the merge commit. Never update it
 retroactively, never leave it for a follow-up.
+
+`SPEC/release.yaml` is the spec release. It must equal the version in
+`python/pyproject.toml`, `rust/Cargo.toml`, and `typescript/package.json`.
+Every markdown file under `SPEC/` carries `**Release:**` with that version
+and is listed in `release.yaml`. The parity gate fails when they diverge.
+The envelope protocol number is `wire_protocol` in that file. It is not the
+spec release. A normative change that ships under a new release number updates
+the stamp in the same pull request.
 
 ---
 
@@ -219,6 +228,7 @@ A change is complete when:
 - [ ] Vectors written (first implementation) or passing unmodified (port)
 - [ ] Feature ID present in the language's manifest
 - [ ] `SPEC/features.yaml` updated in this same pull request
+- [ ] `SPEC/release.yaml` matches the package versions, and every spec file carries that release
 - [ ] `python3 tools/parity_check.py` passes
 - [ ] Language test suite passes
 - [ ] Gap issues opened for languages not yet ported

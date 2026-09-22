@@ -1,5 +1,7 @@
 # crypto.vrf
 
+**Release:** 1.0.0
+
 Deterministic uniqueness VRF built on `crypto.ecdsa`.
 
 This is a prototype VRF: uniqueness comes from RFC 6979, not from a

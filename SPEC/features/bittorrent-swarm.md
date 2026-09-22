@@ -1,5 +1,7 @@
 # bittorrent.swarm
 
+**Release:** 1.0.0
+
 Prototype BitTorrent swarm. It tracks one or more torrents: metainfo,
 verified piece bytes, and which peers have which pieces.
 
@@ -48,7 +50,7 @@ ignored.
 lowercase hex strings.
 
 Valid if the torrent is unknown, or already known with the same `name`
-and `pieces`. `add_message` creates the torrent when unknown; a matching
+and `pieces`. `receive` creates the torrent when unknown; a matching
 re-announce is a no-op.
 
 ### `have`
@@ -77,7 +79,7 @@ Stores the bytes and marks the peer as having `index`.
 {"bt":"request","info_hash":"<64 hex>","peer":"bob","index":0}
 ```
 
-Valid if `have` would be valid. `add_message` does not mutate. A node
+Valid if `have` would be valid. `receive` does not mutate. A node
 that stored that piece MAY broadcast a `piece` in response. That
 response is node behaviour, not object state.
 

@@ -1,5 +1,7 @@
 # discovery.peer
 
+**Release:** 1.0.0
+
 Address book for `host:port` peers. Used by `ctl.peers.request` / `ctl.peers`
 (wire-v1 §5.2) and by `discovery.local`.
 

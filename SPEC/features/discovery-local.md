@@ -1,5 +1,7 @@
 # discovery.local
 
+**Release:** 1.0.0
+
 Policy for filling the address book from a neighbor's current peer list.
 
 The wire is `ctl.peers.request` / `ctl.peers` (wire-v1 §5.2). This feature

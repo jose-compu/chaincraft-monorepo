@@ -1,0 +1,40 @@
+# Spec release tracked against the three packages.
+#
+# `release` is the specification the implementations ship.
+# `wire_protocol` is the envelope `v` field. It does not move when the
+# spec release moves.
+#
+# tools/parity_check.py fails unless:
+#   - this release equals python/pyproject.toml, rust/Cargo.toml,
+#     typescript/package.json, and the in-code version constants
+#   - wire_protocol equals the in-code wire version constants
+#   - every markdown file under SPEC/ is listed here
+#   - every listed file contains **Release:** <release>
+
+release: "1.0.0"
+wire_protocol: 1
+status: current
+since: "2026-09-22"
+
+documents:
+  - SPEC/features/app-pubsub.md
+  - SPEC/features/bittorrent-swarm.md
+  - SPEC/features/cli-node.md
+  - SPEC/features/consensus-pbft.md
+  - SPEC/features/consensus-pos.md
+  - SPEC/features/consensus-pow.md
+  - SPEC/features/crypto-ecdsa.md
+  - SPEC/features/crypto-vdf.md
+  - SPEC/features/crypto-vrf.md
+  - SPEC/features/discovery-local.md
+  - SPEC/features/discovery-nat.md
+  - SPEC/features/discovery-peer.md
+  - SPEC/features/fees-policy.md
+  - SPEC/features/ledger-balance.md
+  - SPEC/features/ledger-utxo.md
+  - SPEC/features/mempool-basic.md
+  - SPEC/features/storage-persistent.md
+  - SPEC/features/wire-channel.md
+  - SPEC/features/wire-paths.md
+  - SPEC/semantics-v1.md
+  - SPEC/wire-v1.md

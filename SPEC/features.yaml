@@ -23,6 +23,8 @@
 #   in-progress  requires `issue`
 #   exempt       requires `reason` and a human reviewer
 
+# Registry schema version. The spec release the packages implement is
+# SPEC/release.yaml, not this number.
 version: 1
 grace_period_days: 14
 
@@ -166,7 +168,7 @@ features:
   - id: object.contract
     level: 1
     spec: SPEC/semantics-v1.md#2
-    summary: Application object contract — is_valid, add_message, digests
+    summary: Application object contract — receive by default, snapshot only for consensus
     vectors: conformance/vectors/pipeline.json
     status:
       python:     { state: implemented, since: "2026-09-09" }

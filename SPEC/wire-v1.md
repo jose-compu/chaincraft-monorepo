@@ -1,6 +1,8 @@
 # Chaincraft Wire Protocol — v1 (Level 0)
 
-**Status:** Draft
+**Release:** 1.0.0
+
+**Status:** Current
 **Protocol version on the wire:** `1`
 **Scope:** Level 0 only. Everything an implementation MUST do byte-for-byte to join a
 Chaincraft mesh. Nothing else.

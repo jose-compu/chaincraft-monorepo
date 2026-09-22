@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from datetime import date, datetime
@@ -28,6 +29,7 @@ except ImportError:
 
 REPO = Path(__file__).resolve().parent.parent
 REGISTRY = REPO / "SPEC" / "features.yaml"
+RELEASE = REPO / "SPEC" / "release.yaml"
 
 VALID_STATES = {"implemented", "in-progress", "planned", "exempt"}
 SATISFIED = {"implemented", "exempt"}
@@ -120,8 +122,82 @@ def parse_date(value: Any) -> Optional[date]:
         return None
 
 
+def _quoted(text: str, name: str) -> Optional[str]:
+    match = re.search(
+        rf"(?:^|\s){re.escape(name)}\s*(?::[^=]+)?=\s*[\"']([^\"']+)[\"']",
+        text,
+        re.M,
+    )
+    return match.group(1) if match else None
+
+
+def _integer(text: str, name: str) -> Optional[int]:
+    match = re.search(rf"{name}[^\n=]*=\s*(\d+)", text)
+    return int(match.group(1)) if match else None
+
+
+def check_spec_release(report: Report) -> None:
+    """The spec release, the package versions, and the document stamps agree."""
+    if not RELEASE.exists():
+        report.error("<spec>", "SPEC/release.yaml is missing")
+        return
+    with RELEASE.open() as handle:
+        release_doc = yaml.safe_load(handle)
+    release = str(release_doc.get("release") or "")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", release):
+        report.error("<spec>", f"spec release {release!r} is not major.minor.patch")
+        return
+    if release_doc.get("status") != "current":
+        report.error("<spec>", "SPEC/release.yaml status must be current")
+    if parse_date(release_doc.get("since")) is None:
+        report.error("<spec>", "SPEC/release.yaml since must be YYYY-MM-DD")
+
+    packages = {
+        "python": _quoted((REPO / "python/pyproject.toml").read_text(), "version"),
+        "rust": _quoted((REPO / "rust/Cargo.toml").read_text(), "version"),
+        "typescript": json.loads((REPO / "typescript/package.json").read_text())["version"],
+    }
+    constants = {
+        "python": _quoted((REPO / "python/chaincraft_core/__init__.py").read_text(), "__version__"),
+        "rust": _quoted((REPO / "rust/src/features.rs").read_text(), "VERSION"),
+        "typescript": _quoted((REPO / "typescript/src/features.ts").read_text(), "VERSION"),
+    }
+    for language, found in packages.items():
+        if found != release:
+            report.error("<spec>", f"{language} package is {found}, spec release is {release}")
+    for language, found in constants.items():
+        if found != release:
+            report.error("<spec>", f"{language} version constant is {found}, spec release is {release}")
+
+    wire = release_doc.get("wire_protocol")
+    wire_constants = {
+        "python": _integer((REPO / "python/chaincraft_core/envelope.py").read_text(), "PROTOCOL_VERSION"),
+        "rust": _integer((REPO / "rust/src/features.rs").read_text(), "WIRE_VERSION"),
+        "typescript": _integer((REPO / "typescript/src/features.ts").read_text(), "WIRE_VERSION"),
+    }
+    for language, found in wire_constants.items():
+        if found != wire:
+            report.error("<spec>", f"{language} wire version is {found}, release.yaml says {wire}")
+
+    listed = release_doc.get("documents") or []
+    found_docs = sorted(str(path.relative_to(REPO)) for path in (REPO / "SPEC").rglob("*.md"))
+    if listed != found_docs:
+        missing = sorted(set(found_docs) - set(listed))
+        extra = sorted(set(listed) - set(found_docs))
+        if missing:
+            report.error("<spec>", f"spec files missing from SPEC/release.yaml: {missing}")
+        if extra:
+            report.error("<spec>", f"SPEC/release.yaml lists missing files: {extra}")
+    stamp = f"**Release:** {release}"
+    for path in listed:
+        file = REPO / path
+        if file.exists() and stamp not in file.read_text():
+            report.error("<spec>", f"{path} does not carry {stamp}")
+
+
 def check(registry: Dict[str, Any], today: date) -> Report:
     report = Report()
+    check_spec_release(report)
     languages: List[str] = registry["languages"]
     grace = int(registry.get("grace_period_days", 14))
     bootstrap = registry.get("bootstrap") or {}

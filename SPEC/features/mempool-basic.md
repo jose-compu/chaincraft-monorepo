@@ -1,5 +1,7 @@
 # mempool.basic
 
+**Release:** 1.0.0
+
 Prototype transaction pool. It governs admission and retention: size,
 minimum fee, per-sender cap, time-to-live and replace-by-fee.
 
