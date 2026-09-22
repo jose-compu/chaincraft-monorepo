@@ -281,7 +281,12 @@ export class Envelope {
     });
   }
 
+  path(): 'control' | 'gossip' {
+    if (this.type.startsWith('ctl.') || this.type.startsWith('link.')) return 'control';
+    return 'gossip';
+  }
+
   isControl(): boolean {
-    return this.type.startsWith('ctl.');
+    return this.path() === 'control';
   }
 }

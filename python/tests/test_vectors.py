@@ -238,6 +238,21 @@ def test_dedup_sequence(case):
         assert len(dedup.seen) == step["seen_size"], where
 
 
+# --- wire.paths -------------------------------------------------------------
+
+
+@cases("wire-paths.json", "classify")
+def test_wire_paths(case):
+    env = Envelope.build(case["type"], {"n": 1}, ts=case["ts"])
+    assert env.path() == case["path"]
+    assert env.is_control() is (case["path"] == "control")
+    dedup = Deduplicator()
+    assert dedup.should_process(env) is case["first_process"]
+    assert dedup.should_process(env) is case["repeat_process"]
+    assert dedup.should_relay(env) is case["relay"]
+    assert len(dedup.seen) == case["seen_size"]
+
+
 # --- object.memento, object.merkle-digest -----------------------------------
 
 

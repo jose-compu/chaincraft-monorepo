@@ -772,6 +772,17 @@ eachCase('discovery-nat.json', 'sequence', (c) => {
   }
 });
 
+eachCase('wire-paths.json', 'classify', (c) => {
+  const env = Envelope.build(c['type'], { n: 1 }, { ts: c['ts'] });
+  assert.equal(env.path(), c['path']);
+  assert.equal(env.isControl(), c['path'] === 'control');
+  const dedup = new Deduplicator();
+  assert.equal(dedup.shouldProcess(env), c['first_process']);
+  assert.equal(dedup.shouldProcess(env), c['repeat_process']);
+  assert.equal(dedup.shouldRelay(env), c['relay']);
+  assert.equal(dedup.seen.size, c['seen_size']);
+});
+
 // --- vector hygiene ---------------------------------------------------------
 
 test('every vector file declares its feature', () => {
@@ -783,6 +794,7 @@ test('every vector file declares its feature', () => {
     'control.json',
     'signatures.json',
     'dedup.json',
+    'wire-paths.json',
     'memento.json',
     'pipeline.json',
     'ecdsa.json',

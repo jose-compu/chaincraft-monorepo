@@ -149,6 +149,16 @@ features:
       rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
+  - id: wire.paths
+    level: 0
+    spec: SPEC/features/wire-paths.md
+    summary: Gossip is relayed; link and ctl stay on the peer that delivered them
+    vectors: conformance/vectors/wire-paths.json
+    status:
+      python:     { state: implemented, since: "2026-09-22" }
+      rust:       { state: implemented, since: "2026-09-22" }
+      typescript: { state: implemented, since: "2026-09-22" }
+
   # ----------------------------------------------------------------------
   # Level 1 — object semantics
   # ----------------------------------------------------------------------

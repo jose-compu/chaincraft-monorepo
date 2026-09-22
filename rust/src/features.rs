@@ -16,6 +16,7 @@ pub const FEATURES: &[&str] = &[
     "wire.sig-schnorr",
     "wire.sig-ed25519",
     "wire.dedup",
+    "wire.paths",
     "object.contract",
     "object.pipeline",
     "object.memento",

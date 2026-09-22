@@ -49,6 +49,13 @@ required, is a separate feature class: `consensus.pow`, `consensus.pos`,
 and `consensus.pbft`, plus a ledger when the protocol is a chain. Those
 objects override `add_message` and the snapshot. The others do not.
 
+Every protocol has the same two paths. Gossip is relayed. Control is written
+to one peer and stops there; the handler receives that peer's address and
+nothing else. A consensus object adds a snapshot and may ask a peer for
+digests and backfill (`ctl.digest`, `ctl.messages` in wire-v1 §5.3 and §5.4).
+Those sync messages are mesh control, still not relayed. A chat room, a swarm,
+and a store do not use them.
+
 Naming differs per language (`SharedObject` in Python, `ApplicationObject` in Rust).
 Rust prototypes implement `Protocol`, which supplies `ApplicationObject`.
 Python and TypeScript override `receive` on the shared object. The contract

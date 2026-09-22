@@ -1791,6 +1791,43 @@ fn app_pubsub_replay() {
 }
 
 #[test]
+fn wire_paths() {
+    let doc = load("wire-paths.json");
+    let now = doc["now_ms"].as_i64().unwrap();
+    for case in doc["classify"].as_array().unwrap() {
+        let type_name = case["type"].as_str().unwrap();
+        let env = Envelope::build(
+            type_name,
+            JsonValue::object([("n".into(), JsonValue::Number(1))]),
+            Some(now),
+        )
+        .unwrap();
+        assert_eq!(env.path(), case["path"].as_str().unwrap(), "{type_name}");
+        let mut dedup = Deduplicator::default();
+        assert_eq!(
+            dedup.should_process(&env),
+            case["first_process"].as_bool().unwrap(),
+            "{type_name} first"
+        );
+        assert_eq!(
+            dedup.should_process(&env),
+            case["repeat_process"].as_bool().unwrap(),
+            "{type_name} repeat"
+        );
+        assert_eq!(
+            dedup.should_relay(&env),
+            case["relay"].as_bool().unwrap(),
+            "{type_name} relay"
+        );
+        assert_eq!(
+            dedup.seen.len(),
+            case["seen_size"].as_u64().unwrap() as usize,
+            "{type_name} seen"
+        );
+    }
+}
+
+#[test]
 fn vector_files_declare_feature() {
     for name in [
         "canonical-json.json",
@@ -1800,6 +1837,7 @@ fn vector_files_declare_feature() {
         "control.json",
         "signatures.json",
         "dedup.json",
+        "wire-paths.json",
         "memento.json",
         "pipeline.json",
         "ecdsa.json",

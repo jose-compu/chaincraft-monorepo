@@ -26,6 +26,7 @@ NODE_MAX_FRAME = 262_144
 
 EventFn = Callable[[Dict[str, Any]], None]
 AppFn = Callable[[str, Any], None]
+LinkFn = Callable[[str, str, Any], None]
 
 
 class _Peer:
@@ -44,10 +45,12 @@ class Mesh:
         impl: str = IMPL,
         on_event: Optional[EventFn] = None,
         on_app: Optional[AppFn] = None,
+        on_link: Optional[LinkFn] = None,
     ) -> None:
         self.impl = impl
         self.on_event = on_event or (lambda _e: None)
         self.on_app = on_app or (lambda _t, _d: None)
+        self.on_link = on_link or (lambda _addr, _t, _d: None)
         self.dedup = Deduplicator()
         self.peers: List[_Peer] = []
         self.received: List[Dict[str, Any]] = []
@@ -82,6 +85,8 @@ class Mesh:
 
     def broadcast(self, type_name: str, data: Any) -> str:
         env = Envelope.build(type_name, data)
+        if env.is_control():
+            raise ProtocolError("broadcast is the gossip path")
         with self.lock:
             fresh = self.dedup.should_process(env)
             if fresh:
@@ -91,6 +96,18 @@ class Mesh:
             for peer in peers:
                 self._write(peer, env)
             self.on_app(type_name, data)
+        return env.id
+
+    def send(self, addr: str, type_name: str, data: Any) -> str:
+        """Write one control-path envelope to a single peer. Do not relay."""
+        env = Envelope.build(type_name, data)
+        if not env.is_control():
+            raise ProtocolError("send is the control path")
+        with self.lock:
+            match = next((peer for peer in self.peers if peer.addr == addr), None)
+        if match is None:
+            raise ProtocolError("no such link")
+        self._write(match, env)
         return env.id
 
     def _record(self, env: Envelope) -> None:
@@ -159,13 +176,16 @@ class Mesh:
 
     def _handle(self, peer: _Peer, body: bytes) -> None:
         env = Envelope.parse(body)
-        if env.is_control():
+        if env.type.startswith("ctl."):
             if env.type == control.HELLO:
                 hello = control.parse_hello(env)
                 peer.impl = hello["impl"]
                 self.on_event(
                     {"event": "hello", "peer": hello["impl"], "addr": peer.addr}
                 )
+            return
+        if env.is_control():
+            self.on_link(peer.addr, env.type, env.data)
             return
         with self.lock:
             if not self.dedup.should_process(env):

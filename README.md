@@ -11,7 +11,11 @@ disconnect is allowed.
 
 Consensus is a feature class in the same library, not the default. Proof of
 work, proof of stake, and PBFT, with a balance or UTXO ledger, are there when
-the protocol must agree on a head.
+the protocol must agree on a head. Those objects keep a snapshot and may sync
+it with one peer. The others do not.
+
+Every protocol has two paths. Gossip is relayed. Control (`link.*`) is written
+to one peer and is not relayed. `ctl.*` remains the mesh's own control channel.
 
 ---
 
@@ -83,7 +87,7 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, and NAT traversal:
-33 of 33 features each (TypeScript 32 implemented plus the UDP exemption). The
+34 of 34 features each (TypeScript 33 implemented plus the UDP exemption). The
 one exemption in
 the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.
@@ -119,6 +123,8 @@ Three properties do most of the work:
   "relay these bytes verbatim" fragility.
 - **Version negotiation.** `ctl.hello` on every connection. A peer speaking a version we
   cannot serve is disconnected cleanly instead of silently misunderstood.
+- **Two paths.** Gossip (`app.*`) is relayed. Control (`link.*`, and the mesh's
+  `ctl.*`) is delivered only on the peer link it arrived on.
 
 Full detail in `SPEC/wire-v1.md`.
 

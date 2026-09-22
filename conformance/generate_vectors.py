@@ -2609,6 +2609,48 @@ def app_pubsub_vectors() -> Dict[str, Any]:
     }
 
 
+def paths_vectors() -> Dict[str, Any]:
+    types = [
+        "ctl.hello",
+        "ctl.digest",
+        "ctl.messages.request",
+        "link.pubsub.typing",
+        "link.bittorrent.request",
+        "app.pubsub",
+        "app.bittorrent",
+        "link",
+        "ctl",
+        "applink.test",
+    ]
+    classify = []
+    for type_name in types:
+        env = Envelope.build(type_name, {"n": 1}, ts=TS)
+        dedup = Deduplicator()
+        first = dedup.should_process(env)
+        repeat = dedup.should_process(env)
+        classify.append(
+            {
+                "name": type_name,
+                "type": type_name,
+                "ts": TS,
+                "path": env.path(),
+                "relay": dedup.should_relay(env),
+                "first_process": first,
+                "repeat_process": repeat,
+                "seen_size": len(dedup.seen),
+            }
+        )
+    return {
+        **header(
+            "wire.paths",
+            "SPEC/features/wire-paths.md",
+            "Gossip is relayed. ctl.* and link.* stay on the delivering peer.",
+        ),
+        "now_ms": NOW,
+        "classify": classify,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -2619,6 +2661,7 @@ def main() -> int:
     write("control.json", control_vectors())
     write("signatures.json", signature_vectors())
     write("dedup.json", dedup_vectors())
+    write("wire-paths.json", paths_vectors())
     print("\nLevel 1 — object semantics")
     write("memento.json", memento_vectors())
     write("pipeline.json", pipeline_vectors())

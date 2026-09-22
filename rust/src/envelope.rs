@@ -247,8 +247,16 @@ impl Envelope {
         })
     }
 
+    pub fn path(&self) -> &'static str {
+        if self.type_name.starts_with("ctl.") || self.type_name.starts_with("link.") {
+            "control"
+        } else {
+            "gossip"
+        }
+    }
+
     pub fn is_control(&self) -> bool {
-        self.type_name.starts_with("ctl.")
+        self.path() == "control"
     }
 }
 

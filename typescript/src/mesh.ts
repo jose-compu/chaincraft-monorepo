@@ -12,6 +12,7 @@ import * as control from './control.ts';
 import { Deduplicator } from './dedup.ts';
 import { isConnectAllowed, isResolvedIpAllowed } from './discovery.ts';
 import { Envelope } from './envelope.ts';
+import { ProtocolError } from './errors.ts';
 import { IMPL } from './features.ts';
 import { FrameReader, encodeFrame } from './framing.ts';
 
@@ -22,6 +23,7 @@ export const NODE_MAX_FRAME = 262_144;
 
 export type MeshEvent = Record<string, unknown>;
 export type AppHandler = (typeName: string, data: JsonValue) => void;
+export type LinkHandler = (addr: string, typeName: string, data: JsonValue) => void;
 
 interface Peer {
   socket: net.Socket;
@@ -36,6 +38,7 @@ export class Mesh {
   readonly received: Array<{ id: string; type: string; data: JsonValue }> = [];
   listenAddr = '';
   onApp: AppHandler = () => undefined;
+  onLink: LinkHandler = () => undefined;
   private readonly onEvent: (event: MeshEvent) => void;
   private server: net.Server | undefined;
 
@@ -85,6 +88,7 @@ export class Mesh {
 
   broadcast(typeName: string, data: JsonValue): string {
     const env = Envelope.build(typeName, data);
+    if (env.isControl()) throw new ProtocolError('broadcast is the gossip path');
     const fresh = this.dedup.shouldProcess(env);
     if (fresh) {
       this.record(env);
@@ -93,6 +97,15 @@ export class Mesh {
       }
       this.onApp(typeName, data);
     }
+    return env.id;
+  }
+
+  send(addr: string, typeName: string, data: JsonValue): string {
+    const env = Envelope.build(typeName, data);
+    if (!env.isControl()) throw new ProtocolError('send is the control path');
+    const peer = this.peers.find((item) => item.addr === addr);
+    if (peer === undefined) throw new ProtocolError('no such link');
+    this.write(peer, env);
     return env.id;
   }
 
@@ -148,12 +161,16 @@ export class Mesh {
 
   private handle(peer: Peer, body: Uint8Array): void {
     const env = Envelope.parse(body);
-    if (env.isControl()) {
+    if (env.type.startsWith('ctl.')) {
       if (env.type === control.HELLO) {
         const hello = control.parseHello(env);
         peer.impl = hello.impl;
         this.onEvent({ event: 'hello', peer: hello.impl, addr: peer.addr });
       }
+      return;
+    }
+    if (env.isControl()) {
+      this.onLink(peer.addr, env.type, env.data);
       return;
     }
     if (!this.dedup.shouldProcess(env)) return;

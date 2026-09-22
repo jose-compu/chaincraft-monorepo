@@ -219,5 +219,11 @@ class Envelope:
             alg=alg,
         )
 
+    def path(self) -> str:
+        """``control`` for ``ctl.*`` and ``link.*``, otherwise ``gossip``."""
+        if self.type.startswith("ctl.") or self.type.startswith("link."):
+            return "control"
+        return "gossip"
+
     def is_control(self) -> bool:
-        return self.type.startswith("ctl.")
+        return self.path() == "control"

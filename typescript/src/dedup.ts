@@ -60,8 +60,8 @@ export class Deduplicator {
   }
 
   shouldProcess(envelope: Envelope): boolean {
-    // Control messages are point-to-point, so the same ctl.hello arriving on
-    // two connections must be handled twice, not silently dropped as a repeat.
+    // Control-path messages are point-to-point, so the same ctl.hello or
+    // link.* payload must be handled twice, not dropped as a repeat.
     if (envelope.isControl()) return true;
     return this.seen.add(envelope.id);
   }

@@ -1,0 +1,110 @@
+{
+  "feature": "wire.paths",
+  "spec": "SPEC/features/wire-paths.md",
+  "description": "Gossip is relayed. ctl.* and link.* stay on the delivering peer.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "now_ms": 1757430000000,
+  "classify": [
+    {
+      "name": "ctl.hello",
+      "type": "ctl.hello",
+      "ts": 1757430000000,
+      "path": "control",
+      "relay": false,
+      "first_process": true,
+      "repeat_process": true,
+      "seen_size": 0
+    },
+    {
+      "name": "ctl.digest",
+      "type": "ctl.digest",
+      "ts": 1757430000000,
+      "path": "control",
+      "relay": false,
+      "first_process": true,
+      "repeat_process": true,
+      "seen_size": 0
+    },
+    {
+      "name": "ctl.messages.request",
+      "type": "ctl.messages.request",
+      "ts": 1757430000000,
+      "path": "control",
+      "relay": false,
+      "first_process": true,
+      "repeat_process": true,
+      "seen_size": 0
+    },
+    {
+      "name": "link.pubsub.typing",
+      "type": "link.pubsub.typing",
+      "ts": 1757430000000,
+      "path": "control",
+      "relay": false,
+      "first_process": true,
+      "repeat_process": true,
+      "seen_size": 0
+    },
+    {
+      "name": "link.bittorrent.request",
+      "type": "link.bittorrent.request",
+      "ts": 1757430000000,
+      "path": "control",
+      "relay": false,
+      "first_process": true,
+      "repeat_process": true,
+      "seen_size": 0
+    },
+    {
+      "name": "app.pubsub",
+      "type": "app.pubsub",
+      "ts": 1757430000000,
+      "path": "gossip",
+      "relay": true,
+      "first_process": true,
+      "repeat_process": false,
+      "seen_size": 1
+    },
+    {
+      "name": "app.bittorrent",
+      "type": "app.bittorrent",
+      "ts": 1757430000000,
+      "path": "gossip",
+      "relay": true,
+      "first_process": true,
+      "repeat_process": false,
+      "seen_size": 1
+    },
+    {
+      "name": "link",
+      "type": "link",
+      "ts": 1757430000000,
+      "path": "gossip",
+      "relay": true,
+      "first_process": true,
+      "repeat_process": false,
+      "seen_size": 1
+    },
+    {
+      "name": "ctl",
+      "type": "ctl",
+      "ts": 1757430000000,
+      "path": "gossip",
+      "relay": true,
+      "first_process": true,
+      "repeat_process": false,
+      "seen_size": 1
+    },
+    {
+      "name": "applink.test",
+      "type": "applink.test",
+      "ts": 1757430000000,
+      "path": "gossip",
+      "relay": true,
+      "first_process": true,
+      "repeat_process": false,
+      "seen_size": 1
+    }
+  ]
+}

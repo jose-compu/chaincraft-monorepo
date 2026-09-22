@@ -23,6 +23,7 @@ pub const MAX_RECEIVED: usize = 4096;
 pub const NODE_MAX_FRAME: u32 = 262_144;
 
 pub type AppHandler = Arc<dyn Fn(&str, &JsonValue) + Send + Sync>;
+pub type LinkHandler = Arc<dyn Fn(&str, &str, &JsonValue) + Send + Sync>;
 
 struct Peer {
     stream: TcpStream,
@@ -36,6 +37,7 @@ pub struct Mesh {
     peers: Vec<Arc<Mutex<Peer>>>,
     received: Vec<String>,
     on_app: Option<AppHandler>,
+    on_link: Option<LinkHandler>,
 }
 
 impl Mesh {
@@ -52,6 +54,7 @@ impl Mesh {
             peers: Vec::new(),
             received: Vec::new(),
             on_app: None,
+            on_link: None,
         }));
         let accept_mesh = Arc::clone(&mesh);
         thread::spawn(move || {
@@ -79,6 +82,10 @@ impl Mesh {
         self.on_app = Some(handler);
     }
 
+    pub fn set_on_link(&mut self, handler: LinkHandler) {
+        self.on_link = Some(handler);
+    }
+
     pub fn ids(&self) -> Vec<String> {
         self.received.clone()
     }
@@ -95,6 +102,9 @@ impl Mesh {
         data: JsonValue,
     ) -> Result<String, String> {
         let env = Envelope::build(type_name, data, None).map_err(|e| e.to_string())?;
+        if env.is_control() {
+            return Err("broadcast is the gossip path".into());
+        }
         let (peers, handler) = {
             let mut guard = mesh.lock().map_err(|e| e.to_string())?;
             let fresh = guard.dedup.should_process(&env);
@@ -116,6 +126,34 @@ impl Mesh {
         if let Some(handler) = handler {
             handler(type_name, &env.data);
         }
+        Ok(env.id)
+    }
+
+    pub fn send(
+        mesh: &Arc<Mutex<Self>>,
+        addr: &str,
+        type_name: &str,
+        data: JsonValue,
+    ) -> Result<String, String> {
+        let env = Envelope::build(type_name, data, None).map_err(|e| e.to_string())?;
+        if !env.is_control() {
+            return Err("send is the control path".into());
+        }
+        let peer = {
+            let guard = mesh.lock().map_err(|e| e.to_string())?;
+            guard
+                .peers
+                .iter()
+                .find(|candidate| {
+                    candidate
+                        .lock()
+                        .map(|peer| peer.addr == addr)
+                        .unwrap_or(false)
+                })
+                .cloned()
+        };
+        let peer = peer.ok_or_else(|| "no such link".to_string())?;
+        write_env(&peer, &env)?;
         Ok(env.id)
     }
 }
@@ -284,11 +322,19 @@ fn read_loop(mesh: Arc<Mutex<Mesh>>, peer: Arc<Mutex<Peer>>, stream: TcpStream) 
 
 fn handle(mesh: &Arc<Mutex<Mesh>>, peer: &Arc<Mutex<Peer>>, body: &[u8]) -> Result<(), String> {
     let env = Envelope::parse_bytes(body, None).map_err(|e| e.to_string())?;
-    if env.is_control() {
+    if env.type_name.starts_with("ctl.") {
         if env.type_name == control::HELLO {
             let hello = parse_hello(&env).map_err(|e| e.to_string())?;
             let addr = peer.lock().map_err(|e| e.to_string())?.addr.clone();
             emit(json!({"event":"hello","peer":hello.impl_name,"addr":addr}));
+        }
+        return Ok(());
+    }
+    if env.is_control() {
+        let addr = peer.lock().map_err(|e| e.to_string())?.addr.clone();
+        let handler = mesh.lock().map_err(|e| e.to_string())?.on_link.clone();
+        if let Some(handler) = handler {
+            handler(&addr, &env.type_name, &env.data);
         }
         return Ok(());
     }
