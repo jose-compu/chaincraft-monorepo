@@ -18,6 +18,7 @@
       <a href="#stack">Stack</a>
       <a href="#architecture">Architecture</a>
       <a href="#parity">Parity</a>
+      <a href="#chat">Chat</a>
       <a href="#hello">Hello World</a>
       <a href="#start">Get started</a>
       <a href="https://github.com/jose-compu/chaincraft-monorepo" target="_blank" rel="noopener">GitHub</a>
@@ -96,7 +97,7 @@
           <tr>
             <td>1</td>
             <td>Objects</td>
-            <td><code>is_valid</code>, <code>add_message</code>, mementos, merkle digests, tie-break</td>
+            <td><code>receive</code> for a prototype. <code>is_valid</code> to reject. Mementos only when a consensus object syncs</td>
           </tr>
           <tr>
             <td>2</td>
@@ -185,7 +186,7 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
     <section id="parity" class="alt-bg" aria-labelledby="parity-heading">
       <h2 id="parity-heading">Parity</h2>
       <p class="section-lead">
-        32 of 32 features. Python, Rust, and TypeScript accept and reject the
+        33 of 33 features. Python, Rust, and TypeScript accept and reject the
         same inputs and emit the same bytes. The registry is
         <code>SPEC/features.yaml</code>. CI fails when a language drifts.
       </p>
@@ -211,13 +212,34 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
           <tr>
             <td>TypeScript</td>
             <td><code>@chaincraft/core</code></td>
-            <td>31 features. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0.</td>
+            <td>32 features. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0.</td>
           </tr>
         </tbody>
       </table>
       <pre class="code-block"><code class="language-bash">python3 tools/parity_check.py --summary
 python3 conformance/run_all.py
 python3 conformance/runner/run_interop.py</code></pre>
+    </section>
+
+    <section id="chat" aria-labelledby="chat-heading">
+      <h2 id="chat-heading">Chat rooms</h2>
+      <p class="section-lead">
+        <code>app.pubsub</code> is a gossip object, not a consensus protocol.
+        A room is a topic. Join, leave, and speak are ordinary messages.
+        The handler is <code>receive</code>. The log is sorted by
+        <code>seq</code>, then by author. A node that never saw a post
+        simply does not have it.
+      </p>
+      <pre class="code-block"><code class="language-json">{"app":"pubsub","op":"subscribe","room":"general","author":"alice"}
+{"app":"pubsub","op":"publish","room":"general","author":"alice","text":"hello","seq":0}
+{"app":"pubsub","op":"unsubscribe","room":"general","author":"alice"}</code></pre>
+      <p>
+        A second room is a second topic. Bob can speak in <code>general</code>
+        and still be rejected in <code>trading</code> until he subscribes.
+        Repeating <code>ok</code> uses a new <code>seq</code>. The same
+        <code>seq</code> is rejected. The contract is
+        <a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/app-pubsub.md">SPEC/features/app-pubsub.md</a>.
+      </p>
     </section>
 
     <section id="hello" aria-labelledby="hello-heading">
@@ -241,10 +263,11 @@ npm install --prefix typescript</code></pre>
         <article class="hello-step">
           <h3>What you implement vs what the mesh does</h3>
           <p>
-            A protocol object implements <code>is_valid</code>,
-            <code>add_message</code>, and <code>emit_state_memento</code>.
-            The node wraps the payload in an envelope, hashes it, deduplicates
-            it, and relays it. It does not interpret your application type.
+            A prototype implements <code>receive</code>. The node wraps the
+            payload, hashes it, and relays it. It does not interpret your
+            application type, and peers may miss a message.
+            Override <code>is_valid</code> only to reject, and
+            <code>add_message</code> only for a consensus protocol.
           </p>
         </article>
 
@@ -304,27 +327,16 @@ npm run node --prefix typescript</code></pre>
           <h4>Python</h4>
           <p>Save as <code>hello.py</code> and run <code>python3 hello.py</code>.</p>
           <pre class="code-block"><code class="language-python">from chaincraft_core import Envelope, encode_frame
-from chaincraft_core.memento import StateMemento
 from chaincraft_core.object import SharedObject
 
 
 class HelloObject(SharedObject):
-    def is_valid(self, message) -> bool:
-        return isinstance(message, dict) and "message" in message
-
-    def add_message(self, message, frontier_state=None):
+    def receive(self, message):
         print("Received:", message["message"])
-        return StateMemento.normalize()
-
-    def emit_state_memento(self):
-        return StateMemento.normalize()
 
 
 data = {"message": "Hello, Chaincraft!"}
-obj = HelloObject()
-if not obj.is_valid(data):
-    raise SystemExit("rejected")
-obj.add_message(data)
+HelloObject().receive(data)
 
 env = Envelope.build("app.hello", data)
 frame = encode_frame(env.to_bytes())
@@ -335,6 +347,7 @@ print("frame_len", len(frame))</code></pre>
             Save the manifest as <code>hello/Cargo.toml</code> and the program
             as <code>hello/src/main.rs</code>, then
             <code>cargo run --manifest-path hello/Cargo.toml</code>.
+            Implement <code>Protocol</code> and <code>receive</code>.
             <code>Envelope::build</code> takes the timestamp as a third argument;
             <code>None</code> uses the clock. The digest does not.
           </p>
@@ -345,53 +358,24 @@ edition = "2021"
 
 [dependencies]
 chaincraft-core = { path = "../rust" }</code></pre>
-          <pre class="code-block"><code class="language-rust">use std::any::Any;
-
-use chaincraft_core::{
-    encode_frame, parse_json, ApplicationObject, Envelope, JsonValue, StateMemento,
-};
+          <pre class="code-block"><code class="language-rust">use chaincraft_core::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
 
 struct HelloObject;
 
-impl ApplicationObject for HelloObject {
-    fn as_any(&self) -> &amp;dyn Any {
-        self
-    }
-
-    fn is_valid(&self, message: &amp;JsonValue) -> bool {
-        message
-            .as_object()
-            .and_then(|obj| obj.get("message"))
-            .and_then(|value| value.as_str())
-            .is_some()
-    }
-
-    fn add_message(
-        &amp;mut self,
-        message: &amp;JsonValue,
-        _frontier_state: Option&lt;&amp;StateMemento&gt;,
-    ) -> Option&lt;StateMemento&gt; {
+impl Protocol for HelloObject {
+    fn receive(&amp;mut self, message: &amp;JsonValue) {
         let text = message
             .as_object()
             .and_then(|obj| obj.get("message"))
             .and_then(|value| value.as_str())
             .unwrap_or("");
         println!("Received: {text}");
-        Some(StateMemento::normalize("", &amp;[]))
-    }
-
-    fn emit_state_memento(&self) -> StateMemento {
-        StateMemento::normalize("", &amp;[])
     }
 }
 
 fn main() {
     let data = parse_json(r#"{"message":"Hello, Chaincraft!"}"#).unwrap();
-    let mut obj = HelloObject;
-    if !obj.is_valid(&amp;data) {
-        panic!("rejected");
-    }
-    obj.add_message(&amp;data, None);
+    HelloObject.receive(&amp;data);
 
     let env = Envelope::build("app.hello", data, None).unwrap();
     let frame = encode_frame(&amp;env.to_bytes().unwrap()).unwrap();
@@ -402,44 +386,23 @@ fn main() {
           <p>
             Save as <code>typescript/hello.ts</code> and run
             <code>node hello.ts</code> from <code>typescript/</code>.
-            Method names are <code>isValid</code>, <code>addMessage</code>, and
-            <code>emitStateMemento</code>.
+            Override <code>receive</code>.
           </p>
           <pre class="code-block"><code class="language-typescript">import {
   BaseSharedObject,
   Envelope,
-  StateMemento,
   encodeFrame,
   type JsonValue,
 } from "./src/index.ts";
 
 class HelloObject extends BaseSharedObject {
-  isValid(message: JsonValue): boolean {
-    return (
-      message !== null &&
-      typeof message === "object" &&
-      !Array.isArray(message) &&
-      typeof message["message"] === "string"
-    );
-  }
-
-  addMessage(message: JsonValue): StateMemento {
-    const text = (message as { message: string }).message;
-    console.log("Received:", text);
-    return StateMemento.normalize();
-  }
-
-  emitStateMemento(): StateMemento {
-    return StateMemento.normalize();
+  receive(message: JsonValue): void {
+    console.log("Received:", (message as { message: string }).message);
   }
 }
 
 const data = { message: "Hello, Chaincraft!" };
-const obj = new HelloObject();
-if (!obj.isValid(data)) {
-  throw new Error("rejected");
-}
-obj.addMessage(data);
+new HelloObject().receive(data);
 
 const env = Envelope.build("app.hello", data);
 const frame = encodeFrame(env.toBytes());
@@ -497,9 +460,9 @@ console.log("frame_len", frame.length);</code></pre>
         <article class="why-card">
           <h3>Implement an object</h3>
           <p>
-            Chat, a counter, a beacon: <code>is_valid</code> and
-            <code>add_message</code>. The pipeline commits only when every
-            object accepts the message.
+            Chat, a counter, a beacon: implement <code>receive</code>.
+            The message is applied on the node that has it. A disconnect
+            may leave a gap.
           </p>
         </article>
         <article class="why-card">

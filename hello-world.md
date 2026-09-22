@@ -72,7 +72,7 @@ On terminal 1:
 
 ## The same program in each language
 
-These do not open a socket. Each one accepts the message, prints it, frames the envelope, and prints the same id.
+These do not open a socket. Each one implements `receive`, prints the message, frames the envelope, and prints the same id. A memento is not involved.
 
 ### Python
 
@@ -80,27 +80,16 @@ Save as `hello.py` and run `python3 hello.py`.
 
 ```python
 from chaincraft_core import Envelope, encode_frame
-from chaincraft_core.memento import StateMemento
 from chaincraft_core.object import SharedObject
 
 
 class HelloObject(SharedObject):
-    def is_valid(self, message) -> bool:
-        return isinstance(message, dict) and "message" in message
-
-    def add_message(self, message, frontier_state=None):
+    def receive(self, message):
         print("Received:", message["message"])
-        return StateMemento.normalize()
-
-    def emit_state_memento(self):
-        return StateMemento.normalize()
 
 
 data = {"message": "Hello, Chaincraft!"}
-obj = HelloObject()
-if not obj.is_valid(data):
-    raise SystemExit("rejected")
-obj.add_message(data)
+HelloObject().receive(data)
 
 env = Envelope.build("app.hello", data)
 frame = encode_frame(env.to_bytes())
@@ -112,7 +101,7 @@ print("frame_len", len(frame))
 
 Save the manifest as `hello/Cargo.toml` and the program as `hello/src/main.rs`. Then `cargo run --manifest-path hello/Cargo.toml`.
 
-`Envelope::build` takes the timestamp as a third argument. `None` uses the clock. The digest does not. The object trait is `ApplicationObject`, and it requires `as_any`.
+Implement `Protocol` and `receive`. `Envelope::build` takes the timestamp as a third argument. `None` uses the clock. The digest does not.
 
 ```toml
 [package]
@@ -125,53 +114,24 @@ chaincraft-core = { path = "../rust" }
 ```
 
 ```rust
-use std::any::Any;
-
-use chaincraft_core::{
-    encode_frame, parse_json, ApplicationObject, Envelope, JsonValue, StateMemento,
-};
+use chaincraft_core::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
 
 struct HelloObject;
 
-impl ApplicationObject for HelloObject {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn is_valid(&self, message: &JsonValue) -> bool {
-        message
-            .as_object()
-            .and_then(|obj| obj.get("message"))
-            .and_then(|value| value.as_str())
-            .is_some()
-    }
-
-    fn add_message(
-        &mut self,
-        message: &JsonValue,
-        _frontier_state: Option<&StateMemento>,
-    ) -> Option<StateMemento> {
+impl Protocol for HelloObject {
+    fn receive(&mut self, message: &JsonValue) {
         let text = message
             .as_object()
             .and_then(|obj| obj.get("message"))
             .and_then(|value| value.as_str())
             .unwrap_or("");
         println!("Received: {text}");
-        Some(StateMemento::normalize("", &[]))
-    }
-
-    fn emit_state_memento(&self) -> StateMemento {
-        StateMemento::normalize("", &[])
     }
 }
 
 fn main() {
     let data = parse_json(r#"{"message":"Hello, Chaincraft!"}"#).unwrap();
-    let mut obj = HelloObject;
-    if !obj.is_valid(&data) {
-        panic!("rejected");
-    }
-    obj.add_message(&data, None);
+    HelloObject.receive(&data);
 
     let env = Envelope::build("app.hello", data, None).unwrap();
     let frame = encode_frame(&env.to_bytes().unwrap()).unwrap();
@@ -182,44 +142,24 @@ fn main() {
 
 ### TypeScript
 
-Save as `typescript/hello.ts` and run `node hello.ts` from `typescript/`. The methods are `isValid`, `addMessage`, and `emitStateMemento`.
+Save as `typescript/hello.ts` and run `node hello.ts` from `typescript/`. Override `receive`.
 
 ```typescript
 import {
   BaseSharedObject,
   Envelope,
-  StateMemento,
   encodeFrame,
   type JsonValue,
 } from "./src/index.ts";
 
 class HelloObject extends BaseSharedObject {
-  isValid(message: JsonValue): boolean {
-    return (
-      message !== null &&
-      typeof message === "object" &&
-      !Array.isArray(message) &&
-      typeof message["message"] === "string"
-    );
-  }
-
-  addMessage(message: JsonValue): StateMemento {
-    const text = (message as { message: string }).message;
-    console.log("Received:", text);
-    return StateMemento.normalize();
-  }
-
-  emitStateMemento(): StateMemento {
-    return StateMemento.normalize();
+  receive(message: JsonValue): void {
+    console.log("Received:", (message as { message: string }).message);
   }
 }
 
 const data = { message: "Hello, Chaincraft!" };
-const obj = new HelloObject();
-if (!obj.isValid(data)) {
-  throw new Error("rejected");
-}
-obj.addMessage(data);
+new HelloObject().receive(data);
 
 const env = Envelope.build("app.hello", data);
 const frame = encodeFrame(env.toBytes());
