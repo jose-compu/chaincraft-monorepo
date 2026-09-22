@@ -19,6 +19,7 @@ since: "2026-09-22"
 documents:
   - SPEC/features/app-pubsub.md
   - SPEC/features/bittorrent-swarm.md
+  - SPEC/features/channel-adapters.md
   - SPEC/features/cli-node.md
   - SPEC/features/consensus-pbft.md
   - SPEC/features/consensus-pos.md

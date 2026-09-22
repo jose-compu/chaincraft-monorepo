@@ -87,7 +87,7 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, and NAT traversal:
-34 of 34 features each (TypeScript 33 implemented plus the UDP exemption).
+38 of 38 features each (TypeScript 37 implemented plus the UDP exemption).
 The spec release is 1.0.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.

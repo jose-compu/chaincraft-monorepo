@@ -51,6 +51,10 @@ export const FEATURES: readonly string[] = [
   'cli.node',
   'bittorrent.swarm',
   'wire.channel',
+  'channel.udp',
+  'channel.mailto',
+  'channel.webrtc',
+  'channel.forum',
   'app.pubsub',
 ];
 

@@ -773,6 +773,49 @@ def test_wire_channel_sequence(case):
         assert peers["b"].inbox() == step["b_inbox"], where
 
 
+# --- Level 2 channel adapters -----------------------------------------------
+
+
+@cases("channel-adapters.json", "sequence")
+def test_channel_adapters_sequence(case):
+    from chaincraft_core.adapters import (
+        AdapterChannel,
+        forum_bus,
+        mail_bus,
+        udp_bus,
+        webrtc_bus,
+    )
+
+    buses = {
+        "udp": udp_bus,
+        "mailto": mail_bus,
+        "webrtc": webrtc_bus,
+        "forum": forum_bus,
+    }
+    bus = buses[case["scheme"]]()
+    peers = {"a": AdapterChannel(bus), "b": AdapterChannel(bus)}
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        actor = peers[step["who"]]
+        op = step["op"]
+        if op == "listen":
+            assert actor.listen(step["addr"]) is step["ok"], where
+        elif op == "dial":
+            assert actor.dial(step["addr"]) is step["ok"], where
+        elif op == "send":
+            assert actor.send(step["addr"], step["data"]) is step["ok"], where
+        elif op == "recv":
+            assert actor.recv() == step["returned"], where
+        elif op == "close":
+            actor.close()
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert peers["a"].listen_addr == step["a_listen"], where
+        assert peers["b"].listen_addr == step["b_listen"], where
+        assert peers["a"].inbox() == step["a_inbox"], where
+        assert peers["b"].inbox() == step["b_inbox"], where
+
+
 # --- Level 2 BitTorrent -----------------------------------------------------
 
 
