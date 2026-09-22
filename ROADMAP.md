@@ -1,7 +1,11 @@
 # Chaincraft — Full Parity Roadmap
 
-Chaincraft is for blockchain development and prototyping. Three implementations —
-Python, Rust, TypeScript — are held at **100% feature parity**.
+Chaincraft is a platform for decentralized protocols. The ordinary object is
+local: a chat room, publish-subscribe, a BitTorrent swarm, or a content-addressed
+store. Consensus, ledgers, and sync are a feature class in the same library.
+
+Three implementations — Python, Rust, TypeScript — are held at **100% feature
+parity**. Spec release **1.0.0** (`SPEC/release.yaml`). Wire protocol **v1**.
 
 This document defines what that commitment means, why it is achievable, and the
 machinery that enforces it. The enforcement is automated: parity is a CI gate, not a
@@ -19,8 +23,8 @@ promise.
 - **Wire parity.** Byte-identical output for the same input. Any node talks to any node.
 - **Semantic parity.** The same message sequence produces the same state and the same
   digests in all three.
-- **Feature parity.** Every consensus algorithm, ledger model, fee policy, mempool
-  behaviour and protocol exists in all three.
+- **Feature parity.** Every protocol, consensus algorithm, ledger model, fee policy,
+  mempool behaviour and storage rule exists in all three.
 - **Behavioural parity.** The same inputs produce the same outputs, the same rejections,
   and the same error *classes*.
 
@@ -81,26 +85,29 @@ differs.
 **Spec:** `SPEC/wire-v1.md` · **Gate:** golden vectors + live 3×3 mesh matrix
 
 Canonical JSON, payload digest, envelope, framing, control messages, version
-negotiation, signatures.
+negotiation, signatures, and the gossip / link-control split (`wire.paths`).
 
-Frozen and versioned. A change here is a protocol version bump and appears in the diff
-as a changed vector file.
+Envelope `v` stays 1. A change to envelope bytes is a protocol version bump. A new
+vector file for a Level 2 feature is not. CI still posts a wire-protocol notice for
+any diff under `conformance/vectors/`. The pull request must name the files and say
+why.
 
 ### Level 1 — Semantic parity · verified by replay
 
 **Spec:** `SPEC/semantics-v1.md` · **Gate:** replay vectors, no networking
 
-Apply pipeline, `StateMemento` normalization, merkelized digests, replacement
-tie-breaking. Each implementation replays a fixed message sequence and must produce
-identical digests.
+Apply pipeline, `receive` for a prototype, `StateMemento` when a consensus object
+syncs, merkelized digests, replacement tie-breaking. Each implementation replays a
+fixed message sequence and must produce identical state.
 
 ### Level 2 — Feature parity · verified by the parity registry
 
 **Spec:** `SPEC/features.yaml` plus per-feature specs · **Gate:** `tools/parity_check.py`
 
-Consensus algorithms, ledger models, fee policies, mempool, discovery, storage
-semantics, CLI capabilities. Every feature carries an entry in the registry and a status
-per language.
+Non-consensus protocols (publish-subscribe, BitTorrent, storage), consensus
+algorithms, ledger models, fee policies, mempool, discovery, CLI. Gossip is relayed.
+`link.*` and `ctl.*` stay on the peer that delivered them. Every feature carries an
+entry in the registry and a status per language.
 
 This is the level that changed. It was previously "free to diverge"; it is now the level
 requiring the most machinery, which is why sections 4 and 5 exist.
@@ -257,14 +264,16 @@ Pipeline and memento vectors through each object registry; identical digests.
 - [x] `SPEC/semantics-v1.md` §8 conformance objects
 - [x] Python / TypeScript / Rust replay against `memento.json` and `pipeline.json`
 
-### Stage 8 — Level 2 backfill
+### Stage 8 — Level 2 backfill ✅
 
-The large stage. Python currently carries roughly 145 modules against Rust's 32, so most
-entries start `implemented` in Python and `planned` elsewhere. Work in dependency order,
-one registry entry at a time, agent-ported and human-reviewed:
+The backfill is complete. Python, Rust, and TypeScript each implement the registry.
+The one exemption is `wire.framing-udp` for TypeScript: browsers have no raw UDP
+socket, and UDP is optional at Level 0.
+
+The entries landed in dependency order:
 
 1. `crypto.*` — primitives, VDF, VRF ✅ (`crypto.ecdsa`, `crypto.vdf`, `crypto.vrf`)
-2. `object.*` — shared object model, mementos
+2. `object.*` — shared object model, mementos ✅
 3. `discovery.*` — peer discovery, gossip policy ✅ (`discovery.peer`, `discovery.local`, `discovery.nat`)
 4. `consensus.*` — PoW, PoS, PBFT examples ✅ (`consensus.pow`, `consensus.pos`, `consensus.pbft`)
 5. `ledger.*` — balance and UTXO models ✅ (`ledger.balance`, `ledger.utxo`)
@@ -272,9 +281,8 @@ one registry entry at a time, agent-ported and human-reviewed:
 7. `storage.*` — persistence semantics ✅ (`storage.persistent`)
 8. `cli.*` — command surface ✅ (`cli.node`)
 
-The grace period is suspended for Stage 8 backfill entries, which carry explicit
-milestone dates instead. Applying a 14-day clock to a pre-existing 113-module gap would
-paint CI red permanently and train everyone to ignore it.
+Backfill entries used milestone dates instead of the 14-day clock. Features added
+after the backfill use the clock.
 
 ### Stage 9 — Prove it with a mixed swarm ✅
 
@@ -294,26 +302,52 @@ issues (#2, #30–#32). `ctl.hello.listen` stays a single `host:port`.
 `app.nat` relay. It is a Mesh client. The core node binaries do not import
 it, and `ctl.hello` is unchanged. Tracked as issue #1.
 
+### Stage 12 — Local objects ✅
+
+A prototype implements `receive` and nothing else. The default snapshot is empty.
+`app.pubsub` is topic publish-subscribe: a room is a topic, the log is ordered by
+sequence then author, and a missing post is a gap. The BitTorrent swarm applies the
+pieces it has and does not publish a chain head. Consensus objects still override
+the snapshot.
+
+### Stage 13 — Gossip and link control ✅
+
+`wire.paths`. `broadcast` relays gossip. `send` writes one `link.*` or `ctl.*`
+envelope to a single peer, and the receiver does not relay it. Envelope `v` stays 1.
+No field was added. The new vector files are `app-pubsub.json` and
+`wire-paths.json`. Existing vector files were not edited.
+
+### Stage 14 — Spec release ✅
+
+`SPEC/release.yaml` is **1.0.0**, the same version as the three packages. Every
+markdown file under `SPEC/` carries `**Release:** 1.0.0` and is listed there. The
+parity gate fails if a package version, an in-code version, the wire number, or a
+stamp drifts. Nothing is tagged and nothing is published.
+
 ---
 
 ## 6. Versioning
 
-Full parity implies **lockstep releases**. All three packages carry the same version and
-release together:
+Full parity implies **lockstep releases**. All three packages and `SPEC/release.yaml`
+carry the same version:
 
 ```
-chaincraft-core (PyPI)   1.2.0
-chaincraft-core (crates) 1.2.0
-@chaincraft/core (npm)   1.2.0
+chaincraft-core (PyPI)    1.0.0
+chaincraft-core (crates)  1.0.0
+@chaincraft/core (npm)    1.0.0
+SPEC/release.yaml         1.0.0
 ```
 
-A single tag `v1.2.0` releases all three. A language cannot ship a minor version alone,
-because a minor version means a new feature, and a new feature means all three have it.
+That is the current release. There is no git tag and no registry publish yet. A
+later minor version still ships all three together. A language cannot ship a minor
+version alone, because a minor version means a new feature, and a new feature means
+all three have it.
 
 Patch releases MAY be per-language for language-specific bug fixes, tagged
-`v1.2.1-python`.
+`v1.0.1-python`.
 
-The wire protocol keeps its own tag, `wire-v1`, since it changes far less often.
+The wire protocol keeps its own number, envelope `v` = 1. It does not move when the
+spec release moves.
 
 `nostraft` stays **outside** this repository. It is an application consuming
 `chaincraft-core` as a dependency.
@@ -336,5 +370,7 @@ The wire protocol keeps its own tag, `wire-v1`, since it changes far less often.
    quietly die.
 7. **Path-filtered CI, unfiltered parity gate.** A TypeScript-only pull request skips the
    Rust suite but never skips `parity_check`.
+8. **Spec release stays in lockstep.** `SPEC/release.yaml` matches the three package
+   versions. The parity gate fails when a stamp drifts.
 
 See `AGENTS.md` for the contributor contract, human and agent alike.
