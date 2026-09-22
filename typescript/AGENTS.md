@@ -49,6 +49,8 @@ src/
   storage.ts     Pedagogical message store
   cli.ts         JSON-lines node command surface
   bittorrent.ts  Pedagogical BitTorrent swarm + client
+  nat.ts         STUN, hole punch, and app.nat relay
+  channel.ts     Address URIs and in-process loop channel
   mesh.ts        TCP mesh (listen, hello, dedup, relay)
   node.ts        Wire CLI: connect / send / ids / quit
   btNode.ts      BitTorrent client on Mesh (`bt.*` commands)

@@ -1,0 +1,561 @@
+{
+  "feature": "discovery.nat",
+  "spec": "SPEC/features/discovery-nat.md",
+  "description": "STUN binding, one-byte hole punch, and an app.nat relay.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "app_type": "app.nat",
+  "punch": "00",
+  "request": [
+    {
+      "name": "binding request",
+      "txid": "0102030405060708090a0b0c",
+      "ok": true,
+      "packet": "000100002112a4420102030405060708090a0b0c"
+    },
+    {
+      "name": "uppercase transaction id",
+      "txid": "0102030405060708090A0B0C",
+      "ok": false,
+      "packet": ""
+    },
+    {
+      "name": "short transaction id",
+      "txid": "0102",
+      "ok": false,
+      "packet": ""
+    },
+    {
+      "name": "empty transaction id",
+      "txid": "",
+      "ok": false,
+      "packet": ""
+    }
+  ],
+  "success": [
+    {
+      "name": "mapped",
+      "txid": "0102030405060708090a0b0c",
+      "host": "203.0.113.5",
+      "port": 9735,
+      "ok": true,
+      "packet": "0101000c2112a4420102030405060708090a0b0c0020000800010715ea12d547"
+    },
+    {
+      "name": "leading zero",
+      "txid": "0102030405060708090a0b0c",
+      "host": "203.0.113.05",
+      "port": 9735,
+      "ok": false,
+      "packet": ""
+    },
+    {
+      "name": "unicode octet",
+      "txid": "0102030405060708090a0b0c",
+      "host": "203.0.113.١",
+      "port": 9735,
+      "ok": false,
+      "packet": ""
+    },
+    {
+      "name": "port zero",
+      "txid": "0102030405060708090a0b0c",
+      "host": "203.0.113.5",
+      "port": 0,
+      "ok": false,
+      "packet": ""
+    },
+    {
+      "name": "bool port",
+      "txid": "0102030405060708090a0b0c",
+      "host": "203.0.113.5",
+      "port": true,
+      "ok": false,
+      "packet": ""
+    }
+  ],
+  "response": [
+    {
+      "name": "xor-mapped address",
+      "packet": "0101000c2112a4420102030405060708090a0b0c0020000800010715ea12d547",
+      "txid": "0102030405060708090a0b0c",
+      "ok": true,
+      "host": "203.0.113.5",
+      "port": 9735
+    },
+    {
+      "name": "unknown attribute ignored",
+      "packet": "010100142112a4420102030405060708090a0b0c80220004746573740020000800010715ea12d547",
+      "txid": "0102030405060708090a0b0c",
+      "ok": true,
+      "host": "203.0.113.5",
+      "port": 9735
+    },
+    {
+      "name": "wrong transaction id",
+      "packet": "0101000c2112a4420102030405060708090a0b0c0020000800010715ea12d547",
+      "txid": "ffffffffffffffffffffffff",
+      "ok": false,
+      "host": "",
+      "port": 0
+    },
+    {
+      "name": "bad magic",
+      "packet": "0101000cde12a4420102030405060708090a0b0c0020000800010715ea12d547",
+      "txid": "0102030405060708090a0b0c",
+      "ok": false,
+      "host": "",
+      "port": 0
+    },
+    {
+      "name": "truncated",
+      "packet": "0101000c2112a4420102",
+      "txid": "0102030405060708090a0b0c",
+      "ok": false,
+      "host": "",
+      "port": 0
+    },
+    {
+      "name": "no attribute",
+      "packet": "010100002112a4420102030405060708090a0b0c",
+      "txid": "0102030405060708090a0b0c",
+      "ok": false,
+      "host": "",
+      "port": 0
+    },
+    {
+      "name": "ipv6 family",
+      "packet": "0101000c2112a4420102030405060708090a0b0c002000080002000100000000",
+      "txid": "0102030405060708090a0b0c",
+      "ok": false,
+      "host": "",
+      "port": 0
+    },
+    {
+      "name": "port zero",
+      "packet": "0101000c2112a4420102030405060708090a0b0c002000080001211200000000",
+      "txid": "0102030405060708090a0b0c",
+      "ok": false,
+      "host": "",
+      "port": 0
+    },
+    {
+      "name": "uppercase packet",
+      "packet": "0101000C2112A4420102030405060708090A0B0C0020000800010715EA12D547",
+      "txid": "0102030405060708090a0b0c",
+      "ok": false,
+      "host": "",
+      "port": 0
+    }
+  ],
+  "construct": [
+    {
+      "name": "listen only",
+      "listen": "127.0.0.1:9735",
+      "external": null,
+      "relay": null,
+      "ok": true,
+      "advertise": "127.0.0.1:9735"
+    },
+    {
+      "name": "with external and relay",
+      "listen": "10.0.0.2:1",
+      "external": "203.0.113.5:9735",
+      "relay": "10.0.0.9:3478",
+      "ok": true,
+      "advertise": "203.0.113.5:9735"
+    },
+    {
+      "name": "bad listen",
+      "listen": "nope",
+      "external": null,
+      "relay": null,
+      "ok": false,
+      "advertise": ""
+    },
+    {
+      "name": "empty external",
+      "listen": "127.0.0.1:1",
+      "external": "",
+      "relay": null,
+      "ok": false,
+      "advertise": ""
+    },
+    {
+      "name": "bad relay",
+      "listen": "127.0.0.1:1",
+      "external": null,
+      "relay": "10.0.0.1",
+      "ok": false,
+      "advertise": ""
+    }
+  ],
+  "sequence": [
+    {
+      "name": "stun then punch",
+      "description": "arm, learn a mapping, punch, observe the sentinel",
+      "listen": "127.0.0.1:9735",
+      "external": null,
+      "relay": null,
+      "steps": [
+        {
+          "op": "arm",
+          "transport": "tcp",
+          "ok": false,
+          "advertise": "127.0.0.1:9735",
+          "armed": false,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "observe_stun",
+          "packet": "0101000c2112a4420102030405060708090a0b0c0020000800010715ea12d547",
+          "txid": "0102030405060708090a0b0c",
+          "ok": false,
+          "advertise": "127.0.0.1:9735",
+          "armed": false,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "arm",
+          "transport": "UDP",
+          "ok": false,
+          "advertise": "127.0.0.1:9735",
+          "armed": false,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "arm",
+          "transport": "udp",
+          "ok": true,
+          "advertise": "127.0.0.1:9735",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "observe_stun",
+          "packet": "0101000c2112a4420102030405060708090a0b0c0020000800010715ea12d547",
+          "txid": "0102030405060708090a0b0c",
+          "ok": true,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "punch",
+          "peer": "198.51.100.10:4000",
+          "ok": true,
+          "datagram": "00",
+          "addr": "198.51.100.10:4000",
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "punch",
+          "peer": "127.0.0.1:9735",
+          "ok": false,
+          "datagram": "",
+          "addr": "",
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "punch",
+          "peer": "203.0.113.5:9735",
+          "ok": false,
+          "datagram": "",
+          "addr": "",
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "observe_punch",
+          "datagram": "00",
+          "from": "198.51.100.10:4000",
+          "ok": true,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": [
+            "198.51.100.10:4000"
+          ]
+        },
+        {
+          "op": "observe_punch",
+          "datagram": "00",
+          "from": "198.51.100.10:4000",
+          "ok": true,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": [
+            "198.51.100.10:4000"
+          ]
+        },
+        {
+          "op": "observe_punch",
+          "datagram": "01",
+          "from": "198.51.100.20:4001",
+          "ok": false,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": [
+            "198.51.100.10:4000"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "external skips stun",
+      "description": "a configured external address is not replaced",
+      "listen": "10.0.0.2:9735",
+      "external": "203.0.113.5:9735",
+      "relay": null,
+      "steps": [
+        {
+          "op": "arm",
+          "transport": "udp",
+          "ok": true,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "observe_stun",
+          "packet": "0101000c2112a4420102030405060708090a0b0c0020000800010715ea12d547",
+          "txid": "0102030405060708090a0b0c",
+          "ok": false,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "punch",
+          "peer": "198.51.100.10:4000",
+          "ok": true,
+          "datagram": "00",
+          "addr": "198.51.100.10:4000",
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        }
+      ]
+    },
+    {
+      "name": "relay introduction",
+      "description": "request, duplicate, forward, and response",
+      "listen": "127.0.0.1:3478",
+      "external": null,
+      "relay": "10.0.0.9:3478",
+      "steps": [
+        {
+          "op": "relay_request",
+          "target": "198.51.100.10:4000",
+          "ok": false,
+          "message": null,
+          "advertise": "127.0.0.1:3478",
+          "armed": false,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "arm",
+          "transport": "udp",
+          "ok": true,
+          "advertise": "127.0.0.1:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "handle",
+          "message": "nope",
+          "ok": false,
+          "action": "",
+          "addr": "",
+          "reply": null,
+          "advertise": "127.0.0.1:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "relay_request",
+          "target": "198.51.100.10:4000",
+          "ok": true,
+          "message": {
+            "from": "127.0.0.1:3478",
+            "nat": "request",
+            "relay": "10.0.0.9:3478",
+            "target": "198.51.100.10:4000"
+          },
+          "advertise": "127.0.0.1:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "relay_request",
+          "target": "127.0.0.1:3478",
+          "ok": false,
+          "message": null,
+          "advertise": "127.0.0.1:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "handle",
+          "message": {
+            "extra": 1,
+            "from": "198.51.100.10:4000",
+            "nat": "request",
+            "relay": "127.0.0.1:3478",
+            "target": "203.0.113.5:9735"
+          },
+          "ok": true,
+          "action": "forward",
+          "addr": "203.0.113.5:9735",
+          "reply": {
+            "from": "198.51.100.10:4000",
+            "nat": "request",
+            "relay": "127.0.0.1:3478",
+            "target": "203.0.113.5:9735"
+          },
+          "advertise": "127.0.0.1:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "handle",
+          "message": {
+            "extra": 1,
+            "from": "198.51.100.10:4000",
+            "nat": "request",
+            "relay": "127.0.0.1:3478",
+            "target": "203.0.113.5:9735"
+          },
+          "ok": false,
+          "action": "",
+          "addr": "",
+          "reply": null,
+          "advertise": "127.0.0.1:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "handle",
+          "message": {
+            "from": "198.51.100.10:4000",
+            "nat": "response",
+            "target": "203.0.113.5:9735"
+          },
+          "ok": false,
+          "action": "",
+          "addr": "",
+          "reply": null,
+          "advertise": "127.0.0.1:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        }
+      ]
+    },
+    {
+      "name": "forward and accept",
+      "description": "relay forwards a request; the mapped node accepts the response",
+      "listen": "10.0.0.8:3478",
+      "external": null,
+      "relay": null,
+      "steps": [
+        {
+          "op": "arm",
+          "transport": "udp",
+          "ok": true,
+          "advertise": "10.0.0.8:3478",
+          "armed": true,
+          "external": "",
+          "opened": []
+        },
+        {
+          "op": "observe_stun",
+          "packet": "0101000c2112a4420102030405060708090a0b0c0020000800010715ea12d547",
+          "txid": "0102030405060708090a0b0c",
+          "ok": true,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "handle",
+          "message": {
+            "from": "10.0.0.2:9735",
+            "nat": "request",
+            "relay": "203.0.113.5:9735",
+            "target": "198.51.100.10:4000"
+          },
+          "ok": true,
+          "action": "forward",
+          "addr": "198.51.100.10:4000",
+          "reply": {
+            "from": "10.0.0.2:9735",
+            "nat": "request",
+            "relay": "203.0.113.5:9735",
+            "target": "198.51.100.10:4000"
+          },
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": []
+        },
+        {
+          "op": "handle",
+          "message": {
+            "from": "198.51.100.10:4000",
+            "nat": "response",
+            "target": "203.0.113.5:9735"
+          },
+          "ok": true,
+          "action": "punch",
+          "addr": "198.51.100.10:4000",
+          "reply": null,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": [
+            "198.51.100.10:4000"
+          ]
+        },
+        {
+          "op": "relay_request",
+          "target": "198.51.100.10:4000",
+          "ok": false,
+          "message": null,
+          "advertise": "203.0.113.5:9735",
+          "armed": true,
+          "external": "203.0.113.5:9735",
+          "opened": [
+            "198.51.100.10:4000"
+          ]
+        }
+      ]
+    }
+  ]
+}

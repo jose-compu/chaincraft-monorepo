@@ -4,6 +4,7 @@
 
 pub mod bittorrent;
 pub mod canonical;
+pub mod channel;
 pub mod cli;
 pub mod consensus_pbft;
 pub mod consensus_pos;
@@ -23,6 +24,7 @@ pub mod ledger_utxo;
 pub mod memento;
 pub mod mempool;
 pub mod mesh;
+pub mod nat;
 pub mod object;
 pub mod pipeline;
 pub mod storage;

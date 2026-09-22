@@ -36,6 +36,8 @@ chaincraft_core/
   storage.py     Pedagogical message store
   cli.py         JSON-lines node command surface
   bittorrent.py  Pedagogical BitTorrent swarm + client
+  nat.py         STUN, hole punch, and app.nat relay
+  channel.py     Address URIs and in-process loop channel
   mesh.py        TCP mesh (listen, hello, dedup, relay)
   node.py        Wire CLI: connect / send / ids / quit
   bt_node.py     BitTorrent client on Mesh (`bt.*` commands)

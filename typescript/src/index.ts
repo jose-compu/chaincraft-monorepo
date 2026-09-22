@@ -81,6 +81,15 @@ export { UtxoLedger, DEFAULT_ALLOCATIONS as UTXO_DEFAULT_ALLOCATIONS, transactio
 export { Mempool, transactionId as mempoolTransactionId } from './mempool.ts';
 export * as fees from './fees.ts';
 export { MessageStore, isValidId as isValidStoreId } from './storage.ts';
+export {
+  type InboxItem,
+  type ParsedAddress,
+  LoopBus,
+  LoopChannel,
+  MAX_LOOP_BYTES,
+  isConnectAllowed as isChannelConnectAllowed,
+  parseAddress,
+} from './channel.ts';
 export { NodeSession } from './cli.ts';
 export {
   BitTorrentClient,
@@ -93,6 +102,20 @@ export {
   splitPayload,
 } from './bittorrent.ts';
 export { Mesh } from './mesh.ts';
+export {
+  type CodecResult as NatCodecResult,
+  type HandleOut as NatHandle,
+  type NatMessage,
+  type ParsedBinding,
+  type Punch as NatPunch,
+  type RelayOut as NatRelay,
+  APP_NAT,
+  NatTraversal,
+  PUNCH_HEX,
+  bindingRequest,
+  bindingSuccess,
+  parseBindingResponse,
+} from './nat.ts';
 export * as ecdsa from './ecdsa.ts';
 export * as vdf from './vdf.ts';
 export * as vrf from './vrf.ts';

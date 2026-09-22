@@ -11,6 +11,7 @@ use chaincraft_core::bittorrent::Swarm;
 use chaincraft_core::canonical::{
     canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue,
 };
+use chaincraft_core::channel::{self, LoopBus, LoopChannel};
 use chaincraft_core::cli::NodeSession;
 use chaincraft_core::consensus_pbft::Pbft;
 use chaincraft_core::consensus_pos::ProofOfStake;
@@ -26,6 +27,7 @@ use chaincraft_core::ledger_balance::BalanceLedger;
 use chaincraft_core::ledger_utxo::UtxoLedger;
 use chaincraft_core::memento::StateMemento;
 use chaincraft_core::mempool::Mempool;
+use chaincraft_core::nat::{self, NatTraversal};
 use chaincraft_core::object::{
     frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
 };
@@ -1445,6 +1447,317 @@ fn bittorrent_swarm_replay() {
     }
 }
 
+fn nat_addr(value: &Value) -> Option<String> {
+    match value {
+        Value::Null => None,
+        Value::String(text) => Some(text.clone()),
+        other => panic!("address {other}"),
+    }
+}
+
+fn nat_port(value: &Value) -> Option<i64> {
+    value.as_i64()
+}
+
+fn nat_strings(value: &Value) -> Vec<String> {
+    value
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item.as_str().unwrap().to_owned())
+        .collect()
+}
+
+#[test]
+fn discovery_nat_request() {
+    let doc = load("discovery-nat.json");
+    for case in doc["request"].as_array().unwrap() {
+        let got = nat::binding_request(case["txid"].as_str().unwrap());
+        assert_eq!(got.ok, case["ok"].as_bool().unwrap(), "{}", case["name"]);
+        assert_eq!(
+            got.packet,
+            case["packet"].as_str().unwrap(),
+            "{}",
+            case["name"]
+        );
+    }
+}
+
+#[test]
+fn discovery_nat_success() {
+    let doc = load("discovery-nat.json");
+    for case in doc["success"].as_array().unwrap() {
+        let got = nat::binding_success(
+            case["txid"].as_str().unwrap(),
+            case["host"].as_str().unwrap(),
+            nat_port(&case["port"]),
+        );
+        assert_eq!(got.ok, case["ok"].as_bool().unwrap(), "{}", case["name"]);
+        assert_eq!(
+            got.packet,
+            case["packet"].as_str().unwrap(),
+            "{}",
+            case["name"]
+        );
+    }
+}
+
+#[test]
+fn discovery_nat_response() {
+    let doc = load("discovery-nat.json");
+    for case in doc["response"].as_array().unwrap() {
+        let got = nat::parse_binding_response(
+            case["packet"].as_str().unwrap(),
+            case["txid"].as_str().unwrap(),
+        );
+        assert_eq!(got.ok, case["ok"].as_bool().unwrap(), "{}", case["name"]);
+        assert_eq!(got.host, case["host"].as_str().unwrap(), "{}", case["name"]);
+        assert_eq!(
+            got.port as i64,
+            case["port"].as_i64().unwrap(),
+            "{}",
+            case["name"]
+        );
+    }
+}
+
+#[test]
+fn discovery_nat_construct() {
+    let doc = load("discovery-nat.json");
+    for case in doc["construct"].as_array().unwrap() {
+        let external = nat_addr(&case["external"]);
+        let relay = nat_addr(&case["relay"]);
+        let built = NatTraversal::new(
+            case["listen"].as_str().unwrap(),
+            external.as_deref(),
+            relay.as_deref(),
+        );
+        if case["ok"].as_bool().unwrap() {
+            let node = built.unwrap();
+            assert_eq!(node.advertise(), case["advertise"].as_str().unwrap());
+        } else {
+            assert!(built.is_err(), "{}", case["name"]);
+        }
+    }
+}
+
+#[test]
+fn discovery_nat_sequence() {
+    let doc = load("discovery-nat.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let external = nat_addr(&case["external"]);
+        let relay = nat_addr(&case["relay"]);
+        let mut node = NatTraversal::new(
+            case["listen"].as_str().unwrap(),
+            external.as_deref(),
+            relay.as_deref(),
+        )
+        .unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let op = step["op"].as_str().unwrap();
+            let where_ = format!("{index} {op}");
+            match op {
+                "arm" => assert_eq!(
+                    node.arm(step["transport"].as_str().unwrap()),
+                    step["ok"].as_bool().unwrap(),
+                    "{where_}"
+                ),
+                "observe_stun" => assert_eq!(
+                    node.observe_stun(
+                        step["packet"].as_str().unwrap(),
+                        step["txid"].as_str().unwrap(),
+                    ),
+                    step["ok"].as_bool().unwrap(),
+                    "{where_}"
+                ),
+                "punch" => {
+                    let got = node.punch(step["peer"].as_str().unwrap());
+                    assert_eq!(got.ok, step["ok"].as_bool().unwrap(), "{where_}");
+                    assert_eq!(got.datagram, step["datagram"].as_str().unwrap(), "{where_}");
+                    assert_eq!(got.addr, step["addr"].as_str().unwrap(), "{where_}");
+                }
+                "observe_punch" => assert_eq!(
+                    node.observe_punch(
+                        step["datagram"].as_str().unwrap(),
+                        step["from"].as_str().unwrap(),
+                    ),
+                    step["ok"].as_bool().unwrap(),
+                    "{where_}"
+                ),
+                "relay_request" => {
+                    let got = node.relay_request(step["target"].as_str().unwrap());
+                    assert_eq!(got.ok, step["ok"].as_bool().unwrap(), "{where_}");
+                    match got.message {
+                        None => assert!(step["message"].is_null(), "{where_}"),
+                        Some(message) => assert_eq!(message, step["message"], "{where_}"),
+                    }
+                }
+                "handle" => {
+                    let got = node.handle(&step["message"]);
+                    assert_eq!(got.ok, step["ok"].as_bool().unwrap(), "{where_}");
+                    assert_eq!(got.action, step["action"].as_str().unwrap(), "{where_}");
+                    assert_eq!(got.addr, step["addr"].as_str().unwrap(), "{where_}");
+                    match got.reply {
+                        None => assert!(step["reply"].is_null(), "{where_}"),
+                        Some(reply) => assert_eq!(reply, step["reply"], "{where_}"),
+                    }
+                }
+                other => panic!("unknown op {other}"),
+            }
+            assert_eq!(
+                node.advertise(),
+                step["advertise"].as_str().unwrap(),
+                "{where_}"
+            );
+            assert_eq!(node.armed(), step["armed"].as_bool().unwrap(), "{where_}");
+            assert_eq!(
+                node.external_address(),
+                step["external"].as_str().unwrap(),
+                "{where_}"
+            );
+            assert_eq!(node.opened(), nat_strings(&step["opened"]), "{where_}");
+        }
+    }
+}
+
+#[test]
+fn wire_channel_parse() {
+    let doc = load("wire-channel.json");
+    for case in doc["parse"].as_array().unwrap() {
+        let parsed = channel::parse_address(case["input"].as_str().unwrap());
+        assert_eq!(parsed.ok, case["ok"].as_bool().unwrap(), "{}", case["name"]);
+        assert_eq!(
+            parsed.scheme,
+            case["scheme"].as_str().unwrap(),
+            "{}",
+            case["name"]
+        );
+        assert_eq!(
+            parsed.canonical,
+            case["canonical"].as_str().unwrap(),
+            "{}",
+            case["name"]
+        );
+        assert_eq!(
+            parsed.cap,
+            case["cap"].as_str().unwrap(),
+            "{}",
+            case["name"]
+        );
+    }
+}
+
+#[test]
+fn wire_channel_connect() {
+    let doc = load("wire-channel.json");
+    for case in doc["connect"].as_array().unwrap() {
+        assert_eq!(
+            channel::is_connect_allowed(case["input"].as_str().unwrap()),
+            case["allowed"].as_bool().unwrap(),
+            "{}",
+            case["name"]
+        );
+    }
+}
+
+#[test]
+fn wire_channel_sequence() {
+    let doc = load("wire-channel.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let bus = LoopBus::new();
+        let mut a = LoopChannel::new(&bus);
+        let mut b = LoopChannel::new(&bus);
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let who = step["who"].as_str().unwrap();
+            let actor = if who == "a" { &mut a } else { &mut b };
+            match step["op"].as_str().unwrap() {
+                "listen" => {
+                    assert_eq!(
+                        actor.listen(step["addr"].as_str().unwrap()),
+                        step["ok"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "dial" => {
+                    assert_eq!(
+                        actor.dial(step["addr"].as_str().unwrap()),
+                        step["ok"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "send" => {
+                    assert_eq!(
+                        actor.send(
+                            step["addr"].as_str().unwrap(),
+                            step["data"].as_str().unwrap()
+                        ),
+                        step["ok"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "recv" => {
+                    let got: Vec<(String, String)> = actor
+                        .recv()
+                        .into_iter()
+                        .map(|item| (item.from, item.data))
+                        .collect();
+                    let expected: Vec<(String, String)> = step["returned"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|item| {
+                            (
+                                item["from"].as_str().unwrap().to_owned(),
+                                item["data"].as_str().unwrap().to_owned(),
+                            )
+                        })
+                        .collect();
+                    assert_eq!(got, expected, "{where_} returned");
+                }
+                "close" => actor.close(),
+                other => panic!("unknown op {other}"),
+            }
+            assert_eq!(
+                a.listen_addr(),
+                step["a_listen"].as_str().unwrap(),
+                "{where_}"
+            );
+            assert_eq!(
+                b.listen_addr(),
+                step["b_listen"].as_str().unwrap(),
+                "{where_}"
+            );
+            let a_inbox: Vec<(String, String)> = a
+                .inbox()
+                .into_iter()
+                .map(|item| (item.from, item.data))
+                .collect();
+            let b_inbox: Vec<(String, String)> = b
+                .inbox()
+                .into_iter()
+                .map(|item| (item.from, item.data))
+                .collect();
+            let expect_inbox = |key: &str| -> Vec<(String, String)> {
+                step[key]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|item| {
+                        (
+                            item["from"].as_str().unwrap().to_owned(),
+                            item["data"].as_str().unwrap().to_owned(),
+                        )
+                    })
+                    .collect()
+            };
+            assert_eq!(a_inbox, expect_inbox("a_inbox"), "{where_} a_inbox");
+            assert_eq!(b_inbox, expect_inbox("b_inbox"), "{where_} b_inbox");
+        }
+    }
+}
+
 #[test]
 fn vector_files_declare_feature() {
     for name in [
@@ -1472,6 +1785,8 @@ fn vector_files_declare_feature() {
         "storage-persistent.json",
         "cli-node.json",
         "bittorrent-swarm.json",
+        "discovery-nat.json",
+        "wire-channel.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

@@ -4,6 +4,7 @@ Address book for `host:port` peers. Used by `ctl.peers.request` / `ctl.peers`
 (wire-v1 §5.2) and by `discovery.local`.
 
 This is not a transport. Connecting, dialing and NAT traversal are out of scope.
+NAT traversal is `discovery.nat`.
 The book decides which addresses are remembered, advertised and expired.
 
 ## Defaults

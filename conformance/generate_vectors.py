@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPO / "python"))
 # scaffolding, not shipped API. See SPEC/semantics-v1.md section 8.
 sys.path.insert(0, str(REPO / "python" / "tests"))
 
-from chaincraft_core import control, crypto, discovery, ecdsa, framing, vdf, vrf  # noqa: E402
+from chaincraft_core import channel, control, crypto, discovery, ecdsa, framing, vdf, vrf  # noqa: E402
 from chaincraft_core.consensus_pbft import PBFT  # noqa: E402
 from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
 from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
@@ -29,6 +29,13 @@ from chaincraft_core.fees import charge, estimate, next_base_fee, select  # noqa
 from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
 from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
 from chaincraft_core.bittorrent import Swarm, split_payload  # noqa: E402
+from chaincraft_core.envelope import ProtocolError  # noqa: E402
+from chaincraft_core.nat import (  # noqa: E402
+    NatTraversal,
+    binding_request,
+    binding_success,
+    parse_binding_response,
+)
 from chaincraft_core.cli import NodeSession  # noqa: E402
 from chaincraft_core.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
 from chaincraft_core.storage import MessageStore  # noqa: E402
@@ -1028,6 +1035,8 @@ def discovery_peer_vectors() -> Dict[str, Any]:
         ("underscore host", "node_a:9735"),
         ("trailing hyphen", "node-.local:9735"),
         ("space", "10.0.0.2: 9735"),
+        ("unicode hostname", "é.local:1"),
+        ("unicode ipv4 octet", "127.0.0.١:1"),
     ]
 
     listen = "10.0.0.1:9735"
@@ -2016,6 +2025,425 @@ def bittorrent_swarm_vectors() -> Dict[str, Any]:
     }
 
 
+def wire_channel_vectors() -> Dict[str, Any]:
+    peer = "0" * 64
+    parse_inputs = [
+        ("bare loopback", "127.0.0.1:9735"),
+        ("tcp uri", "tcp://127.0.0.1:9735"),
+        ("udp lan", "udp://10.0.0.2:1"),
+        ("hostname local", "node.local:9735"),
+        ("mailto", "mailto:alice@example.com"),
+        ("webrtc", f"webrtc:{peer}"),
+        ("forum", "forum:disc:t1"),
+        ("loop", "loop:alice"),
+        ("empty", ""),
+        ("uppercase scheme", "TCP://127.0.0.1:9735"),
+        ("tcp without slashes", "tcp:127.0.0.1:9735"),
+        ("path rejected", "tcp://127.0.0.1:9735/x"),
+        ("query rejected", "tcp://127.0.0.1:9735?x=1"),
+        ("bad ipv4", "256.0.0.1:9735"),
+        ("unicode hostname", "tcp://é.local:1"),
+        ("unicode ipv4 octet", "tcp://127.0.0.١:1"),
+        ("leading zero port", "127.0.0.1:09735"),
+        ("mailto missing at", "mailto:alice"),
+        ("webrtc short", "webrtc:abcd"),
+        ("forum extra colon", "forum:disc:t:1"),
+        ("loop hyphen edge", "loop:-alice"),
+        ("loop uppercase", "loop:Alice"),
+    ]
+    parse = []
+    for name, raw in parse_inputs:
+        parsed = channel.parse_address(raw)
+        parse.append({"name": name, "input": raw, **parsed})
+
+    connect_inputs = [
+        ("loopback", "127.0.0.1:1"),
+        ("tcp rfc1918", "tcp://10.0.0.1:9735"),
+        ("udp localhost", "udp://localhost:9735"),
+        ("public ipv4", "8.8.8.8:53"),
+        ("link local", "169.254.1.1:9735"),
+        ("loop name", "loop:alice"),
+        ("mailto", "mailto:a@b.com"),
+        ("invalid", "nope"),
+    ]
+    connect = []
+    for name, raw in connect_inputs:
+        connect.append(
+            {
+                "name": name,
+                "input": raw,
+                "allowed": channel.is_connect_allowed(raw),
+            }
+        )
+
+    def snapshot(a: channel.LoopChannel, b: channel.LoopChannel) -> Dict[str, Any]:
+        return {
+            "a_inbox": a.inbox(),
+            "a_listen": a.listen_addr,
+            "b_inbox": b.inbox(),
+            "b_listen": b.listen_addr,
+        }
+
+    def run(name: str, note: str, ops) -> Dict[str, Any]:
+        bus = channel.LoopBus()
+        peers = {"a": channel.LoopChannel(bus), "b": channel.LoopChannel(bus)}
+        steps = []
+        for op in ops:
+            who = op.get("who")
+            actor = peers[who] if who else None
+            kind = op["op"]
+            if kind == "listen":
+                ok = actor.listen(op["addr"])
+                step = {"op": kind, "who": who, "addr": op["addr"], "ok": ok}
+            elif kind == "dial":
+                ok = actor.dial(op["addr"])
+                step = {"op": kind, "who": who, "addr": op["addr"], "ok": ok}
+            elif kind == "send":
+                ok = actor.send(op["addr"], op["data"])
+                step = {
+                    "op": kind,
+                    "who": who,
+                    "addr": op["addr"],
+                    "data": op["data"],
+                    "ok": ok,
+                }
+            elif kind == "recv":
+                returned = actor.recv()
+                step = {"op": kind, "who": who, "returned": returned}
+            elif kind == "close":
+                actor.close()
+                step = {"op": kind, "who": who}
+            else:
+                raise ValueError(kind)
+            step.update(snapshot(peers["a"], peers["b"]))
+            steps.append(step)
+        return {"name": name, "note": note, "steps": steps}
+
+    payload = "ab"
+    oversize = "00" * (channel.MAX_LOOP_BYTES + 1)
+    sequence = [
+        run(
+            "two peers exchange",
+            "send does not require dial; recv drains FIFO",
+            [
+                {"op": "listen", "who": "a", "addr": "loop:alice"},
+                {"op": "listen", "who": "b", "addr": "loop:bob"},
+                {"op": "dial", "who": "a", "addr": "loop:bob"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": "cd"},
+                {"op": "recv", "who": "b"},
+                {"op": "recv", "who": "b"},
+            ],
+        ),
+        run(
+            "unbound and closed",
+            "send fails when dest is not listening",
+            [
+                {"op": "listen", "who": "a", "addr": "loop:alice"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "listen", "who": "b", "addr": "loop:bob"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "close", "who": "b"},
+                {"op": "send", "who": "a", "addr": "loop:bob", "data": payload},
+                {"op": "dial", "who": "a", "addr": "loop:bob"},
+            ],
+        ),
+        run(
+            "rejects",
+            "double listen, bad scheme, bad hex, oversize",
+            [
+                {"op": "listen", "who": "a", "addr": "loop:alice"},
+                {"op": "listen", "who": "a", "addr": "loop:carol"},
+                {"op": "listen", "who": "b", "addr": "loop:alice"},
+                {"op": "listen", "who": "b", "addr": "tcp://127.0.0.1:1"},
+                {"op": "send", "who": "a", "addr": "loop:alice", "data": "AB"},
+                {"op": "send", "who": "a", "addr": "loop:alice", "data": "a"},
+                {"op": "send", "who": "a", "addr": "loop:alice", "data": oversize},
+                {"op": "send", "who": "b", "addr": "loop:alice", "data": payload},
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "wire.channel",
+            "SPEC/features/wire-channel.md",
+            "Address URIs and an in-process loop channel.",
+        ),
+        "max_loop_bytes": channel.MAX_LOOP_BYTES,
+        "parse": parse,
+        "connect": connect,
+        "sequence": sequence,
+    }
+
+
+def discovery_nat_vectors() -> Dict[str, Any]:
+    txid = "0102030405060708090a0b0c"
+    mapped_host = "203.0.113.5"
+    mapped_port = 9735
+    success = binding_success(txid, mapped_host, mapped_port)
+    assert success["ok"]
+
+    def response_case(name: str, packet: str, ident: str = txid) -> Dict[str, Any]:
+        parsed = parse_binding_response(packet, ident)
+        return {
+            "name": name,
+            "packet": packet,
+            "txid": ident,
+            "ok": parsed["ok"],
+            "host": parsed["host"],
+            "port": parsed["port"],
+        }
+
+    raw = bytes.fromhex(success["packet"])
+    bad_magic = bytearray(raw)
+    bad_magic[4] ^= 0xFF
+    short = raw[:10].hex()
+    empty_attr = raw[:20]
+    empty_attr = empty_attr[:2] + struct_length(0) + empty_attr[4:]
+    unknown = prepend_attribute(raw, 0x8022, b"test")
+    bad_family = stun_value(txid, bytes([0x00, 0x02, 0x00, 0x01, 0, 0, 0, 0]))
+    port_zero = stun_value(txid, bytes([0x00, 0x01, 0x21, 0x12, 0, 0, 0, 0]))
+
+    requests = []
+    for name, ident in (
+        ("binding request", txid),
+        ("uppercase transaction id", txid.upper()),
+        ("short transaction id", "0102"),
+        ("empty transaction id", ""),
+    ):
+        produced = binding_request(ident)
+        requests.append(
+            {"name": name, "txid": ident, "ok": produced["ok"], "packet": produced["packet"]}
+        )
+
+    successes = []
+    for name, host, port in (
+        ("mapped", mapped_host, mapped_port),
+        ("leading zero", "203.0.113.05", mapped_port),
+        ("unicode octet", "203.0.113.١", mapped_port),
+        ("port zero", mapped_host, 0),
+        ("bool port", mapped_host, True),
+    ):
+        produced = binding_success(txid, host, port)
+        successes.append(
+            {
+                "name": name,
+                "txid": txid,
+                "host": host,
+                "port": port,
+                "ok": produced["ok"],
+                "packet": produced["packet"],
+            }
+        )
+
+    responses = [
+        response_case("xor-mapped address", success["packet"]),
+        response_case("unknown attribute ignored", unknown),
+        response_case("wrong transaction id", success["packet"], "ffffffffffffffffffffffff"),
+        response_case("bad magic", bad_magic.hex()),
+        response_case("truncated", short),
+        response_case("no attribute", empty_attr.hex()),
+        response_case("ipv6 family", bad_family),
+        response_case("port zero", port_zero),
+        response_case("uppercase packet", success["packet"].upper()),
+    ]
+
+    def play(
+        name: str, description: str, listen: str, ops: List[Dict[str, Any]], external: Any = None, relay: Any = None
+    ) -> Dict[str, Any]:
+        node = NatTraversal(listen, external=external, relay=relay)
+        steps = []
+        for op in ops:
+            result = _nat_step(node, op)
+            steps.append(
+                {
+                    **op,
+                    **result,
+                    "advertise": node.advertise(),
+                    "armed": node.armed(),
+                    "external": node.external_address(),
+                    "opened": node.opened(),
+                }
+            )
+        return {
+            "name": name,
+            "description": description,
+            "listen": listen,
+            "external": external,
+            "relay": relay,
+            "steps": steps,
+        }
+
+    packet = success["packet"]
+    request = {
+        "extra": 1,
+        "from": "198.51.100.10:4000",
+        "nat": "request",
+        "relay": "127.0.0.1:3478",
+        "target": "203.0.113.5:9735",
+    }
+    response = {
+        "from": "198.51.100.10:4000",
+        "nat": "response",
+        "target": "203.0.113.5:9735",
+    }
+    sequence = [
+        play(
+            "stun then punch",
+            "arm, learn a mapping, punch, observe the sentinel",
+            "127.0.0.1:9735",
+            [
+                {"op": "arm", "transport": "tcp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {"op": "arm", "transport": "UDP"},
+                {"op": "arm", "transport": "udp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {"op": "punch", "peer": "198.51.100.10:4000"},
+                {"op": "punch", "peer": "127.0.0.1:9735"},
+                {"op": "punch", "peer": "203.0.113.5:9735"},
+                {"op": "observe_punch", "datagram": "00", "from": "198.51.100.10:4000"},
+                {"op": "observe_punch", "datagram": "00", "from": "198.51.100.10:4000"},
+                {"op": "observe_punch", "datagram": "01", "from": "198.51.100.20:4001"},
+            ],
+        ),
+        play(
+            "external skips stun",
+            "a configured external address is not replaced",
+            "10.0.0.2:9735",
+            [
+                {"op": "arm", "transport": "udp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {"op": "punch", "peer": "198.51.100.10:4000"},
+            ],
+            external="203.0.113.5:9735",
+        ),
+        play(
+            "relay introduction",
+            "request, duplicate, forward, and response",
+            "127.0.0.1:3478",
+            [
+                {"op": "relay_request", "target": "198.51.100.10:4000"},
+                {"op": "arm", "transport": "udp"},
+                {"op": "handle", "message": "nope"},
+                {"op": "relay_request", "target": "198.51.100.10:4000"},
+                {"op": "relay_request", "target": "127.0.0.1:3478"},
+                {"op": "handle", "message": request},
+                {"op": "handle", "message": request},
+                {"op": "handle", "message": response},
+            ],
+            relay="10.0.0.9:3478",
+        ),
+        play(
+            "forward and accept",
+            "relay forwards a request; the mapped node accepts the response",
+            "10.0.0.8:3478",
+            [
+                {"op": "arm", "transport": "udp"},
+                {"op": "observe_stun", "packet": packet, "txid": txid},
+                {
+                    "op": "handle",
+                    "message": {
+                        "from": "10.0.0.2:9735",
+                        "nat": "request",
+                        "relay": "203.0.113.5:9735",
+                        "target": "198.51.100.10:4000",
+                    },
+                },
+                {"op": "handle", "message": response},
+                {"op": "relay_request", "target": "198.51.100.10:4000"},
+            ],
+        ),
+    ]
+
+    construct = []
+    for name, listen, external, relay in (
+        ("listen only", "127.0.0.1:9735", None, None),
+        ("with external and relay", "10.0.0.2:1", "203.0.113.5:9735", "10.0.0.9:3478"),
+        ("bad listen", "nope", None, None),
+        ("empty external", "127.0.0.1:1", "", None),
+        ("bad relay", "127.0.0.1:1", None, "10.0.0.1"),
+    ):
+        try:
+            node = NatTraversal(listen, external=external, relay=relay)
+        except ProtocolError:
+            construct.append(
+                {
+                    "name": name,
+                    "listen": listen,
+                    "external": external,
+                    "relay": relay,
+                    "ok": False,
+                    "advertise": "",
+                }
+            )
+        else:
+            construct.append(
+                {
+                    "name": name,
+                    "listen": listen,
+                    "external": external,
+                    "relay": relay,
+                    "ok": True,
+                    "advertise": node.advertise(),
+                }
+            )
+
+    return {
+        **header(
+            "discovery.nat",
+            "SPEC/features/discovery-nat.md",
+            "STUN binding, one-byte hole punch, and an app.nat relay.",
+        ),
+        "app_type": "app.nat",
+        "punch": "00",
+        "request": requests,
+        "success": successes,
+        "response": responses,
+        "construct": construct,
+        "sequence": sequence,
+    }
+
+
+def _nat_step(node: NatTraversal, op: Dict[str, Any]) -> Dict[str, Any]:
+    name = op["op"]
+    if name == "arm":
+        return {"ok": node.arm(op["transport"])}
+    if name == "observe_stun":
+        return {"ok": node.observe_stun(op["packet"], op["txid"])}
+    if name == "punch":
+        return node.punch(op["peer"])
+    if name == "observe_punch":
+        return {"ok": node.observe_punch(op["datagram"], op["from"])}
+    if name == "relay_request":
+        return node.relay_request(op["target"])
+    if name == "handle":
+        return node.handle(op["message"])
+    raise AssertionError(name)
+
+
+def struct_length(length: int) -> bytes:
+    import struct
+
+    return struct.pack(">H", length)
+
+
+def prepend_attribute(packet: bytes, atype: int, value: bytes) -> str:
+    import struct
+
+    attr = struct.pack(">HH", atype, len(value)) + value
+    length = struct.unpack(">H", packet[2:4])[0] + len(attr)
+    header = packet[:2] + struct.pack(">H", length) + packet[4:20]
+    return (header + attr + packet[20:]).hex()
+
+
+def stun_value(txid: str, value: bytes) -> str:
+    import struct
+
+    attr = struct.pack(">HH", 0x0020, len(value)) + value
+    header = struct.pack(">HHI", 0x0101, len(attr), 0x2112A442) + bytes.fromhex(txid)
+    return (header + attr).hex()
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -2051,6 +2479,10 @@ def main() -> int:
     write("cli-node.json", cli_node_vectors())
     print("\nLevel 2 — BitTorrent swarm")
     write("bittorrent-swarm.json", bittorrent_swarm_vectors())
+    print("\nLevel 2 — NAT traversal")
+    write("discovery-nat.json", discovery_nat_vectors())
+    print("\nLevel 2 — channel")
+    write("wire-channel.json", wire_channel_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

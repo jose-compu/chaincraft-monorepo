@@ -1,0 +1,506 @@
+{
+  "feature": "wire.channel",
+  "spec": "SPEC/features/wire-channel.md",
+  "description": "Address URIs and an in-process loop channel.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "max_loop_bytes": 64,
+  "parse": [
+    {
+      "name": "bare loopback",
+      "input": "127.0.0.1:9735",
+      "ok": true,
+      "scheme": "tcp",
+      "canonical": "tcp://127.0.0.1:9735",
+      "cap": "tcp"
+    },
+    {
+      "name": "tcp uri",
+      "input": "tcp://127.0.0.1:9735",
+      "ok": true,
+      "scheme": "tcp",
+      "canonical": "tcp://127.0.0.1:9735",
+      "cap": "tcp"
+    },
+    {
+      "name": "udp lan",
+      "input": "udp://10.0.0.2:1",
+      "ok": true,
+      "scheme": "udp",
+      "canonical": "udp://10.0.0.2:1",
+      "cap": "udp"
+    },
+    {
+      "name": "hostname local",
+      "input": "node.local:9735",
+      "ok": true,
+      "scheme": "tcp",
+      "canonical": "tcp://node.local:9735",
+      "cap": "tcp"
+    },
+    {
+      "name": "mailto",
+      "input": "mailto:alice@example.com",
+      "ok": true,
+      "scheme": "mailto",
+      "canonical": "mailto:alice@example.com",
+      "cap": "mailto"
+    },
+    {
+      "name": "webrtc",
+      "input": "webrtc:0000000000000000000000000000000000000000000000000000000000000000",
+      "ok": true,
+      "scheme": "webrtc",
+      "canonical": "webrtc:0000000000000000000000000000000000000000000000000000000000000000",
+      "cap": "webrtc"
+    },
+    {
+      "name": "forum",
+      "input": "forum:disc:t1",
+      "ok": true,
+      "scheme": "forum",
+      "canonical": "forum:disc:t1",
+      "cap": "forum"
+    },
+    {
+      "name": "loop",
+      "input": "loop:alice",
+      "ok": true,
+      "scheme": "loop",
+      "canonical": "loop:alice",
+      "cap": "loop"
+    },
+    {
+      "name": "empty",
+      "input": "",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "uppercase scheme",
+      "input": "TCP://127.0.0.1:9735",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "tcp without slashes",
+      "input": "tcp:127.0.0.1:9735",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "path rejected",
+      "input": "tcp://127.0.0.1:9735/x",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "query rejected",
+      "input": "tcp://127.0.0.1:9735?x=1",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "bad ipv4",
+      "input": "256.0.0.1:9735",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "unicode hostname",
+      "input": "tcp://é.local:1",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "unicode ipv4 octet",
+      "input": "tcp://127.0.0.١:1",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "leading zero port",
+      "input": "127.0.0.1:09735",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "mailto missing at",
+      "input": "mailto:alice",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "webrtc short",
+      "input": "webrtc:abcd",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "forum extra colon",
+      "input": "forum:disc:t:1",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "loop hyphen edge",
+      "input": "loop:-alice",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "loop uppercase",
+      "input": "loop:Alice",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    }
+  ],
+  "connect": [
+    {
+      "name": "loopback",
+      "input": "127.0.0.1:1",
+      "allowed": true
+    },
+    {
+      "name": "tcp rfc1918",
+      "input": "tcp://10.0.0.1:9735",
+      "allowed": true
+    },
+    {
+      "name": "udp localhost",
+      "input": "udp://localhost:9735",
+      "allowed": true
+    },
+    {
+      "name": "public ipv4",
+      "input": "8.8.8.8:53",
+      "allowed": false
+    },
+    {
+      "name": "link local",
+      "input": "169.254.1.1:9735",
+      "allowed": false
+    },
+    {
+      "name": "loop name",
+      "input": "loop:alice",
+      "allowed": true
+    },
+    {
+      "name": "mailto",
+      "input": "mailto:a@b.com",
+      "allowed": true
+    },
+    {
+      "name": "invalid",
+      "input": "nope",
+      "allowed": false
+    }
+  ],
+  "sequence": [
+    {
+      "name": "two peers exchange",
+      "note": "send does not require dial; recv drains FIFO",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "loop:alice",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "loop:bob",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": "loop:bob"
+        },
+        {
+          "op": "dial",
+          "who": "a",
+          "addr": "loop:bob",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": "loop:bob"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:bob",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "loop:alice"
+            }
+          ],
+          "b_listen": "loop:bob"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:bob",
+          "data": "cd",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "loop:alice"
+            },
+            {
+              "data": "cd",
+              "from": "loop:alice"
+            }
+          ],
+          "b_listen": "loop:bob"
+        },
+        {
+          "op": "recv",
+          "who": "b",
+          "returned": [
+            {
+              "data": "ab",
+              "from": "loop:alice"
+            },
+            {
+              "data": "cd",
+              "from": "loop:alice"
+            }
+          ],
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": "loop:bob"
+        },
+        {
+          "op": "recv",
+          "who": "b",
+          "returned": [],
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": "loop:bob"
+        }
+      ]
+    },
+    {
+      "name": "unbound and closed",
+      "note": "send fails when dest is not listening",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "loop:alice",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:bob",
+          "data": "ab",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "loop:bob",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": "loop:bob"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:bob",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "loop:alice"
+            }
+          ],
+          "b_listen": "loop:bob"
+        },
+        {
+          "op": "close",
+          "who": "b",
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:bob",
+          "data": "ab",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "dial",
+          "who": "a",
+          "addr": "loop:bob",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    },
+    {
+      "name": "rejects",
+      "note": "double listen, bad scheme, bad hex, oversize",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "loop:alice",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "loop:carol",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "loop:alice",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "tcp://127.0.0.1:1",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:alice",
+          "data": "AB",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:alice",
+          "data": "a",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "loop:alice",
+          "data": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "b",
+          "addr": "loop:alice",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [
+            {
+              "data": "ab",
+              "from": ""
+            }
+          ],
+          "a_listen": "loop:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    }
+  ]
+}
