@@ -2,7 +2,19 @@
 
 Interactive version: open [`index.html`](index.html) in this folder, or the published site.
 
-This walks through a gossiped message on Chaincraft 1.0.0. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands.
+This walks through a gossiped message on Chaincraft 1.0.0. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
+
+## Install
+
+Python 3.9+, a Rust toolchain, and Node 22.6+. From the clone root:
+
+```bash
+git clone https://github.com/jose-compu/chaincraft-monorepo.git
+cd chaincraft-monorepo
+python3 -m pip install -e "./python[dev]"
+cargo build --bin node --manifest-path rust/Cargo.toml
+npm install --prefix typescript
+```
 
 ## Commands
 
@@ -12,45 +24,207 @@ Each stdin line is one JSON object.
 |---|---|---|
 | `connect` | `addr` | Dial `host:port` and complete `ctl.hello` |
 | `send` | `type`, `data` | Broadcast an application envelope |
-| `ids` | — | List payload ids this process has sent |
-| `quit` | — | Close the node |
+| `ids` | — | List payload ids this process has recorded |
+| `quit` | — | Stop the process |
 
-The node prints events on stdout: `ready` (with `addr` and `impl`), `connected`, `sent` (with `id`), `ids`, `error`.
+Stdout events:
 
-## Steps
+| event | Fields |
+|---|---|
+| `ready` | `addr`, `impl` |
+| `hello` | `peer`, `addr` |
+| `connected` | `addr` |
+| `sent` | `id` |
+| `received` | `id`, `type` |
+| `ids` | `ids` |
+| `error` | `message` |
 
-1. Clone the monorepo and install one core:
+`received` may also include `data`. Rust's node prints `id` and `type`.
 
-   ```bash
-   git clone https://github.com/jose-compu/chaincraft-monorepo.git
-   cd chaincraft-monorepo/python
-   pip install -e ".[dev]"
-   ```
+## Run three nodes
 
-2. Start two nodes. The Rust binary is the same protocol.
+Stay at the clone root.
 
-   ```bash
-   # Terminal 1
-   python -m chaincraft_core.node
+```bash
+# Terminal 1
+python3 -m chaincraft_core.node
 
-   # Terminal 2
-   cd ../rust && cargo run --bin node
-   ```
+# Terminal 2
+cargo run --bin node --manifest-path rust/Cargo.toml
 
-3. Read `addr` from the first `ready` event. On terminal 2:
+# Terminal 3
+npm run node --prefix typescript
+```
 
-   ```json
-   {"cmd":"connect","addr":"127.0.0.1:PORT"}
-   ```
+Read `addr` from the first `ready` event. On terminal 2 and terminal 3:
 
-4. On terminal 1, send:
+```json
+{"cmd":"connect","addr":"127.0.0.1:PORT"}
+```
 
-   ```json
-   {"cmd":"send","type":"app.hello","data":{"message":"Hello, Chaincraft!"}}
-   ```
+On terminal 1:
 
-   The `sent.id` is SHA-256 of the canonical payload. The peer records the same digest.
+```json
+{"cmd":"send","type":"app.hello","data":{"message":"Hello, Chaincraft!"}}
+```
 
-5. Press Ctrl-C, or send `{"cmd":"quit"}`, to stop each node.
+`sent.id` is SHA-256 of the canonical payload. After `ctl.hello`, the other two nodes print `received` with that same id. `{"cmd":"ids"}` lists it on every node. `{"cmd":"quit"}` stops a node.
 
-A TypeScript node is `npm run node` from `typescript/`. The live 3×3 check is `python3 conformance/runner/run_interop.py` from the repository root.
+## The same program in each language
+
+These do not open a socket. Each one accepts the message, prints it, frames the envelope, and prints the same id.
+
+### Python
+
+Save as `hello.py` and run `python3 hello.py`.
+
+```python
+from chaincraft_core import Envelope, encode_frame
+from chaincraft_core.memento import StateMemento
+from chaincraft_core.object import SharedObject
+
+
+class HelloObject(SharedObject):
+    def is_valid(self, message) -> bool:
+        return isinstance(message, dict) and "message" in message
+
+    def add_message(self, message, frontier_state=None):
+        print("Received:", message["message"])
+        return StateMemento.normalize()
+
+    def emit_state_memento(self):
+        return StateMemento.normalize()
+
+
+data = {"message": "Hello, Chaincraft!"}
+obj = HelloObject()
+if not obj.is_valid(data):
+    raise SystemExit("rejected")
+obj.add_message(data)
+
+env = Envelope.build("app.hello", data)
+frame = encode_frame(env.to_bytes())
+print(env.id)
+print("frame_len", len(frame))
+```
+
+### Rust
+
+Save the manifest as `hello/Cargo.toml` and the program as `hello/src/main.rs`. Then `cargo run --manifest-path hello/Cargo.toml`.
+
+`Envelope::build` takes the timestamp as a third argument. `None` uses the clock. The digest does not. The object trait is `ApplicationObject`, and it requires `as_any`.
+
+```toml
+[package]
+name = "hello"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chaincraft-core = { path = "../rust" }
+```
+
+```rust
+use std::any::Any;
+
+use chaincraft_core::{
+    encode_frame, parse_json, ApplicationObject, Envelope, JsonValue, StateMemento,
+};
+
+struct HelloObject;
+
+impl ApplicationObject for HelloObject {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn is_valid(&self, message: &JsonValue) -> bool {
+        message
+            .as_object()
+            .and_then(|obj| obj.get("message"))
+            .and_then(|value| value.as_str())
+            .is_some()
+    }
+
+    fn add_message(
+        &mut self,
+        message: &JsonValue,
+        _frontier_state: Option<&StateMemento>,
+    ) -> Option<StateMemento> {
+        let text = message
+            .as_object()
+            .and_then(|obj| obj.get("message"))
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+        println!("Received: {text}");
+        Some(StateMemento::normalize("", &[]))
+    }
+
+    fn emit_state_memento(&self) -> StateMemento {
+        StateMemento::normalize("", &[])
+    }
+}
+
+fn main() {
+    let data = parse_json(r#"{"message":"Hello, Chaincraft!"}"#).unwrap();
+    let mut obj = HelloObject;
+    if !obj.is_valid(&data) {
+        panic!("rejected");
+    }
+    obj.add_message(&data, None);
+
+    let env = Envelope::build("app.hello", data, None).unwrap();
+    let frame = encode_frame(&env.to_bytes().unwrap()).unwrap();
+    println!("{}", env.id);
+    println!("frame_len {}", frame.len());
+}
+```
+
+### TypeScript
+
+Save as `typescript/hello.ts` and run `node hello.ts` from `typescript/`. The methods are `isValid`, `addMessage`, and `emitStateMemento`.
+
+```typescript
+import {
+  BaseSharedObject,
+  Envelope,
+  StateMemento,
+  encodeFrame,
+  type JsonValue,
+} from "./src/index.ts";
+
+class HelloObject extends BaseSharedObject {
+  isValid(message: JsonValue): boolean {
+    return (
+      message !== null &&
+      typeof message === "object" &&
+      !Array.isArray(message) &&
+      typeof message["message"] === "string"
+    );
+  }
+
+  addMessage(message: JsonValue): StateMemento {
+    const text = (message as { message: string }).message;
+    console.log("Received:", text);
+    return StateMemento.normalize();
+  }
+
+  emitStateMemento(): StateMemento {
+    return StateMemento.normalize();
+  }
+}
+
+const data = { message: "Hello, Chaincraft!" };
+const obj = new HelloObject();
+if (!obj.isValid(data)) {
+  throw new Error("rejected");
+}
+obj.addMessage(data);
+
+const env = Envelope.build("app.hello", data);
+const frame = encodeFrame(env.toBytes());
+console.log(env.id);
+console.log("frame_len", frame.length);
+```
+
+The live 3×3 check is `python3 conformance/runner/run_interop.py` from the repository root.

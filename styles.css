@@ -309,6 +309,13 @@ section .section-lead {
   color: var(--text);
 }
 
+.hello-step h4 {
+  font-family: "Press Start 2P", monospace;
+  font-size: var(--font-pixel-sm);
+  margin: 1.25rem 0 0.75rem;
+  color: var(--grass);
+}
+
 .hello-step p {
   margin: 0 0 1rem;
   color: var(--text-muted);

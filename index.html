@@ -206,7 +206,7 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
           <tr>
             <td>Rust</td>
             <td><code>chaincraft-core</code></td>
-            <td>Same wire, same fork choice, same errors classes.</td>
+            <td>Same wire, same fork choice, same error classes.</td>
           </tr>
           <tr>
             <td>TypeScript</td>
@@ -230,13 +230,12 @@ python3 conformance/runner/run_interop.py</code></pre>
       <div class="hello-steps">
         <article class="hello-step">
           <h3>Install from the monorepo</h3>
-          <p>Python 3.9+, a Rust toolchain, and Node 22.6+ for the TypeScript core.</p>
+          <p>Python 3.9+, a Rust toolchain, and Node 22.6+. Every command below starts from the clone root.</p>
           <pre class="code-block"><code class="language-bash">git clone https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
-
-cd python && pip install -e ".[dev]"
-cd ../rust && cargo build --bin node
-cd ../typescript && npm install</code></pre>
+python3 -m pip install -e "./python[dev]"
+cargo build --bin node --manifest-path rust/Cargo.toml
+npm install --prefix typescript</code></pre>
         </article>
 
         <article class="hello-step">
@@ -256,15 +255,28 @@ cd ../typescript && npm install</code></pre>
             Point the second node at the first.
           </p>
           <pre class="code-block"><code class="language-bash"># Terminal 1
-cd python && python -m chaincraft_core.node
+python3 -m chaincraft_core.node
 
-# Terminal 2 — after you see ready.addr from terminal 1
-cd rust && cargo run --bin node</code></pre>
+# Terminal 2
+cargo run --bin node --manifest-path rust/Cargo.toml
+
+# Terminal 3
+npm run node --prefix typescript</code></pre>
+          <p>
+            Read <code>addr</code> from terminal 1. On terminal 2 and terminal 3, send:
+          </p>
           <pre class="code-block"><code class="language-json">{"cmd":"connect","addr":"127.0.0.1:PORT"}</code></pre>
           <p class="note">
             Commands: <code>connect</code>, <code>send</code>, <code>ids</code>,
-            <code>quit</code>. Events come back on stdout:
-            <code>ready</code>, <code>connected</code>, <code>sent</code>.
+            <code>quit</code>. Stdout events:
+            <code>ready</code> (<code>addr</code>, <code>impl</code>),
+            <code>hello</code> (<code>peer</code>, <code>addr</code>),
+            <code>connected</code>,
+            <code>sent</code> (<code>id</code>),
+            <code>received</code> (<code>id</code>, <code>type</code>),
+            <code>ids</code>,
+            <code>error</code>.
+            <code>quit</code> stops the process.
           </p>
         </article>
 
@@ -283,12 +295,14 @@ cd rust && cargo run --bin node</code></pre>
         </article>
 
         <article class="hello-step">
-          <h3>Build an envelope in code</h3>
+          <h3>Build the same envelope in code</h3>
           <p>
-            The library path does not need a running node. Rust calls this
-            <code>Envelope::build</code>. TypeScript calls
-            <code>Envelope.build</code> and <code>encodeFrame</code>.
+            These three programs do not open a socket. Each one accepts the
+            message, prints it, and frames an envelope. They print the same
+            payload id.
           </p>
+          <h4>Python</h4>
+          <p>Save as <code>hello.py</code> and run <code>python3 hello.py</code>.</p>
           <pre class="code-block"><code class="language-python">from chaincraft_core import Envelope, encode_frame
 from chaincraft_core.memento import StateMemento
 from chaincraft_core.object import SharedObject
@@ -306,8 +320,131 @@ class HelloObject(SharedObject):
         return StateMemento.normalize()
 
 
-env = Envelope.build("app.hello", {"message": "Hello, Chaincraft!"})
-frame = encode_frame(env.to_bytes())</code></pre>
+data = {"message": "Hello, Chaincraft!"}
+obj = HelloObject()
+if not obj.is_valid(data):
+    raise SystemExit("rejected")
+obj.add_message(data)
+
+env = Envelope.build("app.hello", data)
+frame = encode_frame(env.to_bytes())
+print(env.id)
+print("frame_len", len(frame))</code></pre>
+          <h4>Rust</h4>
+          <p>
+            Save the manifest as <code>hello/Cargo.toml</code> and the program
+            as <code>hello/src/main.rs</code>, then
+            <code>cargo run --manifest-path hello/Cargo.toml</code>.
+            <code>Envelope::build</code> takes the timestamp as a third argument;
+            <code>None</code> uses the clock. The digest does not.
+          </p>
+          <pre class="code-block"><code class="language-ini">[package]
+name = "hello"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chaincraft-core = { path = "../rust" }</code></pre>
+          <pre class="code-block"><code class="language-rust">use std::any::Any;
+
+use chaincraft_core::{
+    encode_frame, parse_json, ApplicationObject, Envelope, JsonValue, StateMemento,
+};
+
+struct HelloObject;
+
+impl ApplicationObject for HelloObject {
+    fn as_any(&self) -> &amp;dyn Any {
+        self
+    }
+
+    fn is_valid(&self, message: &amp;JsonValue) -> bool {
+        message
+            .as_object()
+            .and_then(|obj| obj.get("message"))
+            .and_then(|value| value.as_str())
+            .is_some()
+    }
+
+    fn add_message(
+        &amp;mut self,
+        message: &amp;JsonValue,
+        _frontier_state: Option&lt;&amp;StateMemento&gt;,
+    ) -> Option&lt;StateMemento&gt; {
+        let text = message
+            .as_object()
+            .and_then(|obj| obj.get("message"))
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+        println!("Received: {text}");
+        Some(StateMemento::normalize("", &amp;[]))
+    }
+
+    fn emit_state_memento(&self) -> StateMemento {
+        StateMemento::normalize("", &amp;[])
+    }
+}
+
+fn main() {
+    let data = parse_json(r#"{"message":"Hello, Chaincraft!"}"#).unwrap();
+    let mut obj = HelloObject;
+    if !obj.is_valid(&amp;data) {
+        panic!("rejected");
+    }
+    obj.add_message(&amp;data, None);
+
+    let env = Envelope::build("app.hello", data, None).unwrap();
+    let frame = encode_frame(&amp;env.to_bytes().unwrap()).unwrap();
+    println!("{}", env.id);
+    println!("frame_len {}", frame.len());
+}</code></pre>
+          <h4>TypeScript</h4>
+          <p>
+            Save as <code>typescript/hello.ts</code> and run
+            <code>node hello.ts</code> from <code>typescript/</code>.
+            Method names are <code>isValid</code>, <code>addMessage</code>, and
+            <code>emitStateMemento</code>.
+          </p>
+          <pre class="code-block"><code class="language-typescript">import {
+  BaseSharedObject,
+  Envelope,
+  StateMemento,
+  encodeFrame,
+  type JsonValue,
+} from "./src/index.ts";
+
+class HelloObject extends BaseSharedObject {
+  isValid(message: JsonValue): boolean {
+    return (
+      message !== null &&
+      typeof message === "object" &&
+      !Array.isArray(message) &&
+      typeof message["message"] === "string"
+    );
+  }
+
+  addMessage(message: JsonValue): StateMemento {
+    const text = (message as { message: string }).message;
+    console.log("Received:", text);
+    return StateMemento.normalize();
+  }
+
+  emitStateMemento(): StateMemento {
+    return StateMemento.normalize();
+  }
+}
+
+const data = { message: "Hello, Chaincraft!" };
+const obj = new HelloObject();
+if (!obj.isValid(data)) {
+  throw new Error("rejected");
+}
+obj.addMessage(data);
+
+const env = Envelope.build("app.hello", data);
+const frame = encodeFrame(env.toBytes());
+console.log(env.id);
+console.log("frame_len", frame.length);</code></pre>
         </article>
 
         <article class="hello-step">
@@ -391,6 +528,9 @@ frame = encode_frame(env.to_bytes())</code></pre>
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/python.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/bash.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/rust.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/ini.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/typescript.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       hljs.highlightAll();
