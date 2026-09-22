@@ -21,10 +21,12 @@ from __future__ import annotations
 
 import json
 import os
+import queue
 import select
 import socket
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -79,6 +81,33 @@ class Node:
         self.addr = ""
         self.impl = ""
         self.events: List[Dict[str, Any]] = []
+        # select() on a text pipe misses lines already sitting in the
+        # TextIOWrapper. A reader thread keeps readline and the buffer together.
+        self._lines: queue.Queue = queue.Queue()
+        self._stderr_chunks: List[str] = []
+        self._stderr_lock = threading.Lock()
+        threading.Thread(target=self._pump_stdout, daemon=True).start()
+        threading.Thread(target=self._pump_stderr, daemon=True).start()
+
+    def _pump_stdout(self) -> None:
+        assert self.proc.stdout is not None
+        try:
+            for line in self.proc.stdout:
+                self._lines.put(line)
+        finally:
+            self._lines.put(None)
+
+    def _pump_stderr(self) -> None:
+        assert self.proc.stderr is not None
+        for line in self.proc.stderr:
+            with self._stderr_lock:
+                self._stderr_chunks.append(line)
+                if len(self._stderr_chunks) > 40:
+                    self._stderr_chunks = self._stderr_chunks[-40:]
+
+    def stderr_tail(self) -> str:
+        with self._stderr_lock:
+            return "".join(self._stderr_chunks)[-800:]
 
     def send(self, payload: Dict[str, Any]) -> None:
         assert self.proc.stdin is not None
@@ -104,17 +133,12 @@ class Node:
         assert self.proc.stdout is not None
         if timeout <= 0:
             return None
-        # A short poll: the child writes complete JSON lines. Use a socket-like
-        # wait by setting a deadline via select.
-        ready, _, _ = select.select([self.proc.stdout], [], [], timeout)
-        if not ready:
+        try:
+            line = self._lines.get(timeout=timeout)
+        except queue.Empty:
             return None
-        line = self.proc.stdout.readline()
-        if not line:
-            err = ""
-            if self.proc.stderr is not None:
-                err = self.proc.stderr.read()
-            raise RuntimeError(f"{self.language} exited: {err[-400:]}")
+        if line is None:
+            raise RuntimeError(f"{self.language} exited: {self.stderr_tail()}")
         line = line.strip()
         if not line:
             return None

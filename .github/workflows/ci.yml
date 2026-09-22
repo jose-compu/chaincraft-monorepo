@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# paths-filter lists changed files through the pulls API. The default
+# token can read contents and still be refused that call.
+permissions:
+  contents: read
+  pull-requests: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -260,6 +266,7 @@ jobs:
     needs: [python, rust, typescript]
     if: always() && !cancelled()
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -301,6 +308,7 @@ jobs:
     needs: [python, rust, typescript]
     if: always() && !cancelled()
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -325,7 +333,7 @@ jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
-    needs: [parity, vectors, python, rust, typescript, interop, bittorrent]
+    needs: [changes, parity, vectors, python, rust, typescript, interop, bittorrent]
     if: always()
     steps:
       - name: Fail if any required job failed
