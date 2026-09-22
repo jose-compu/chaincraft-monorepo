@@ -84,9 +84,25 @@ export class ProofOfWork extends BaseSharedObject {
     return true;
   }
 
-  state(): { blocks: string[]; height: number; tip: string } {
+  state(): { blocks: string[]; canonical: string[]; height: number; tip: string } {
     const tip = this.tip();
-    return { blocks: [...this.order], height: tip.height, tip: tip.id };
+    return {
+      blocks: [...this.order],
+      canonical: this.canonical(tip.id),
+      height: tip.height,
+      tip: tip.id,
+    };
+  }
+
+  private canonical(tip: string): string[] {
+    const chain: string[] = [];
+    let cursor = tip;
+    while (cursor !== '') {
+      chain.push(cursor);
+      cursor = this.blocks.get(cursor)?.parent ?? '';
+    }
+    chain.reverse();
+    return chain;
   }
 
   private tip(): { id: string; height: number } {

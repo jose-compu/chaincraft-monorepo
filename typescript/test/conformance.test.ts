@@ -454,9 +454,17 @@ eachCase('consensus-pow.json', 'replay', (c, doc) => {
     if (accepted) obj.addMessage(message);
     assert.deepEqual(obj.state(), {
       blocks: step['blocks'],
+      canonical: step['canonical'],
       height: step['height'],
       tip: step['tip'],
     }, where);
+  }
+  if (c['reorg_count'] !== undefined) {
+    const steps = c['steps'] as Case[];
+    const reorgs = steps.filter((step: Case) => step['reorg']);
+    assert.equal(reorgs.length, c['reorg_count']);
+    const depths = reorgs.map((step: Case) => step['reorg_depth'] as number);
+    assert.ok(Math.min(...depths) >= c['min_reorg_depth']);
   }
 });
 

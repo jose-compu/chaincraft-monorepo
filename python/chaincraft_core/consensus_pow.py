@@ -88,7 +88,12 @@ class ProofOfWork(SharedObject):
 
     def state(self) -> Dict[str, Any]:
         tip, height = self._tip()
-        return {"blocks": list(self._order), "height": height, "tip": tip}
+        return {
+            "blocks": list(self._order),
+            "canonical": self._canonical(tip),
+            "height": height,
+            "tip": tip,
+        }
 
     def _tip(self) -> tuple:
         if not self._blocks:
@@ -101,6 +106,15 @@ class ProofOfWork(SharedObject):
                 best = digest
                 best_height = height
         return best, best_height
+
+    def _canonical(self, tip: str) -> List[str]:
+        chain: List[str] = []
+        cursor = tip
+        while cursor:
+            chain.append(cursor)
+            cursor = self._blocks[cursor]["parent"]
+        chain.reverse()
+        return chain
 
     def _parse(self, message: Any):
         if not isinstance(message, dict) or message.get("consensus") != "pow":

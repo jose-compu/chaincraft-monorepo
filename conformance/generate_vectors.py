@@ -1274,6 +1274,59 @@ def _replay_object(name: str, factory, messages: List[Any]) -> Dict[str, Any]:
     return {"name": name, "steps": steps}
 
 
+def _extend(parent: str, height: int, miner: str, prefix: str, count: int, difficulty: int) -> List[Dict[str, Any]]:
+    blocks = []
+    for index in range(count):
+        block = mine(parent, height + index, miner, f"{prefix}-{index}", difficulty)
+        blocks.append(block)
+        parent = block["id"]
+    return blocks
+
+
+def _replay_reorgs(difficulty: int) -> Dict[str, Any]:
+    """Two successive reorgs, each dropping more than one canonical block."""
+    genesis = mine("", 1, "alice", "genesis", difficulty)
+    main = _extend(genesis["id"], 2, "alice", "main", 3, difficulty)
+    side = _extend(genesis["id"], 2, "bob", "side", 4, difficulty)
+    resumed = _extend(main[-1]["id"], 5, "alice", "resume", 2, difficulty)
+    lost = mine(genesis["id"], 2, "carol", "lost", difficulty)
+    messages = [genesis, *main, *side, *resumed, lost]
+    obj = ProofOfWork(difficulty)
+    steps = []
+    previous: List[str] = []
+    prev_tip = ""
+    for message in messages:
+        accepted = obj.is_valid(message)
+        if accepted:
+            obj.add_message(message)
+        state = obj.state()
+        canon = state["canonical"]
+        shared = 0
+        while shared < len(previous) and shared < len(canon) and previous[shared] == canon[shared]:
+            shared += 1
+        reorg = bool(prev_tip) and prev_tip not in canon
+        steps.append(
+            {
+                "message_json": canonical_json(message),
+                "accepted": accepted,
+                "reorg": reorg,
+                "reorg_depth": (len(previous) - shared) if reorg else 0,
+                **state,
+            }
+        )
+        previous = list(canon)
+        prev_tip = state["tip"]
+    depths = [step["reorg_depth"] for step in steps if step["reorg"]]
+    if len(depths) != 2 or min(depths) < 3:
+        raise AssertionError(f"reorg scenario drifted: {depths}")
+    return {
+        "name": "two multi-block reorgs",
+        "min_reorg_depth": 3,
+        "reorg_count": 2,
+        "steps": steps,
+    }
+
+
 def consensus_pow_vectors() -> Dict[str, Any]:
     difficulty = 2
     genesis = mine("", 1, "alice", "one", difficulty)
@@ -1309,6 +1362,7 @@ def consensus_pow_vectors() -> Dict[str, Any]:
             lambda: ProofOfWork(difficulty),
             [{**wire, "nonce": weak_nonce}],
         ),
+        _replay_reorgs(difficulty),
     ]
     return {
         **header(

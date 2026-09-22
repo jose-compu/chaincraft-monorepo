@@ -989,10 +989,37 @@ fn consensus_pow_replay() {
             if accepted {
                 obj.add_message(&message, None);
             }
-            let (blocks, height, tip) = obj.state();
+            let (blocks, canonical, height, tip) = obj.state();
             assert_eq!(blocks, json_strings(&step["blocks"]), "{where_} blocks");
+            assert_eq!(
+                canonical,
+                json_strings(&step["canonical"]),
+                "{where_} canonical"
+            );
             assert_eq!(height, step["height"].as_i64().unwrap(), "{where_} height");
             assert_eq!(tip, step["tip"].as_str().unwrap(), "{where_} tip");
+        }
+        if case.get("reorg_count").is_some() {
+            let reorgs: Vec<&Value> = case["steps"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|step| step["reorg"].as_bool().unwrap())
+                .collect();
+            assert_eq!(
+                reorgs.len() as i64,
+                case["reorg_count"].as_i64().unwrap(),
+                "{name}"
+            );
+            let min_depth = reorgs
+                .iter()
+                .map(|step| step["reorg_depth"].as_i64().unwrap())
+                .min()
+                .unwrap();
+            assert!(
+                min_depth >= case["min_reorg_depth"].as_i64().unwrap(),
+                "{name}"
+            );
         }
     }
 }

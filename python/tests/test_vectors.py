@@ -487,9 +487,14 @@ def test_consensus_pow_replay(case):
             obj.add_message(message)
         assert obj.state() == {
             "blocks": step["blocks"],
+            "canonical": step["canonical"],
             "height": step["height"],
             "tip": step["tip"],
         }, where
+    if "reorg_count" in case:
+        reorgs = [step for step in case["steps"] if step["reorg"]]
+        assert len(reorgs) == case["reorg_count"]
+        assert min(step["reorg_depth"] for step in reorgs) >= case["min_reorg_depth"]
 
 
 @cases("consensus-pos.json", "schedule")

@@ -12,6 +12,7 @@ pub const DEFAULT_DIFFICULTY: u32 = 2;
 #[derive(Clone, Debug)]
 struct Stored {
     height: i64,
+    parent: String,
 }
 
 #[derive(Debug)]
@@ -33,9 +34,9 @@ impl ProofOfWork {
         })
     }
 
-    pub fn state(&self) -> (Vec<String>, i64, String) {
+    pub fn state(&self) -> (Vec<String>, Vec<String>, i64, String) {
         let (tip, height) = self.tip();
-        (self.order.clone(), height, tip)
+        (self.order.clone(), self.canonical(&tip), height, tip)
     }
 
     fn tip(&self) -> (String, i64) {
@@ -50,6 +51,18 @@ impl ProofOfWork {
             }
         }
         (best, best_height)
+    }
+
+    fn canonical(&self, tip: &str) -> Vec<String> {
+        let mut chain = Vec::new();
+        let mut cursor = tip.to_owned();
+        while !cursor.is_empty() {
+            let parent = self.blocks[&cursor].parent.clone();
+            chain.push(cursor);
+            cursor = parent;
+        }
+        chain.reverse();
+        chain
     }
 
     fn parse(&self, message: &JsonValue) -> Option<(String, Stored)> {
@@ -79,7 +92,13 @@ impl ProofOfWork {
         if !meets_work(&digest, self.difficulty) || self.blocks.contains_key(&digest) {
             return None;
         }
-        Some((digest, Stored { height }))
+        Some((
+            digest,
+            Stored {
+                height,
+                parent: parent.to_owned(),
+            },
+        ))
     }
 }
 
