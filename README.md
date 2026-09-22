@@ -4,9 +4,14 @@ Chaincraft in three languages — Python, Rust and TypeScript — held at **100%
 parity** by a specification, shared conformance vectors, and a CI gate that fails on
 drift.
 
-Chaincraft is a platform for blockchain development and prototyping. It gives you a
-gossip mesh, a shared-object model, and the consensus, ledger, and cryptographic
-primitives a new chain is built from.
+Chaincraft is a platform for decentralized protocols. The ordinary object is
+local: a chat room, a publish-subscribe topic, a BitTorrent swarm, or a
+content-addressed store. A node applies the messages it has. A gap after a
+disconnect is allowed.
+
+Consensus is a feature class in the same library, not the default. Proof of
+work, proof of stake, and PBFT, with a balance or UTXO ledger, are there when
+the protocol must agree on a head.
 
 ---
 

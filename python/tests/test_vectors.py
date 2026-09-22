@@ -772,7 +772,10 @@ def test_bittorrent_swarm_replay(case):
         accepted = obj.is_valid(step["message"])
         assert accepted is step["accepted"], where
         if accepted:
-            obj.add_message(step["message"])
+            assert obj.add_message(step["message"]) is None, where
+        assert obj.is_merkelized() is False, where
+        memo = obj.emit_state_memento()
+        assert memo.canonical_digest == "" and memo.frontier_digests == [], where
         assert obj.assembled(digest) == step["assembled"], where
         assert obj.state() == step["state"], where
 

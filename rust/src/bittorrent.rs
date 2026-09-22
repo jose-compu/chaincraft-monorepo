@@ -1,14 +1,12 @@
 //! Prototype BitTorrent swarm — SPEC/features/bittorrent-swarm.md.
 
-use std::any::Any;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::sync::Mutex;
 
 use sha2::{Digest, Sha256};
 
 use crate::canonical::{bytes_to_hex, hex_to_bytes, JsonValue};
-use crate::memento::StateMemento;
-use crate::object::{merkle_digest, ApplicationObject};
+use crate::object::{merkle_digest, ApplicationObject, Protocol};
 
 pub const WIRE_TYPE: &str = "app.bittorrent";
 pub const MAX_TORRENTS: usize = 8;
@@ -291,20 +289,12 @@ impl Swarm {
     }
 }
 
-impl ApplicationObject for Swarm {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn is_valid(&self, message: &JsonValue) -> bool {
+impl Protocol for Swarm {
+    fn accept(&self, message: &JsonValue) -> bool {
         self.parse(message).is_some()
     }
 
-    fn add_message(
-        &mut self,
-        message: &JsonValue,
-        _frontier_state: Option<&StateMemento>,
-    ) -> Option<StateMemento> {
+    fn receive(&mut self, message: &JsonValue) {
         if let Some(parsed) = self.parse(message) {
             match parsed {
                 Parsed::Metainfo {
@@ -342,29 +332,6 @@ impl ApplicationObject for Swarm {
                 Parsed::Request => {}
             }
         }
-        Some(self.emit_state_memento())
-    }
-
-    fn emit_state_memento(&self) -> StateMemento {
-        let digest = merkle_digest(&JsonValue::object([
-            ("torrents".into(), self.snapshot()),
-            ("v".into(), JsonValue::Number(1)),
-        ]))
-        .unwrap_or_default();
-        StateMemento::normalize(&digest, &[])
-    }
-
-    fn get_state_digests(&self) -> Vec<String> {
-        let digest = self.emit_state_memento().canonical_digest;
-        if digest.is_empty() {
-            Vec::new()
-        } else {
-            vec![digest]
-        }
-    }
-
-    fn is_merkelized(&self) -> bool {
-        true
     }
 }
 

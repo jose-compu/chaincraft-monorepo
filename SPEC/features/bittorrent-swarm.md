@@ -93,9 +93,10 @@ response is node behaviour, not object state.
 | `have` | Peer → sorted unique indices; peer keys sorted |
 | `complete` | Peers whose have set contains every index, sorted |
 
-`emit_state_memento()` returns
-`normalize(merkle_digest({"torrents":torrents,"v":1}), [])`.
-`is_merkelized()` is true.
+This is not a consensus object. `is_valid` rejects a bad message.
+`receive` applies one that passed. The snapshot is the default empty
+memento, `normalize("", [])`. `is_merkelized()` is false. Piece hashes
+are content checks, not a chain head.
 
 `conformance/vectors/bittorrent-swarm.json` pins a seed, a have, a
 rejected corrupt piece, and an idempotent metainfo.

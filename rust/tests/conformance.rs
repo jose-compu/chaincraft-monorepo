@@ -1437,8 +1437,12 @@ fn bittorrent_swarm_replay() {
             let accepted = obj.is_valid(&message);
             assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
             if accepted {
-                obj.add_message(&message, None);
+                assert!(obj.add_message(&message, None).is_none(), "{where_}");
             }
+            assert!(!obj.is_merkelized(), "{where_}");
+            let memo = obj.emit_state_memento();
+            assert!(memo.canonical_digest.is_empty(), "{where_}");
+            assert!(memo.frontier_digests.is_empty(), "{where_}");
             assert_eq!(
                 obj.assembled(digest),
                 step["assembled"].as_str().map(str::to_owned),

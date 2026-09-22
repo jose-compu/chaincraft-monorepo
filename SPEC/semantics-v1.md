@@ -43,9 +43,11 @@ revision 0, empty metadata. An empty digest never reports a reorg (§4.2).
 The pipeline is local. Peers are not required to hold the same messages. A
 disconnect may drop one. An object that is not a consensus protocol tolerates
 that: its state is the messages it has applied, and a later message may fill a
-gap. Shared state, when it is required, is the job of a consensus object such
-as `pbft`. That object overrides `add_message` and the snapshot. A chat room
-does not.
+gap. Publish-subscribe, a chat room, a BitTorrent swarm, and the
+content-addressed store are this kind of object. Shared state, when it is
+required, is a separate feature class: `consensus.pow`, `consensus.pos`,
+and `consensus.pbft`, plus a ledger when the protocol is a chain. Those
+objects override `add_message` and the snapshot. The others do not.
 
 Naming differs per language (`SharedObject` in Python, `ApplicationObject` in Rust).
 Rust prototypes implement `Protocol`, which supplies `ApplicationObject`.

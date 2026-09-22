@@ -672,7 +672,11 @@ eachCase('bittorrent-swarm.json', 'replay', (c) => {
     const where = `step ${index}`;
     const accepted = obj.isValid(step['message']);
     assert.equal(accepted, step['accepted'], where);
-    if (accepted) obj.addMessage(step['message']);
+    if (accepted) assert.equal(obj.addMessage(step['message']), undefined, where);
+    assert.equal(obj.isMerkelized(), false, where);
+    const memo = obj.emitStateMemento();
+    assert.equal(memo.canonicalDigest, '', where);
+    assert.deepEqual(memo.frontierDigests, [], where);
     assert.equal(obj.assembled(digest), step['assembled'], where);
     assert.deepEqual(obj.state(), step['state'], where);
   }
