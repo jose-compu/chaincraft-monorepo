@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# paths-filter lists changed files through the pulls API. The default
+# token can read contents and still be refused that call.
+permissions:
+  contents: read
+  pull-requests: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
