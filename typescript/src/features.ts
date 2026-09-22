@@ -49,6 +49,7 @@ export const FEATURES: readonly string[] = [
   'storage.persistent',
   'cli.node',
   'bittorrent.swarm',
+  'wire.channel',
 ];
 
 export interface Manifest {

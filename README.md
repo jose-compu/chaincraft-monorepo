@@ -72,11 +72,13 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 | 7 | Level 1 replay parity | done |
 | 8 | Level 2 feature backfill | done |
 | 9 | Mixed-language BitTorrent swarm | done |
-| 10 | NAT traversal (STUN, hole punch, relay) | done |
+| 10 | Address URIs and channel abstraction | done |
+| 11 | NAT traversal (STUN, hole punch, relay) | done |
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
-registry, a pedagogical BitTorrent swarm, and NAT traversal: 31 of 31
-features each (TypeScript 30 implemented plus the UDP exemption). The one exemption in
+registry, a pedagogical BitTorrent swarm, address URIs, and NAT traversal:
+32 of 32 features each (TypeScript 31 implemented plus the UDP exemption). The
+one exemption in
 the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.
 
@@ -171,11 +173,6 @@ rules, how to add a feature, how to port one, and the definition of done.
 
 Short version: specify first, implement once, write vectors, port to the other two within
 14 days, and update `SPEC/features.yaml` in the same pull request.
-
-## Related
-
-`nostraft`, a Nostr relay built on Chaincraft, lives in its own repository. It consumes
-`chaincraft-core` as a dependency rather than living here.
 
 ## License
 

@@ -4,6 +4,7 @@
 
 pub mod bittorrent;
 pub mod canonical;
+pub mod channel;
 pub mod cli;
 pub mod consensus_pbft;
 pub mod consensus_pos;

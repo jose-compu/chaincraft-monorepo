@@ -52,6 +52,7 @@ FEATURES = frozenset(
         "storage.persistent",
         "cli.node",
         "bittorrent.swarm",
+        "wire.channel",
     }
 )
 

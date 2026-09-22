@@ -37,6 +37,7 @@ pub const FEATURES: &[&str] = &[
     "storage.persistent",
     "cli.node",
     "bittorrent.swarm",
+    "wire.channel",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.
