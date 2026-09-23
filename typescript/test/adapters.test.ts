@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { AdapterBus, AdapterChannel, MAX_UDP_PAYLOAD, UdpLink } from '../src/index.ts';
+import {
+  AdapterBus,
+  AdapterChannel,
+  MAX_PIPE_BYTES,
+  MAX_UDP_PAYLOAD,
+  UdpLink,
+} from '../src/index.ts';
 
 test('localhost datagram round trip', async () => {
   const a = await UdpLink.bind();
@@ -23,4 +29,13 @@ test('udp bus rejects an oversize payload', () => {
   assert.equal(channel.listen('udp://127.0.0.1:1'), true);
   assert.equal(channel.send('udp://127.0.0.1:1', '00'.repeat(MAX_UDP_PAYLOAD)), true);
   assert.equal(channel.send('udp://127.0.0.1:1', '00'.repeat(MAX_UDP_PAYLOAD + 1)), false);
+});
+
+test('pipe accepts a payload the loop would reject', () => {
+  const channel = new AdapterChannel(AdapterBus.pipe());
+  assert.equal(channel.listen('pipe:alice'), true);
+  assert.equal(channel.send('pipe:alice', '00'.repeat(65)), true);
+  assert.equal(channel.send('pipe:alice', '00'.repeat(MAX_PIPE_BYTES)), true);
+  assert.equal(channel.send('pipe:alice', '00'.repeat(MAX_PIPE_BYTES + 1)), false);
+  assert.equal(channel.send('pipe:alice', 'loop-payload'), false);
 });

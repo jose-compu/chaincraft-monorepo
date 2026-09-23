@@ -65,6 +65,7 @@ src/
   index.ts       Public entry point
 test/
   conformance.test.ts   The shared vectors — the real contract
+  pipe.perf.test.ts     channel.pipe mesh throughput
   object.test.ts        Prototype defaults: receive, empty snapshot
   hazards.test.ts       JavaScript-specific traps
   conformanceObjects.ts Counter and Mirror fixtures (semantics-v1 §8)

@@ -332,6 +332,11 @@ and forum are in-memory buses on the addresses from Stage 10: no SMTP
 server, no ICE agent, no HTTP forum. `ctl.hello.listen` stays a single
 `host:port`. Issues #2, #30, #31, and #32.
 
+### Stage 17 — Local pipe ✅
+
+`channel.pipe`. An in-process datagram pipe with the UDP byte cap, so a
+mesh can be simulated on one computer without a kernel socket. Issue #40.
+
 ---
 
 ## 6. Versioning

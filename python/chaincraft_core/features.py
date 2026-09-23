@@ -58,6 +58,7 @@ FEATURES = frozenset(
         "channel.mailto",
         "channel.webrtc",
         "channel.forum",
+        "channel.pipe",
         "app.pubsub",
     }
 )

@@ -673,6 +673,7 @@ eachCase('channel-adapters.json', 'sequence', (c) => {
     mailto: () => AdapterBus.mail(),
     webrtc: () => AdapterBus.webrtc(),
     forum: () => AdapterBus.forum(),
+    pipe: () => AdapterBus.pipe(),
   };
   const bus = factories[c['scheme'] as keyof typeof factories]();
   const peers = { a: new AdapterChannel(bus), b: new AdapterChannel(bus) };

@@ -2,9 +2,9 @@
 
 **Release:** 1.0.0
 
-Address URIs and an in-process loop channel. UDP, email, WebRTC, and
-forum delivery are `SPEC/features/channel-adapters.md`. TCP remains the
-mesh. `ctl.hello.listen` stays one `host:port`.
+Address URIs and an in-process loop channel. UDP, email, WebRTC, forum,
+and the in-process pipe are `SPEC/features/channel-adapters.md`. TCP
+remains the mesh. `ctl.hello.listen` stays one `host:port`.
 
 Envelope bytes, payload digests and Level 1 objects MUST NOT depend on
 the channel. `ctl.hello.listen` remains a single `host:port` string
@@ -25,6 +25,7 @@ is unchanged.
 | `webrtc` | `webrtc:<64 lowercase hex>` | `webrtc` |
 | `forum` | `forum:<profile>:<thread>` | `forum` |
 | `loop` | `loop:<name>` | `loop` |
+| `pipe` | `pipe:<name>` | `pipe` |
 
 Schemes are lowercase. `TCP://…` is rejected.
 
@@ -36,8 +37,8 @@ are rejected).
 `local` is 1–64 characters of `A-Za-z0-9._+-`. `domain` is a
 `discovery.peer` host (IPv4 or hostname). Exactly one `@`.
 
-`profile` and `loop` `name` are 1–32 characters of `a-z0-9-`, not
-starting or ending with a hyphen. `thread` is 1–64 characters of
+`profile`, `loop` `name`, and `pipe` `name` are 1–32 characters of
+`a-z0-9-`, not starting or ending with a hyphen. `thread` is 1–64 characters of
 `A-Za-z0-9._-`. `forum` rest contains exactly one `:`.
 
 ## Parse
@@ -49,8 +50,8 @@ starting or ending with a hyphen. `thread` is 1–64 characters of
    `tcp` or `udp`. The rest MUST be a valid `discovery.peer` address and
    MUST NOT contain `@`, `/`, `?` or `#`. `canonical` is
    `scheme://` + rest.
-3. Else if `raw` starts with `mailto:`, `webrtc:`, `forum:` or `loop:`,
-   parse the rest as that scheme. `canonical` is `scheme:` + the
+3. Else if `raw` starts with `mailto:`, `webrtc:`, `forum:`, `loop:`, or
+   `pipe:`, parse the rest as that scheme. `canonical` is `scheme:` + the
    accepted rest (no case folding).
 4. Else if `raw` is a valid `discovery.peer` address, succeed as
    `scheme=tcp`, `canonical=tcp://` + raw, `cap=tcp`.

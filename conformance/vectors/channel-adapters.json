@@ -1,7 +1,7 @@
 {
   "feature": "channel.udp",
   "spec": "SPEC/features/channel-adapters.md",
-  "description": "UDP, mailto, webrtc, and forum adapters. Hello listen is unchanged.",
+  "description": "UDP, mailto, webrtc, forum, and pipe adapters. Hello listen is unchanged.",
   "generator": "conformance/generate_vectors.py",
   "wire_version": 1,
   "sequence": [
@@ -340,6 +340,91 @@
           "ok": false,
           "a_inbox": [],
           "a_listen": "forum:disc:t1",
+          "b_inbox": [],
+          "b_listen": ""
+        }
+      ]
+    },
+    {
+      "name": "pipe exchange",
+      "scheme": "pipe",
+      "steps": [
+        {
+          "op": "listen",
+          "who": "a",
+          "addr": "pipe:alice",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "pipe:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "listen",
+          "who": "b",
+          "addr": "pipe:bob",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "pipe:alice",
+          "b_inbox": [],
+          "b_listen": "pipe:bob"
+        },
+        {
+          "op": "dial",
+          "who": "a",
+          "addr": "pipe:bob",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "pipe:alice",
+          "b_inbox": [],
+          "b_listen": "pipe:bob"
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "pipe:bob",
+          "data": "ab",
+          "ok": true,
+          "a_inbox": [],
+          "a_listen": "pipe:alice",
+          "b_inbox": [
+            {
+              "data": "ab",
+              "from": "pipe:alice"
+            }
+          ],
+          "b_listen": "pipe:bob"
+        },
+        {
+          "op": "recv",
+          "who": "b",
+          "returned": [
+            {
+              "data": "ab",
+              "from": "pipe:alice"
+            }
+          ],
+          "a_inbox": [],
+          "a_listen": "pipe:alice",
+          "b_inbox": [],
+          "b_listen": "pipe:bob"
+        },
+        {
+          "op": "close",
+          "who": "b",
+          "a_inbox": [],
+          "a_listen": "pipe:alice",
+          "b_inbox": [],
+          "b_listen": ""
+        },
+        {
+          "op": "send",
+          "who": "a",
+          "addr": "pipe:bob",
+          "data": "ab",
+          "ok": false,
+          "a_inbox": [],
+          "a_listen": "pipe:alice",
           "b_inbox": [],
           "b_listen": ""
         }

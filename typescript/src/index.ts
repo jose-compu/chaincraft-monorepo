@@ -97,6 +97,7 @@ export {
   UdpLink,
   MAX_FORUM_BYTES,
   MAX_MAIL_BYTES,
+  MAX_PIPE_BYTES,
   MAX_UDP_PAYLOAD,
   MAX_WEBRTC_BYTES,
 } from './adapters.ts';
