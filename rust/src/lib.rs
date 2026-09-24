@@ -30,6 +30,7 @@ pub mod object;
 pub mod pipeline;
 pub mod pubsub;
 pub mod storage;
+pub mod stream;
 pub mod vdf;
 pub mod vrf;
 

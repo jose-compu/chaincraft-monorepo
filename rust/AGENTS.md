@@ -46,6 +46,7 @@ src/
   nat.rs         STUN, hole punch, and app.nat relay
   channel.rs     Address URIs and in-process loop channel
   pubsub.rs      Topic publish-subscribe (chat rooms)
+  stream.rs      Append-only event log (producer lanes, range read)
   mesh.rs        TCP mesh (listen, hello, dedup, relay)
   dedup.rs       Seen-digest set and relay gate (§7)
   memento.rs     StateMemento (semantics-v1 §4)
@@ -58,6 +59,7 @@ src/
   bin/bt_node.rs   BitTorrent client on Mesh (`bt.*` commands)
 tests/
   conformance.rs Shared vectors from conformance/vectors/
+  stream_perf.rs app.stream apply and read throughput
 ```
 
 ## Commands

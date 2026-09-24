@@ -6,6 +6,9 @@ Topic publish-subscribe. A chat room is one topic. There is no leader, no
 round, and no fork choice. Nodes that have accepted the same messages hold
 the same membership and the same log.
 
+An append-only event log, with producer sequences, a range read, and
+consumer-group cursors, is `app.stream`. This object does not provide that.
+
 The object implements the Level 1 contract (`SPEC/semantics-v1.md` §2) and
 is applied through the ordinary pipeline. A chat dapp gossips each
 operation as an envelope whose `type` is `app.pubsub` and whose `data` is

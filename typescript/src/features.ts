@@ -56,6 +56,7 @@ export const FEATURES: readonly string[] = [
   'channel.webrtc',
   'channel.forum',
   'app.pubsub',
+  'app.stream',
 ];
 
 export interface Manifest {

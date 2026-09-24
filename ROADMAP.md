@@ -332,6 +332,12 @@ and forum are in-memory buses on the addresses from Stage 10: no SMTP
 server, no ICE agent, no HTTP forum. `ctl.hello.listen` stays a single
 `host:port`. Issues #2, #30, #31, and #32.
 
+### Stage 16 — Event stream ✅
+
+`app.stream`. A leaderless append-only log: batch append, partitions,
+replica brokers, retention, and a local `read`. `app.pubsub` remains the
+chat room. Issues #38 and #39.
+
 ---
 
 ## 6. Versioning

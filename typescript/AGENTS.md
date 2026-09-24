@@ -52,6 +52,7 @@ src/
   nat.ts         STUN, hole punch, and app.nat relay
   channel.ts     Address URIs and in-process loop channel
   pubsub.ts      Topic publish-subscribe (chat rooms)
+  stream.ts      Append-only event log (producer lanes, range read)
   mesh.ts        TCP mesh (listen, hello, dedup, relay)
   node.ts        Wire CLI: connect / send / ids / quit
   btNode.ts      BitTorrent client on Mesh (`bt.*` commands)
@@ -65,6 +66,7 @@ src/
   index.ts       Public entry point
 test/
   conformance.test.ts   The shared vectors — the real contract
+  stream.perf.test.ts   app.stream apply and read throughput
   object.test.ts        Prototype defaults: receive, empty snapshot
   hazards.test.ts       JavaScript-specific traps
   conformanceObjects.ts Counter and Mirror fixtures (semantics-v1 §8)

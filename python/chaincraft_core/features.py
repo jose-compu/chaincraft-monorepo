@@ -59,6 +59,7 @@ FEATURES = frozenset(
         "channel.webrtc",
         "channel.forum",
         "app.pubsub",
+        "app.stream",
     }
 )
 
