@@ -338,6 +338,11 @@ server, no ICE agent, no HTTP forum. `ctl.hello.listen` stays a single
 replica brokers, retention, and a local `read`. `app.pubsub` remains the
 chat room. Issues #38 and #39.
 
+### Stage 17 — Local pipe ✅
+
+`channel.pipe`. An in-process datagram pipe with the UDP byte cap, so a
+mesh can be simulated on one computer without a kernel socket. Issue #40.
+
 ---
 
 ## 6. Versioning

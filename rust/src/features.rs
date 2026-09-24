@@ -43,6 +43,7 @@ pub const FEATURES: &[&str] = &[
     "channel.mailto",
     "channel.webrtc",
     "channel.forum",
+    "channel.pipe",
     "app.pubsub",
     "app.stream",
 ];

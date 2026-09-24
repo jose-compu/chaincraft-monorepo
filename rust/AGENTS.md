@@ -60,6 +60,7 @@ src/
 tests/
   conformance.rs Shared vectors from conformance/vectors/
   stream_perf.rs app.stream apply and read throughput
+  pipe_perf.rs   channel.pipe mesh throughput
 ```
 
 ## Commands

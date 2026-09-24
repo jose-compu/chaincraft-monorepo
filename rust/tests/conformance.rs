@@ -1777,6 +1777,7 @@ fn channel_adapters_sequence() {
             "mailto" => AdapterBus::mail(),
             "webrtc" => AdapterBus::webrtc(),
             "forum" => AdapterBus::forum(),
+            "pipe" => AdapterBus::pipe(),
             other => panic!("unknown scheme {other}"),
         };
         let mut a = AdapterChannel::new(&bus);

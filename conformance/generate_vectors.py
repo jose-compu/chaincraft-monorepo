@@ -2058,6 +2058,7 @@ def wire_channel_vectors() -> Dict[str, Any]:
         ("webrtc", f"webrtc:{peer}"),
         ("forum", "forum:disc:t1"),
         ("loop", "loop:alice"),
+        ("pipe", "pipe:alice"),
         ("empty", ""),
         ("uppercase scheme", "TCP://127.0.0.1:9735"),
         ("tcp without slashes", "tcp:127.0.0.1:9735"),
@@ -2072,6 +2073,8 @@ def wire_channel_vectors() -> Dict[str, Any]:
         ("forum extra colon", "forum:disc:t:1"),
         ("loop hyphen edge", "loop:-alice"),
         ("loop uppercase", "loop:Alice"),
+        ("pipe hyphen edge", "pipe:-alice"),
+        ("pipe uppercase", "pipe:Alice"),
     ]
     parse = []
     for name, raw in parse_inputs:
@@ -2085,6 +2088,7 @@ def wire_channel_vectors() -> Dict[str, Any]:
         ("public ipv4", "8.8.8.8:53"),
         ("link local", "169.254.1.1:9735"),
         ("loop name", "loop:alice"),
+        ("pipe name", "pipe:alice"),
         ("mailto", "mailto:a@b.com"),
         ("invalid", "nope"),
     ]
@@ -2206,6 +2210,7 @@ def adapter_vectors() -> Dict[str, Any]:
         ("mailto", adapters.mail_bus, "mailto:a@example.com", "mailto:b@example.com"),
         ("webrtc", adapters.webrtc_bus, f"webrtc:{peer_a}", f"webrtc:{peer_b}"),
         ("forum", adapters.forum_bus, "forum:disc:t1", "forum:disc:t2"),
+        ("pipe", adapters.pipe_bus, "pipe:alice", "pipe:bob"),
     ]
 
     def snapshot(a: adapters.AdapterChannel, b: adapters.AdapterChannel) -> Dict[str, Any]:
@@ -2289,7 +2294,7 @@ def adapter_vectors() -> Dict[str, Any]:
         **header(
             "channel.udp",
             "SPEC/features/channel-adapters.md",
-            "UDP, mailto, webrtc, and forum adapters. Hello listen is unchanged.",
+            "UDP, mailto, webrtc, forum, and pipe adapters. Hello listen is unchanged.",
         ),
         "sequence": sequence,
     }

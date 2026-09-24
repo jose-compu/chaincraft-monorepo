@@ -67,6 +67,7 @@ src/
 test/
   conformance.test.ts   The shared vectors — the real contract
   stream.perf.test.ts   app.stream apply and read throughput
+  pipe.perf.test.ts     channel.pipe mesh throughput
   object.test.ts        Prototype defaults: receive, empty snapshot
   hazards.test.ts       JavaScript-specific traps
   conformanceObjects.ts Counter and Mirror fixtures (semantics-v1 §8)
