@@ -51,6 +51,7 @@ tests/
   test_level0.py         One test per normative wire rule
   test_level1.py         One test per normative semantics rule
   test_vectors.py        Shared conformance vectors
+  test_pipe_perf.py      channel.pipe mesh throughput
   conformance_objects.py Level 1 fixtures (semantics-v1 §8)
 ```
 

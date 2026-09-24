@@ -58,6 +58,7 @@ src/
   bin/bt_node.rs   BitTorrent client on Mesh (`bt.*` commands)
 tests/
   conformance.rs Shared vectors from conformance/vectors/
+  pipe_perf.rs   channel.pipe mesh throughput
 ```
 
 ## Commands

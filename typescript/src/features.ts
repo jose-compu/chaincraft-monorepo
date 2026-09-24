@@ -55,6 +55,7 @@ export const FEATURES: readonly string[] = [
   'channel.mailto',
   'channel.webrtc',
   'channel.forum',
+  'channel.pipe',
   'app.pubsub',
 ];
 

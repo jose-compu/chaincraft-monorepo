@@ -782,6 +782,7 @@ def test_channel_adapters_sequence(case):
         AdapterChannel,
         forum_bus,
         mail_bus,
+        pipe_bus,
         udp_bus,
         webrtc_bus,
     )
@@ -791,6 +792,7 @@ def test_channel_adapters_sequence(case):
         "mailto": mail_bus,
         "webrtc": webrtc_bus,
         "forum": forum_bus,
+        "pipe": pipe_bus,
     }
     bus = buses[case["scheme"]]()
     peers = {"a": AdapterChannel(bus), "b": AdapterChannel(bus)}

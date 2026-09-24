@@ -71,6 +71,14 @@
       "cap": "loop"
     },
     {
+      "name": "pipe",
+      "input": "pipe:alice",
+      "ok": true,
+      "scheme": "pipe",
+      "canonical": "pipe:alice",
+      "cap": "pipe"
+    },
+    {
       "name": "empty",
       "input": "",
       "ok": false,
@@ -181,6 +189,22 @@
       "scheme": "",
       "canonical": "",
       "cap": ""
+    },
+    {
+      "name": "pipe hyphen edge",
+      "input": "pipe:-alice",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "pipe uppercase",
+      "input": "pipe:Alice",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
     }
   ],
   "connect": [
@@ -212,6 +236,11 @@
     {
       "name": "loop name",
       "input": "loop:alice",
+      "allowed": true
+    },
+    {
+      "name": "pipe name",
+      "input": "pipe:alice",
       "allowed": true
     },
     {

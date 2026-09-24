@@ -13,7 +13,7 @@ export interface ParsedAddress {
 
 const FAIL: ParsedAddress = { ok: false, scheme: '', canonical: '', cap: '' };
 const AUTHORITY = new Set(['tcp', 'udp']);
-const COLON = ['mailto', 'webrtc', 'forum', 'loop'] as const;
+const COLON = ['mailto', 'webrtc', 'forum', 'loop', 'pipe'] as const;
 const HEX = /^[0-9a-f]+$/;
 const HEX64 = /^[0-9a-f]{64}$/;
 const LOCAL = /^[A-Za-z0-9._+-]{1,64}$/;
@@ -74,9 +74,9 @@ function parseColon(scheme: string, rest: string): ParsedAddress {
     if (!LABEL.test(profile) || !THREAD.test(thread)) return { ...FAIL };
     return ok(scheme, `forum:${rest}`);
   }
-  if (scheme === 'loop') {
+  if (scheme === 'loop' || scheme === 'pipe') {
     if (!LABEL.test(rest)) return { ...FAIL };
-    return ok(scheme, `loop:${rest}`);
+    return ok(scheme, `${scheme}:${rest}`);
   }
   return { ...FAIL };
 }

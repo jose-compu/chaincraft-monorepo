@@ -18,6 +18,7 @@ __all__ = [
     "MAX_MAIL_BYTES",
     "MAX_WEBRTC_BYTES",
     "MAX_FORUM_BYTES",
+    "MAX_PIPE_BYTES",
     "AdapterBus",
     "AdapterChannel",
     "UdpLink",
@@ -25,12 +26,14 @@ __all__ = [
     "mail_bus",
     "webrtc_bus",
     "forum_bus",
+    "pipe_bus",
 ]
 
 MAX_UDP_PAYLOAD = MAX_UDP_BYTES
 MAX_MAIL_BYTES = 4096
 MAX_WEBRTC_BYTES = MAX_UDP_BYTES
 MAX_FORUM_BYTES = 4096
+MAX_PIPE_BYTES = MAX_UDP_PAYLOAD
 _HEX = re.compile(r"^[0-9a-f]+$")
 
 
@@ -48,6 +51,10 @@ def webrtc_bus() -> "AdapterBus":
 
 def forum_bus() -> "AdapterBus":
     return AdapterBus("forum", MAX_FORUM_BYTES)
+
+
+def pipe_bus() -> "AdapterBus":
+    return AdapterBus("pipe", MAX_PIPE_BYTES)
 
 
 class AdapterBus:

@@ -24,7 +24,7 @@ _LABEL = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$")
 _THREAD = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 _FAIL: Dict[str, Any] = {"ok": False, "scheme": "", "canonical": "", "cap": ""}
 _AUTHORITY = ("tcp", "udp")
-_COLON = ("mailto", "webrtc", "forum", "loop")
+_COLON = ("mailto", "webrtc", "forum", "loop", "pipe")
 
 
 def parse_address(raw: Any) -> Dict[str, Any]:
@@ -81,10 +81,10 @@ def _parse_colon(scheme: str, rest: str) -> Dict[str, Any]:
         if _LABEL.fullmatch(profile) is None or _THREAD.fullmatch(thread) is None:
             return dict(_FAIL)
         return _ok(scheme, f"forum:{rest}")
-    if scheme == "loop":
+    if scheme in ("loop", "pipe"):
         if _LABEL.fullmatch(rest) is None:
             return dict(_FAIL)
-        return _ok(scheme, f"loop:{rest}")
+        return _ok(scheme, f"{scheme}:{rest}")
     return dict(_FAIL)
 
 

@@ -13,6 +13,7 @@ pub const MAX_UDP_PAYLOAD: usize = MAX_UDP_BYTES;
 pub const MAX_MAIL_BYTES: usize = 4096;
 pub const MAX_WEBRTC_BYTES: usize = MAX_UDP_PAYLOAD;
 pub const MAX_FORUM_BYTES: usize = 4096;
+pub const MAX_PIPE_BYTES: usize = MAX_UDP_PAYLOAD;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct InboxItem {
@@ -56,6 +57,10 @@ impl AdapterBus {
 
     pub fn forum() -> Self {
         Self::new("forum", MAX_FORUM_BYTES)
+    }
+
+    pub fn pipe() -> Self {
+        Self::new("pipe", MAX_PIPE_BYTES)
     }
 }
 
@@ -213,5 +218,16 @@ mod tests {
         let over = "00".repeat(MAX_UDP_PAYLOAD + 1);
         assert!(ch.send("udp://127.0.0.1:1", &ok));
         assert!(!ch.send("udp://127.0.0.1:1", &over));
+    }
+
+    #[test]
+    fn pipe_accepts_a_payload_the_loop_would_reject() {
+        let bus = AdapterBus::pipe();
+        let mut ch = AdapterChannel::new(&bus);
+        assert!(ch.listen("pipe:alice"));
+        assert!(ch.send("pipe:alice", &"00".repeat(65)));
+        assert!(ch.send("pipe:alice", &"00".repeat(MAX_PIPE_BYTES)));
+        assert!(!ch.send("pipe:alice", &"00".repeat(MAX_PIPE_BYTES + 1)));
+        assert!(!ch.send("pipe:alice", "loop-payload"));
     }
 }

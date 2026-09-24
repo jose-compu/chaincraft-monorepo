@@ -52,7 +52,7 @@ pub fn parse_address(raw: &str) -> ParsedAddress {
         }
         return ok(scheme, format!("{scheme}://{rest}"));
     }
-    for scheme in ["mailto", "webrtc", "forum", "loop"] {
+    for scheme in ["mailto", "webrtc", "forum", "loop", "pipe"] {
         let prefix = format!("{scheme}:");
         if let Some(rest) = raw.strip_prefix(&prefix) {
             return parse_colon(scheme, rest);
@@ -112,11 +112,11 @@ fn parse_colon(scheme: &str, rest: &str) -> ParsedAddress {
             }
             ok(scheme, format!("forum:{rest}"))
         }
-        "loop" => {
+        "loop" | "pipe" => {
             if !valid_label(rest) {
                 return fail();
             }
-            ok(scheme, format!("loop:{rest}"))
+            ok(scheme, format!("{scheme}:{rest}"))
         }
         _ => fail(),
     }

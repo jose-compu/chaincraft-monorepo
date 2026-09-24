@@ -9,6 +9,7 @@ export const MAX_UDP_PAYLOAD = MAX_UDP_BYTES;
 export const MAX_MAIL_BYTES = 4096;
 export const MAX_WEBRTC_BYTES = MAX_UDP_BYTES;
 export const MAX_FORUM_BYTES = 4096;
+export const MAX_PIPE_BYTES = MAX_UDP_BYTES;
 
 export interface InboxItem {
   data: string;
@@ -41,6 +42,10 @@ export class AdapterBus {
 
   static forum(): AdapterBus {
     return new AdapterBus('forum', MAX_FORUM_BYTES);
+  }
+
+  static pipe(): AdapterBus {
+    return new AdapterBus('pipe', MAX_PIPE_BYTES);
   }
 }
 
