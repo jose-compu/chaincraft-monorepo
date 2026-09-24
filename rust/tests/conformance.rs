@@ -36,6 +36,7 @@ use chaincraft_core::object::{
 use chaincraft_core::pipeline::ObjectRegistry;
 use chaincraft_core::pubsub::PubSub;
 use chaincraft_core::storage::MessageStore;
+use chaincraft_core::stream::Stream;
 use chaincraft_core::{ecdsa, vdf, vrf};
 use serde_json::Value;
 
@@ -1867,6 +1868,47 @@ fn app_pubsub_replay() {
 }
 
 #[test]
+fn app_stream_replay() {
+    let doc = load("app-stream.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = Stream::new();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                assert!(obj.add_message(&message, None).is_none(), "{where_}");
+            }
+            assert!(!obj.is_merkelized(), "{where_}");
+            assert!(obj.get_state_digests().is_empty(), "{where_}");
+            let memo = obj.emit_state_memento();
+            assert!(memo.canonical_digest.is_empty(), "{where_}");
+            assert!(memo.frontier_digests.is_empty(), "{where_}");
+            let expected =
+                JsonValue::object([("streams".into(), to_json_value(&step["streams"]).unwrap())]);
+            assert_eq!(obj.state_value(), expected, "{where_}");
+            if let Some(reads) = step.get("reads").and_then(|value| value.as_array()) {
+                for probe in reads {
+                    let partition = to_json_value(&probe["partition"]).unwrap();
+                    let after = to_json_value(&probe["after"]).unwrap();
+                    let limit = to_json_value(&probe["limit"]).unwrap();
+                    let got = obj.read(
+                        probe["stream"].as_str().unwrap(),
+                        &partition,
+                        &after,
+                        &limit,
+                    );
+                    let expected_events = to_json_value(&probe["events"]).unwrap();
+                    assert_eq!(JsonValue::Array(got), expected_events, "{where_}");
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn wire_paths() {
     let doc = load("wire-paths.json");
     let now = doc["now_ms"].as_i64().unwrap();
@@ -1935,6 +1977,7 @@ fn vector_files_declare_feature() {
         "wire-channel.json",
         "channel-adapters.json",
         "app-pubsub.json",
+        "app-stream.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

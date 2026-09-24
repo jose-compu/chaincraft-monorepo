@@ -38,6 +38,17 @@ from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E
 from chaincraft_core.fees import charge, estimate, next_base_fee, select  # noqa: E402
 from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
 from chaincraft_core.pubsub import MAX_MEMBERS, MAX_POSTS, MAX_ROOMS, MAX_TEXT, PubSub  # noqa: E402
+from chaincraft_core.stream import (  # noqa: E402
+    MAX_BATCH,
+    MAX_BROKERS,
+    MAX_EVENTS,
+    MAX_GROUPS,
+    MAX_PARTITIONS,
+    MAX_PAYLOAD,
+    MAX_PRODUCERS,
+    MAX_STREAMS,
+    Stream,
+)
 from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
 from chaincraft_core.bittorrent import Swarm, split_payload  # noqa: E402
 from chaincraft_core.envelope import ProtocolError  # noqa: E402
@@ -50,7 +61,7 @@ from chaincraft_core.nat import (  # noqa: E402
 from chaincraft_core.cli import NodeSession  # noqa: E402
 from chaincraft_core.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
 from chaincraft_core.storage import MessageStore  # noqa: E402
-from chaincraft_core.canonical import canonical_json, payload_digest  # noqa: E402
+from chaincraft_core.canonical import MAX_SAFE_INT, canonical_json, payload_digest  # noqa: E402
 from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft_core.envelope import Envelope  # noqa: E402
 from chaincraft_core.memento import StateMemento  # noqa: E402
@@ -2721,6 +2732,345 @@ def app_pubsub_vectors() -> Dict[str, Any]:
     }
 
 
+def _replay_stream(name: str, messages: List[Any]) -> Dict[str, Any]:
+    obj = Stream()
+    steps = []
+    for message in messages:
+        accepted = obj.is_valid(message)
+        if accepted:
+            obj.add_message(message)
+        state = obj.state()
+        step: Dict[str, Any] = {
+            "message_json": canonical_json(message),
+            "accepted": accepted,
+            **state,
+        }
+        reads = _stream_reads(obj, state)
+        if reads is not None:
+            step["reads"] = reads
+        steps.append(step)
+    return {"name": name, "steps": steps}
+
+
+def _stream_reads(obj: Stream, state: Dict[str, Any]) -> Any:
+    count = sum(
+        len(part["events"]) for item in state["streams"] for part in item["partitions"]
+    )
+    if count > 8:
+        return None
+    names = [item["name"] for item in state["streams"]] or ["missing"]
+    probes = []
+    for stream_name in names:
+        events = obj.read(stream_name, 0, None, 4)
+        probes.append(
+            {
+                "after": None,
+                "events": events,
+                "limit": 4,
+                "partition": 0,
+                "stream": stream_name,
+            }
+        )
+        if events:
+            after = {"producer": events[0]["producer"], "seq": events[0]["seq"]}
+            probes.append(
+                {
+                    "after": after,
+                    "events": obj.read(stream_name, 0, after, 4),
+                    "limit": 4,
+                    "partition": 0,
+                    "stream": stream_name,
+                }
+            )
+    first = names[0]
+    bad = {"producer": "alice", "seq": True}
+    probes.append(
+        {
+            "after": None,
+            "events": obj.read("missing", 0, None, 4),
+            "limit": 4,
+            "partition": 0,
+            "stream": "missing",
+        }
+    )
+    probes.append(
+        {
+            "after": None,
+            "events": obj.read(first, 0, None, 0),
+            "limit": 0,
+            "partition": 0,
+            "stream": first,
+        }
+    )
+    probes.append(
+        {
+            "after": bad,
+            "events": obj.read(first, 0, bad, 4),
+            "limit": 4,
+            "partition": 0,
+            "stream": first,
+        }
+    )
+    return probes
+
+
+def app_stream_vectors() -> Dict[str, Any]:
+    def open_(stream: str, producer: str) -> Dict[str, Any]:
+        return {"app": "stream", "op": "open", "producer": producer, "stream": stream}
+
+    def produce(stream: str, producer: str, seq: int, payload: str) -> Dict[str, Any]:
+        return {
+            "app": "stream",
+            "op": "produce",
+            "payload": payload,
+            "producer": producer,
+            "seq": seq,
+            "stream": stream,
+        }
+
+    def commit(stream: str, group: str, producer: str, seq: int) -> Dict[str, Any]:
+        return {
+            "app": "stream",
+            "group": group,
+            "op": "commit",
+            "producer": producer,
+            "seq": seq,
+            "stream": stream,
+        }
+
+    def record(producer: str, seq: int, payload: str) -> Dict[str, Any]:
+        return {"payload": payload, "producer": producer, "seq": seq}
+
+    def append(stream: str, records: List[Dict[str, Any]], partition: int = 0) -> Dict[str, Any]:
+        return {
+            "app": "stream",
+            "op": "append",
+            "partition": partition,
+            "records": records,
+            "stream": stream,
+        }
+
+    def join(stream: str, broker: str) -> Dict[str, Any]:
+        return {"app": "stream", "broker": broker, "op": "join", "stream": stream}
+
+    def fail(stream: str, broker: str) -> Dict[str, Any]:
+        return {"app": "stream", "broker": broker, "op": "fail", "stream": stream}
+
+    def retain(stream: str, keep: int) -> Dict[str, Any]:
+        return {"app": "stream", "keep": keep, "op": "retain", "stream": stream}
+
+    stream_cap = [open_(f"s{i:02d}", "alice") for i in range(MAX_STREAMS)]
+    stream_cap.append(open_(f"s{MAX_STREAMS:02d}", "alice"))
+    producer_cap = [open_("orders", f"p{i:02d}") for i in range(MAX_PRODUCERS)]
+    producer_cap.append(open_("orders", f"p{MAX_PRODUCERS:02d}"))
+    event_cap = [open_("orders", "alice")]
+    event_cap.extend(produce("orders", "alice", i, "x") for i in range(MAX_EVENTS))
+    event_cap.append(produce("orders", "alice", MAX_EVENTS, "x"))
+    event_cap.append(produce("orders", "alice", 0, "x"))
+    group_cap = [open_("orders", "alice"), produce("orders", "alice", 0, "x")]
+    group_cap.extend(commit("orders", f"g{i:02d}", "alice", 0) for i in range(MAX_GROUPS))
+    group_cap.append(commit("orders", f"g{MAX_GROUPS:02d}", "alice", 0))
+    partition_cap = [{**open_("orders", "alice"), "partition": i} for i in range(MAX_PARTITIONS)]
+    partition_cap.append({**open_("orders", "alice"), "partition": MAX_PARTITIONS})
+    broker_cap = [open_("orders", "alice")]
+    broker_cap.extend(join("orders", f"n{i}") for i in range(MAX_BROKERS))
+    broker_cap.append(join("orders", f"n{MAX_BROKERS}"))
+    replay = [
+        _replay_stream(
+            "open produce commit",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "created"),
+                commit("orders", "workers", "alice", 0),
+            ],
+        ),
+        _replay_stream(
+            "two streams",
+            [
+                open_("orders", "alice"),
+                open_("trades", "bob"),
+                produce("orders", "alice", 0, "o"),
+                produce("trades", "bob", 0, "t"),
+            ],
+        ),
+        _replay_stream(
+            "log order ignores arrival",
+            [
+                open_("orders", "alice"),
+                open_("orders", "bob"),
+                produce("orders", "bob", 0, "from bob"),
+                produce("orders", "alice", 0, "from alice"),
+            ],
+        ),
+        _replay_stream(
+            "gap then fill",
+            [
+                open_("orders", "alice"),
+                open_("orders", "bob"),
+                produce("orders", "alice", 0, "a0"),
+                produce("orders", "alice", 2, "a2"),
+                produce("orders", "bob", 0, "b0"),
+                commit("orders", "workers", "alice", 2),
+                commit("orders", "workers", "bob", 0),
+                commit("orders", "workers", "alice", 0),
+                produce("orders", "alice", 1, "a1"),
+                commit("orders", "workers", "alice", 2),
+                commit("orders", "workers", "alice", 0),
+                commit("orders", "auditors", "alice", 1),
+            ],
+        ),
+        _replay_stream(
+            "identical produce is a no-op",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "one"),
+                produce("orders", "alice", 0, "one"),
+            ],
+        ),
+        _replay_stream(
+            "conflicting payload rejected",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "one"),
+                produce("orders", "alice", 0, "two"),
+            ],
+        ),
+        _replay_stream("produce before open rejected", [produce("orders", "alice", 0, "x")]),
+        _replay_stream("idempotent open", [open_("orders", "alice"), open_("orders", "alice")]),
+        _replay_stream(
+            "unknown op rejected",
+            [{"app": "stream", "op": "vote", "producer": "alice", "stream": "orders"}],
+        ),
+        _replay_stream(
+            "empty payload rejected",
+            [open_("orders", "alice"), produce("orders", "alice", 0, "")],
+        ),
+        _replay_stream(
+            "payload limits",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "a" * MAX_PAYLOAD),
+                produce("orders", "alice", 1, "a" * (MAX_PAYLOAD + 1)),
+            ],
+        ),
+        _replay_stream(
+            "emoji payload",
+            [open_("orders", "alice"), produce("orders", "alice", 0, "hello 😀")],
+        ),
+        _replay_stream(
+            "bad names rejected",
+            [
+                open_("orders", "bad name"),
+                open_("é", "alice"),
+                open_("s" * 65, "alice"),
+                open_("s" * 64, "alice"),
+            ],
+        ),
+        _replay_stream(
+            "boolean seq rejected",
+            [open_("orders", "alice"), {**produce("orders", "alice", 0, "x"), "seq": True}],
+        ),
+        _replay_stream(
+            "sparse high seq commit rejected",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", MAX_SAFE_INT, "z"),
+                commit("orders", "workers", "alice", MAX_SAFE_INT),
+            ],
+        ),
+        _replay_stream("extra keys ignored", [{**open_("orders", "alice"), "note": "ignored"}]),
+        _replay_stream("stream cap", stream_cap),
+        _replay_stream("producer cap", producer_cap),
+        _replay_stream("event cap", event_cap),
+        _replay_stream("group cap", group_cap),
+        _replay_stream("partition cap", partition_cap),
+        _replay_stream("broker cap", broker_cap),
+        _replay_stream(
+            "batch append",
+            [
+                open_("orders", "alice"),
+                append(
+                    "orders",
+                    [record("alice", 0, "a"), record("alice", 1, "b"), record("alice", 2, "c")],
+                ),
+            ],
+        ),
+        _replay_stream(
+            "batch is all or nothing",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "a"),
+                append("orders", [record("alice", 1, "b"), record("alice", 0, "other")]),
+            ],
+        ),
+        _replay_stream(
+            "batch cap",
+            [
+                open_("orders", "alice"),
+                append("orders", [record("alice", i, "x") for i in range(MAX_BATCH + 1)]),
+            ],
+        ),
+        _replay_stream(
+            "new partition leaves the first",
+            [
+                {**open_("orders", "alice"), "partition": 0},
+                produce("orders", "alice", 0, "p0"),
+                {**open_("orders", "alice"), "partition": 1},
+                {**produce("orders", "alice", 0, "p1"), "partition": 1},
+            ],
+        ),
+        _replay_stream(
+            "replica survives one failure",
+            [
+                join("orders", "n1"),
+                join("orders", "n2"),
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "kept"),
+                fail("orders", "n1"),
+                produce("orders", "alice", 1, "still"),
+                fail("orders", "n2"),
+                produce("orders", "alice", 2, "paused"),
+                join("orders", "n1"),
+                produce("orders", "alice", 2, "resumed"),
+            ],
+        ),
+        _replay_stream(
+            "retention then replay",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "a"),
+                produce("orders", "alice", 1, "b"),
+                produce("orders", "alice", 2, "c"),
+                retain("orders", 2),
+                produce("orders", "alice", 0, "a"),
+                commit("orders", "late", "alice", 2),
+                commit("orders", "late", "alice", 1),
+            ],
+        ),
+        _replay_stream(
+            "pipeline stages are separate streams",
+            [
+                open_("orders", "alice"),
+                produce("orders", "alice", 0, "created"),
+                open_("billing", "worker"),
+                produce("billing", "worker", 0, "invoice"),
+            ],
+        ),
+        _replay_stream(
+            "boolean partition rejected",
+            [open_("orders", "alice"), {**produce("orders", "alice", 0, "x"), "partition": True}],
+        ),
+    ]
+    return {
+        **header(
+            "app.stream",
+            "SPEC/features/app-stream.md",
+            "Append-only event log: batches, partitions, replicas, retention, replay.",
+        ),
+        "replay": replay,
+    }
+
+
 def paths_vectors() -> Dict[str, Any]:
     types = [
         "ctl.hello",
@@ -2806,6 +3156,8 @@ def main() -> int:
     write("channel-adapters.json", adapter_vectors())
     print("\nLevel 2 — publish-subscribe")
     write("app-pubsub.json", app_pubsub_vectors())
+    print("\nLevel 2 — event stream")
+    write("app-stream.json", app_stream_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

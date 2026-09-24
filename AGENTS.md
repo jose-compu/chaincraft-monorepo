@@ -200,6 +200,18 @@ a caught bug into a silent protocol fork.
 Pull request description must state: what changed, which spec sections apply, which
 feature IDs are affected, and — if `conformance/vectors/` changed — why.
 
+### GitHub workflow
+
+Every behaviour change follows this order.
+
+1. **Issue.** Open a GitHub issue before the branch. The title is the feature id or the bug. The body states the observable behaviour, the spec section to add or change, the vector file, and the three languages.
+2. **Branch.** Create the branch from current `main`. Never commit on `main`.
+3. **Spec, code, vectors.** One change. A new feature lands in all three languages together, with `SPEC/features.yaml` updated in that branch.
+4. **Check.** Run `python3 tools/parity_check.py` and the language suites. When the feature has performance tests, run them so the timings are visible, and keep them inside the suite.
+5. **Pull request.** Push the branch and open a pull request that links the issue (`Fixes #N`). The description states what changed, which spec sections apply, which feature IDs are affected, and why any file under `conformance/vectors/` changed.
+6. **Review.** Read the spec against the diff. CI must be green. Answer review comments with new commits.
+7. **Merge.** Use the repository default. The closing keyword on the pull request closes the issue.
+
 ---
 
 ## 9. Code style
@@ -232,4 +244,5 @@ A change is complete when:
 - [ ] `python3 tools/parity_check.py` passes
 - [ ] Language test suite passes
 - [ ] Gap issues opened for languages not yet ported
+- [ ] GitHub issue open, and the pull request links it
 - [ ] No AI or tool attribution in the change, its commits, its pull request, or its issues

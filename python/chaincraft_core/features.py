@@ -60,6 +60,7 @@ FEATURES = frozenset(
         "channel.forum",
         "channel.pipe",
         "app.pubsub",
+        "app.stream",
     }
 )
 

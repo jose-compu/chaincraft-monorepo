@@ -57,6 +57,7 @@ export const FEATURES: readonly string[] = [
   'channel.forum',
   'channel.pipe',
   'app.pubsub',
+  'app.stream',
 ];
 
 export interface Manifest {

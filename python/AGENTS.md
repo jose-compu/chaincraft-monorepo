@@ -39,6 +39,7 @@ chaincraft_core/
   nat.py         STUN, hole punch, and app.nat relay
   channel.py     Address URIs and in-process loop channel
   pubsub.py      Topic publish-subscribe (chat rooms)
+  stream.py      Append-only event log (producer lanes, range read)
   mesh.py        TCP mesh (listen, hello, dedup, relay)
   node.py        Wire CLI: connect / send / ids / quit
   bt_node.py     BitTorrent client on Mesh (`bt.*` commands)
@@ -51,6 +52,7 @@ tests/
   test_level0.py         One test per normative wire rule
   test_level1.py         One test per normative semantics rule
   test_vectors.py        Shared conformance vectors
+  test_stream_perf.py    app.stream apply and read throughput
   test_pipe_perf.py      channel.pipe mesh throughput
   conformance_objects.py Level 1 fixtures (semantics-v1 §8)
 ```

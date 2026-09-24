@@ -45,6 +45,7 @@ pub const FEATURES: &[&str] = &[
     "channel.forum",
     "channel.pipe",
     "app.pubsub",
+    "app.stream",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.

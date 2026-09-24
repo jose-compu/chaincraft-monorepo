@@ -20,6 +20,7 @@ import {
   ProofOfWork,
   BalanceLedger,
   PubSub,
+  Stream,
   UtxoLedger,
   Mempool,
   MessageStore,
@@ -509,6 +510,33 @@ eachCase('app-pubsub.json', 'replay', (c) => {
   }
 });
 
+eachCase('app-stream.json', 'replay', (c) => {
+  const obj = new Stream();
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `${c['name']} step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) assert.equal(obj.addMessage(message), undefined, where);
+    assert.equal(obj.isMerkelized(), false, where);
+    assert.deepEqual(obj.getStateDigests(), [], where);
+    const memo = obj.emitStateMemento();
+    assert.equal(memo.canonicalDigest, '', where);
+    assert.deepEqual(memo.frontierDigests, [], where);
+    assert.deepEqual(obj.state(), { streams: step['streams'] }, where);
+    const reads = step['reads'];
+    if (Array.isArray(reads)) {
+      for (const probe of reads) {
+        assert.deepEqual(
+          obj.read(probe['stream'], probe['partition'], probe['after'], probe['limit']),
+          probe['events'],
+          where,
+        );
+      }
+    }
+  }
+});
+
 eachCase('ledger-balance.json', 'replay', (c, doc) => {
   const obj = new BalanceLedger(doc['allocations']);
   for (const [index, step] of c['steps'].entries()) {
@@ -845,6 +873,7 @@ test('every vector file declares its feature', () => {
     'wire-channel.json',
     'channel-adapters.json',
     'app-pubsub.json',
+    'app-stream.json',
   ];
   for (const name of files) {
     const doc = load(name);
