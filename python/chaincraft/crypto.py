@@ -153,7 +153,7 @@ def _ed25519_backend():
         from cryptography.hazmat.primitives.asymmetric import ed25519
     except ImportError as exc:  # pragma: no cover - depends on environment
         raise CryptoUnavailable(
-            "ed25519 requires the 'cryptography' package: pip install chaincraft-core[ed25519]"
+            "ed25519 requires the 'cryptography' package: pip install chaincraft[ed25519]"
         ) from exc
     return ed25519
 

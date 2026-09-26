@@ -2,7 +2,7 @@
 
 import time
 
-from chaincraft_core.adapters import AdapterChannel, pipe_bus
+from chaincraft.adapters import AdapterChannel, pipe_bus
 
 
 def test_pipe_mesh_throughput():

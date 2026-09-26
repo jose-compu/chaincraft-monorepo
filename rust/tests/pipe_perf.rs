@@ -2,7 +2,7 @@
 
 use std::time::Instant;
 
-use chaincraft_core::adapters::{AdapterBus, AdapterChannel};
+use chaincraft::adapters::{AdapterBus, AdapterChannel};
 
 #[test]
 fn pipe_mesh_throughput() {

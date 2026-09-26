@@ -1,6 +1,6 @@
 """Localhost UDP link and payload caps — SPEC/features/channel-adapters.md."""
 
-from chaincraft_core.adapters import (
+from chaincraft.adapters import (
     MAX_PIPE_BYTES,
     MAX_UDP_PAYLOAD,
     AdapterChannel,

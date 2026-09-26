@@ -7,7 +7,7 @@ from typing import Any, List, Optional
 import pytest
 from conformance_objects import Counter, Mirror, build_registry
 
-from chaincraft_core import (
+from chaincraft import (
     ObjectRegistry,
     SharedObject,
     StateMemento,

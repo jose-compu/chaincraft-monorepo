@@ -6,7 +6,7 @@ what keeps the registry from drifting into fiction.
 
 Add an ID here only when the feature is implemented and its vectors pass.
 
-    python -m chaincraft_core.features
+    python -m chaincraft.features
 """
 
 from __future__ import annotations

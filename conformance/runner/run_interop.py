@@ -45,7 +45,7 @@ LANGUAGES = ("python", "rust", "typescript")
 
 COMMANDS = {
     "python": {
-        "cmd": [sys.executable, "-m", "chaincraft_core.node"],
+        "cmd": [sys.executable, "-m", "chaincraft.node"],
         "cwd": REPO / "python",
         "env_extra": {},
     },
@@ -211,8 +211,8 @@ def mismatch_is_disconnected(addr: str) -> None:
     # Minimal ctl.hello with v=99. The envelope itself is protocol v=1; the
     # payload version is what parse_hello rejects.
     sys.path.insert(0, str(REPO / "python"))
-    from chaincraft_core.envelope import Envelope
-    from chaincraft_core.framing import encode_frame
+    from chaincraft.envelope import Envelope
+    from chaincraft.framing import encode_frame
 
     env = Envelope.build(
         "ctl.hello",

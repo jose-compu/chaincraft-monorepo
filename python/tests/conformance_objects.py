@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from chaincraft_core import ObjectRegistry, SharedObject, StateMemento, merkle_digest
+from chaincraft import ObjectRegistry, SharedObject, StateMemento, merkle_digest
 
 __all__ = ["Counter", "Mirror", "build_registry", "snapshot"]
 

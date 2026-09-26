@@ -3,21 +3,37 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "chaincraft-core"
+name = "chaincraft"
 version = "1.0.0"
-description = "Chaincraft Level 0 wire protocol — reference implementation"
+description = "A platform for blockchain education and prototyping"
 readme = "README.md"
 license = { text = "MIT" }
+authors = [
+    { name = "Chaincraft Contributors" }
+]
 requires-python = ">=3.9"
-keywords = ["chaincraft", "gossip", "p2p", "protocol", "interop"]
+keywords = ["blockchain", "education", "prototyping", "distributed", "consensus", "chaincraft", "gossip", "p2p"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Distributed Computing",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/jose-compu/chaincraft-monorepo"
+Repository = "https://github.com/jose-compu/chaincraft-monorepo"
+Documentation = "https://github.com/jose-compu/chaincraft-monorepo#readme"
 
 [project.optional-dependencies]
 ed25519 = ["cryptography>=42.0"]
@@ -25,7 +41,7 @@ dev = ["pytest>=7.0", "cryptography>=42.0"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["chaincraft_core*"]
+include = ["chaincraft*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

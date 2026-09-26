@@ -15,18 +15,18 @@ from pathlib import Path
 import pytest
 from conformance_objects import build_registry, snapshot
 
-from chaincraft_core import control, crypto, framing
-from chaincraft_core.canonical import (
+from chaincraft import control, crypto, framing
+from chaincraft.canonical import (
     CanonicalError,
     canonical_json,
     parse_json,
     payload_digest,
 )
-from chaincraft_core.dedup import Deduplicator
-from chaincraft_core.envelope import Envelope, ProtocolError
-from chaincraft_core.framing import FrameReader, FramingError, encode_frame
-from chaincraft_core.memento import StateMemento
-from chaincraft_core.object import frontier_digest, merkle_digest, wins_replacement
+from chaincraft.dedup import Deduplicator
+from chaincraft.envelope import Envelope, ProtocolError
+from chaincraft.framing import FrameReader, FramingError, encode_frame
+from chaincraft.memento import StateMemento
+from chaincraft.object import frontier_digest, merkle_digest, wins_replacement
 
 VECTORS = Path(__file__).resolve().parent.parent.parent / "conformance" / "vectors"
 
@@ -333,7 +333,7 @@ def test_replacement_tiebreak(case):
 
 @cases("ecdsa.json", "valid")
 def test_ecdsa_valid(case):
-    from chaincraft_core import ecdsa
+    from chaincraft import ecdsa
 
     key = bytes.fromhex(case["secret_key"])
     message = bytes.fromhex(case["message_hex"])
@@ -346,7 +346,7 @@ def test_ecdsa_valid(case):
 
 @cases("ecdsa.json", "invalid")
 def test_ecdsa_invalid(case):
-    from chaincraft_core import ecdsa
+    from chaincraft import ecdsa
 
     assert (
         ecdsa.verify(
@@ -360,7 +360,7 @@ def test_ecdsa_invalid(case):
 
 @cases("vdf.json", "valid")
 def test_vdf_valid(case):
-    from chaincraft_core import vdf
+    from chaincraft import vdf
 
     proof = vdf.evaluate(bytes.fromhex(case["seed_hex"]), case["t"])
     assert vdf.proof_to_hex(proof) == case["proof"]
@@ -369,7 +369,7 @@ def test_vdf_valid(case):
 
 @cases("vdf.json", "invalid")
 def test_vdf_invalid(case):
-    from chaincraft_core import vdf
+    from chaincraft import vdf
 
     assert (
         vdf.verify(
@@ -383,7 +383,7 @@ def test_vdf_invalid(case):
 
 @cases("vrf.json", "valid")
 def test_vrf_valid(case):
-    from chaincraft_core import vrf
+    from chaincraft import vrf
 
     proof, output, pk = vrf.evaluate(
         bytes.fromhex(case["message_hex"]), bytes.fromhex(case["secret_key"])
@@ -396,7 +396,7 @@ def test_vrf_valid(case):
 
 @cases("vrf.json", "invalid")
 def test_vrf_invalid(case):
-    from chaincraft_core import vrf
+    from chaincraft import vrf
 
     assert (
         vrf.verify(
@@ -414,21 +414,21 @@ def test_vrf_invalid(case):
 
 @cases("discovery-peer.json", "valid")
 def test_discovery_peer_valid(case):
-    from chaincraft_core.discovery import is_valid_address
+    from chaincraft.discovery import is_valid_address
 
     assert is_valid_address(case["address"]) is True
 
 
 @cases("discovery-peer.json", "invalid")
 def test_discovery_peer_invalid(case):
-    from chaincraft_core.discovery import is_valid_address
+    from chaincraft.discovery import is_valid_address
 
     assert is_valid_address(case["address"]) is False
 
 
 @cases("discovery-peer.json", "sequence")
 def test_discovery_peer_sequence(case):
-    from chaincraft_core.discovery import AddressBook
+    from chaincraft.discovery import AddressBook
 
     book = AddressBook(
         listen=case["listen"],
@@ -458,7 +458,7 @@ def test_discovery_peer_sequence(case):
 
 @cases("discovery-local.json", "sequence")
 def test_discovery_local_sequence(case):
-    from chaincraft_core.discovery import AddressBook, LocalDiscovery
+    from chaincraft.discovery import AddressBook, LocalDiscovery
 
     book = AddressBook(listen=case["listen"])
     local = LocalDiscovery(book, enabled=case["enabled"])
@@ -490,7 +490,7 @@ def test_discovery_local_sequence(case):
 
 @cases("consensus-pow.json", "replay")
 def test_consensus_pow_replay(case):
-    from chaincraft_core.consensus_pow import ProofOfWork
+    from chaincraft.consensus_pow import ProofOfWork
 
     obj = ProofOfWork(load("consensus-pow.json")["difficulty"])
     for index, step in enumerate(case["steps"]):
@@ -514,7 +514,7 @@ def test_consensus_pow_replay(case):
 
 @cases("consensus-pos.json", "schedule")
 def test_consensus_pos_schedule(case):
-    from chaincraft_core.consensus_pos import ProofOfStake
+    from chaincraft.consensus_pos import ProofOfStake
 
     doc = load("consensus-pos.json")
     obj = ProofOfStake(seed=doc["seed"], validators=doc["validators"])
@@ -523,7 +523,7 @@ def test_consensus_pos_schedule(case):
 
 @cases("consensus-pos.json", "replay")
 def test_consensus_pos_replay(case):
-    from chaincraft_core.consensus_pos import ProofOfStake
+    from chaincraft.consensus_pos import ProofOfStake
 
     obj = ProofOfStake()
     for index, step in enumerate(case["steps"]):
@@ -542,7 +542,7 @@ def test_consensus_pos_replay(case):
 
 @cases("consensus-pbft.json", "replay")
 def test_consensus_pbft_replay(case):
-    from chaincraft_core.consensus_pbft import PBFT
+    from chaincraft.consensus_pbft import PBFT
 
     obj = PBFT()
     for index, step in enumerate(case["steps"]):
@@ -566,7 +566,7 @@ def test_consensus_pbft_replay(case):
 
 @cases("ledger-balance.json", "replay")
 def test_ledger_balance_replay(case):
-    from chaincraft_core.ledger_balance import BalanceLedger
+    from chaincraft.ledger_balance import BalanceLedger
 
     obj = BalanceLedger(load("ledger-balance.json")["allocations"])
     for index, step in enumerate(case["steps"]):
@@ -586,7 +586,7 @@ def test_ledger_balance_replay(case):
 
 @cases("ledger-utxo.json", "replay")
 def test_ledger_utxo_replay(case):
-    from chaincraft_core.ledger_utxo import UtxoLedger
+    from chaincraft.ledger_utxo import UtxoLedger
 
     obj = UtxoLedger(load("ledger-utxo.json")["allocations"])
     for index, step in enumerate(case["steps"]):
@@ -608,7 +608,7 @@ def test_ledger_utxo_replay(case):
 
 @cases("mempool-basic.json", "sequence")
 def test_mempool_basic_sequence(case):
-    from chaincraft_core.mempool import Mempool
+    from chaincraft.mempool import Mempool
 
     pool = Mempool(
         capacity=case["capacity"],
@@ -638,14 +638,14 @@ def test_mempool_basic_sequence(case):
 
 @cases("fees-policy.json", "select")
 def test_fees_policy_select(case):
-    from chaincraft_core.fees import select
+    from chaincraft.fees import select
 
     assert select(case["candidates"], case["limit"]) == case["ids"]
 
 
 @cases("fees-policy.json", "charge")
 def test_fees_policy_charge(case):
-    from chaincraft_core.fees import charge
+    from chaincraft.fees import charge
 
     assert charge(case["fee"], case["base"]) == {
         "burned": case["burned"],
@@ -656,14 +656,14 @@ def test_fees_policy_charge(case):
 
 @cases("fees-policy.json", "estimate")
 def test_fees_policy_estimate(case):
-    from chaincraft_core.fees import estimate
+    from chaincraft.fees import estimate
 
     assert estimate(case["fees"]) == case["estimate"]
 
 
 @cases("fees-policy.json", "base_fee")
 def test_fees_policy_base_fee(case):
-    from chaincraft_core.fees import next_base_fee
+    from chaincraft.fees import next_base_fee
 
     assert (
         next_base_fee(case["base"], case["parent_count"], case["target"])
@@ -676,7 +676,7 @@ def test_fees_policy_base_fee(case):
 
 @cases("storage-persistent.json", "sequence")
 def test_storage_persistent_sequence(case):
-    from chaincraft_core.storage import MessageStore
+    from chaincraft.storage import MessageStore
 
     store = MessageStore(case["capacity"])
     for index, step in enumerate(case["steps"]):
@@ -702,7 +702,7 @@ def test_storage_persistent_sequence(case):
 
 @cases("cli-node.json", "sequence")
 def test_cli_node_sequence(case):
-    from chaincraft_core.cli import NodeSession
+    from chaincraft.cli import NodeSession
 
     session = NodeSession(case["impl"], case["listen"])
     for index, step in enumerate(case["steps"]):
@@ -727,7 +727,7 @@ def test_cli_node_sequence(case):
 
 @cases("wire-channel.json", "parse")
 def test_wire_channel_parse(case):
-    from chaincraft_core.channel import parse_address
+    from chaincraft.channel import parse_address
 
     assert parse_address(case["input"]) == {
         "ok": case["ok"],
@@ -739,14 +739,14 @@ def test_wire_channel_parse(case):
 
 @cases("wire-channel.json", "connect")
 def test_wire_channel_connect(case):
-    from chaincraft_core.channel import is_connect_allowed
+    from chaincraft.channel import is_connect_allowed
 
     assert is_connect_allowed(case["input"]) is case["allowed"]
 
 
 @cases("wire-channel.json", "sequence")
 def test_wire_channel_sequence(case):
-    from chaincraft_core.channel import LoopBus, LoopChannel
+    from chaincraft.channel import LoopBus, LoopChannel
 
     bus = LoopBus()
     peers = {"a": LoopChannel(bus), "b": LoopChannel(bus)}
@@ -778,7 +778,7 @@ def test_wire_channel_sequence(case):
 
 @cases("channel-adapters.json", "sequence")
 def test_channel_adapters_sequence(case):
-    from chaincraft_core.adapters import (
+    from chaincraft.adapters import (
         AdapterChannel,
         forum_bus,
         mail_bus,
@@ -823,7 +823,7 @@ def test_channel_adapters_sequence(case):
 
 @cases("bittorrent-swarm.json", "replay")
 def test_bittorrent_swarm_replay(case):
-    from chaincraft_core.bittorrent import Swarm
+    from chaincraft.bittorrent import Swarm
 
     obj = Swarm()
     digest = case["info_hash"]
@@ -845,14 +845,14 @@ def test_bittorrent_swarm_replay(case):
 
 @cases("discovery-nat.json", "request")
 def test_nat_request(case):
-    from chaincraft_core.nat import binding_request
+    from chaincraft.nat import binding_request
 
     assert binding_request(case["txid"]) == {"ok": case["ok"], "packet": case["packet"]}
 
 
 @cases("discovery-nat.json", "success")
 def test_nat_success(case):
-    from chaincraft_core.nat import binding_success
+    from chaincraft.nat import binding_success
 
     assert binding_success(case["txid"], case["host"], case["port"]) == {
         "ok": case["ok"],
@@ -862,7 +862,7 @@ def test_nat_success(case):
 
 @cases("discovery-nat.json", "response")
 def test_nat_response(case):
-    from chaincraft_core.nat import parse_binding_response
+    from chaincraft.nat import parse_binding_response
 
     assert parse_binding_response(case["packet"], case["txid"]) == {
         "ok": case["ok"],
@@ -873,7 +873,7 @@ def test_nat_response(case):
 
 @cases("discovery-nat.json", "construct")
 def test_nat_construct(case):
-    from chaincraft_core.nat import NatTraversal
+    from chaincraft.nat import NatTraversal
 
     if not case["ok"]:
         with pytest.raises(ProtocolError):
@@ -885,7 +885,7 @@ def test_nat_construct(case):
 
 @cases("discovery-nat.json", "sequence")
 def test_nat_sequence(case):
-    from chaincraft_core.nat import NatTraversal
+    from chaincraft.nat import NatTraversal
 
     node = NatTraversal(case["listen"], external=case["external"], relay=case["relay"])
     for index, step in enumerate(case["steps"]):
@@ -928,7 +928,7 @@ def test_nat_sequence(case):
 
 @cases("app-pubsub.json", "replay")
 def test_app_pubsub_replay(case):
-    from chaincraft_core.pubsub import PubSub
+    from chaincraft.pubsub import PubSub
 
     obj = PubSub()
     for index, step in enumerate(case["steps"]):
@@ -951,7 +951,7 @@ def test_app_pubsub_replay(case):
 
 @cases("app-stream.json", "replay")
 def test_app_stream_replay(case):
-    from chaincraft_core.stream import Stream
+    from chaincraft.stream import Stream
 
     obj = Stream()
     for index, step in enumerate(case["steps"]):

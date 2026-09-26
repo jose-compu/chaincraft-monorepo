@@ -16,7 +16,7 @@ reference, and it carries two obligations the other implementations do not:
 ## Layout
 
 ```
-chaincraft_core/
+chaincraft/
   canonical.py   Canonical JSON encoder and parser (wire-v1 §1)
   envelope.py    Envelope build, serialize, validate (§3)
   framing.py     TCP framing and UDP datagrams (§4)
@@ -66,9 +66,9 @@ adds `python/tests` to `sys.path` to reach them.
 ```bash
 pip install -e ".[dev]"
 python -m pytest tests/ -v
-python -m chaincraft_core.features      # feature manifest
-black chaincraft_core tests
-ruff check chaincraft_core tests
+python -m chaincraft.features      # feature manifest
+black chaincraft tests
+ruff check chaincraft tests
 ```
 
 ## Conventions
@@ -86,7 +86,7 @@ ruff check chaincraft_core tests
 
 ## When adding a feature
 
-Add the ID to `FEATURES` in `chaincraft_core/features.py` in the same pull request that
+Add the ID to `FEATURES` in `chaincraft/features.py` in the same pull request that
 implements it. The parity gate cross-checks that list against `SPEC/features.yaml` and
 fails on either kind of disagreement.
 

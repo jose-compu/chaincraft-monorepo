@@ -2,9 +2,9 @@
 
 use std::time::Instant;
 
-use chaincraft_core::object::ApplicationObject;
-use chaincraft_core::stream::{Stream, MAX_BATCH};
-use chaincraft_core::{JsonValue, MAX_SAFE_INT};
+use chaincraft::object::ApplicationObject;
+use chaincraft::stream::{Stream, MAX_BATCH};
+use chaincraft::{JsonValue, MAX_SAFE_INT};
 
 const KEEP: i64 = 32;
 
