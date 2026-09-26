@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPO / "python"))
 # scaffolding, not shipped API. See SPEC/semantics-v1.md section 8.
 sys.path.insert(0, str(REPO / "python" / "tests"))
 
-from chaincraft_core import (  # noqa: E402
+from chaincraft import (  # noqa: E402
     adapters,
     channel,
     control,
@@ -32,13 +32,13 @@ from chaincraft_core import (  # noqa: E402
     vdf,
     vrf,
 )
-from chaincraft_core.consensus_pbft import PBFT  # noqa: E402
-from chaincraft_core.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
-from chaincraft_core.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
-from chaincraft_core.fees import charge, estimate, next_base_fee, select  # noqa: E402
-from chaincraft_core.ledger_balance import BalanceLedger  # noqa: E402
-from chaincraft_core.pubsub import MAX_MEMBERS, MAX_POSTS, MAX_ROOMS, MAX_TEXT, PubSub  # noqa: E402
-from chaincraft_core.stream import (  # noqa: E402
+from chaincraft.consensus_pbft import PBFT  # noqa: E402
+from chaincraft.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
+from chaincraft.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
+from chaincraft.fees import charge, estimate, next_base_fee, select  # noqa: E402
+from chaincraft.ledger_balance import BalanceLedger  # noqa: E402
+from chaincraft.pubsub import MAX_MEMBERS, MAX_POSTS, MAX_ROOMS, MAX_TEXT, PubSub  # noqa: E402
+from chaincraft.stream import (  # noqa: E402
     MAX_BATCH,
     MAX_BROKERS,
     MAX_EVENTS,
@@ -49,23 +49,23 @@ from chaincraft_core.stream import (  # noqa: E402
     MAX_STREAMS,
     Stream,
 )
-from chaincraft_core.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
-from chaincraft_core.bittorrent import Swarm, split_payload  # noqa: E402
-from chaincraft_core.envelope import ProtocolError  # noqa: E402
-from chaincraft_core.nat import (  # noqa: E402
+from chaincraft.ledger_utxo import UtxoLedger, transaction_id  # noqa: E402
+from chaincraft.bittorrent import Swarm, split_payload  # noqa: E402
+from chaincraft.envelope import ProtocolError  # noqa: E402
+from chaincraft.nat import (  # noqa: E402
     NatTraversal,
     binding_request,
     binding_success,
     parse_binding_response,
 )
-from chaincraft_core.cli import NodeSession  # noqa: E402
-from chaincraft_core.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
-from chaincraft_core.storage import MessageStore  # noqa: E402
-from chaincraft_core.canonical import MAX_SAFE_INT, canonical_json, payload_digest  # noqa: E402
-from chaincraft_core.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
-from chaincraft_core.envelope import Envelope  # noqa: E402
-from chaincraft_core.memento import StateMemento  # noqa: E402
-from chaincraft_core.object import frontier_digest, merkle_digest, wins_replacement  # noqa: E402
+from chaincraft.cli import NodeSession  # noqa: E402
+from chaincraft.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
+from chaincraft.storage import MessageStore  # noqa: E402
+from chaincraft.canonical import MAX_SAFE_INT, canonical_json, payload_digest  # noqa: E402
+from chaincraft.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
+from chaincraft.envelope import Envelope  # noqa: E402
+from chaincraft.memento import StateMemento  # noqa: E402
+from chaincraft.object import frontier_digest, merkle_digest, wins_replacement  # noqa: E402
 from conformance_objects import build_registry, snapshot  # noqa: E402
 
 VECTORS = REPO / "conformance" / "vectors"

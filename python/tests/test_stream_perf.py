@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import time
 
-from chaincraft_core.canonical import MAX_SAFE_INT
-from chaincraft_core.stream import MAX_BATCH, Stream
+from chaincraft.canonical import MAX_SAFE_INT
+from chaincraft.stream import MAX_BATCH, Stream
 
 BURST = 65536
 KEEP = 32

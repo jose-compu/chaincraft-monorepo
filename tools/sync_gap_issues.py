@@ -31,7 +31,7 @@ from parity_check import collect_gaps, load_registry, parse_date  # noqa: E402
 LABEL = "parity-gap"
 
 MANIFEST_PATHS = {
-    "python": "python/chaincraft_core/features.py",
+    "python": "python/chaincraft/features.py",
     "rust": "rust/src/features.rs",
     "typescript": "typescript/src/features.ts",
 }

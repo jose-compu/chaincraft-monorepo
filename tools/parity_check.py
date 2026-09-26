@@ -39,8 +39,8 @@ SATISFIED = {"implemented", "exempt"}
 MANIFESTS = {
     "python": {
         "cwd": "python",
-        "marker": "python/chaincraft_core/__init__.py",
-        "cmd": [sys.executable, "-m", "chaincraft_core.features"],
+        "marker": "python/chaincraft/__init__.py",
+        "cmd": [sys.executable, "-m", "chaincraft.features"],
     },
     "rust": {
         "cwd": "rust",
@@ -158,7 +158,7 @@ def check_spec_release(report: Report) -> None:
         "typescript": json.loads((REPO / "typescript/package.json").read_text())["version"],
     }
     constants = {
-        "python": _quoted((REPO / "python/chaincraft_core/__init__.py").read_text(), "__version__"),
+        "python": _quoted((REPO / "python/chaincraft/__init__.py").read_text(), "__version__"),
         "rust": _quoted((REPO / "rust/src/features.rs").read_text(), "VERSION"),
         "typescript": _quoted((REPO / "typescript/src/features.ts").read_text(), "VERSION"),
     }
@@ -171,7 +171,7 @@ def check_spec_release(report: Report) -> None:
 
     wire = release_doc.get("wire_protocol")
     wire_constants = {
-        "python": _integer((REPO / "python/chaincraft_core/envelope.py").read_text(), "PROTOCOL_VERSION"),
+        "python": _integer((REPO / "python/chaincraft/envelope.py").read_text(), "PROTOCOL_VERSION"),
         "rust": _integer((REPO / "rust/src/features.rs").read_text(), "WIRE_VERSION"),
         "typescript": _integer((REPO / "typescript/src/features.ts").read_text(), "WIRE_VERSION"),
     }

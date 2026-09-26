@@ -152,7 +152,7 @@ Each implementation exports the feature IDs it claims:
 
 | Language | Command |
 |---|---|
-| Python | `python -m chaincraft_core.features` |
+| Python | `python -m chaincraft.features` |
 | Rust | `cargo run --bin features` |
 | TypeScript | `npm run --silent features` |
 
@@ -208,7 +208,7 @@ request** — the vectors are the objective check, human review is the judgement
 
 ### Stage 2 — Python reference core ✅
 
-`python/chaincraft_core/` — Level 0 and Level 1 complete, 260 tests passing.
+`python/chaincraft/` — Level 0 and Level 1 complete, 260 tests passing.
 
 ### Stage 3 — Parity machinery ✅
 
@@ -351,8 +351,8 @@ Full parity implies **lockstep releases**. All three packages and `SPEC/release.
 carry the same version:
 
 ```
-chaincraft-core (PyPI)    1.0.0
-chaincraft-core (crates)  1.0.0
+chaincraft (PyPI)    1.0.0
+chaincraft (crates)  1.0.0
 @chaincraft/core (npm)    1.0.0
 SPEC/release.yaml         1.0.0
 ```
@@ -369,7 +369,7 @@ The wire protocol keeps its own number, envelope `v` = 1. It does not move when 
 spec release moves.
 
 `nostraft` stays **outside** this repository. It is an application consuming
-`chaincraft-core` as a dependency.
+`chaincraft` as a dependency.
 
 ---
 

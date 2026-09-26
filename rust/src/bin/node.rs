@@ -2,8 +2,8 @@
 
 use std::io::BufRead;
 
-use chaincraft_core::features::IMPL;
-use chaincraft_core::mesh::{emit, to_json_value, Mesh};
+use chaincraft::features::IMPL;
+use chaincraft::mesh::{emit, to_json_value, Mesh};
 use serde_json::{json, Value};
 
 const MAX_STDIN_LINE: usize = 1_048_576;

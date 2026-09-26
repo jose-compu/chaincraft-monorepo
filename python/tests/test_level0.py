@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from chaincraft_core import canonical, control, crypto, envelope, framing
-from chaincraft_core.canonical import CanonicalError, canonical_json, payload_digest
-from chaincraft_core.dedup import Deduplicator, SeenDigests
-from chaincraft_core.envelope import Envelope, ProtocolError
-from chaincraft_core.discovery import is_connect_allowed, is_resolved_ip_allowed
-from chaincraft_core.framing import FrameReader, FramingError, encode_frame
-from chaincraft_core.mesh import Mesh
+from chaincraft import canonical, control, crypto, envelope, framing
+from chaincraft.canonical import CanonicalError, canonical_json, payload_digest
+from chaincraft.dedup import Deduplicator, SeenDigests
+from chaincraft.envelope import Envelope, ProtocolError
+from chaincraft.discovery import is_connect_allowed, is_resolved_ip_allowed
+from chaincraft.framing import FrameReader, FramingError, encode_frame
+from chaincraft.mesh import Mesh
 
 
 # --- section 1: canonical JSON ---------------------------------------------

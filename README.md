@@ -34,8 +34,8 @@ SPEC/            Normative specifications — the source of truth
   semantics-v1.md  Level 1 — object and pipeline semantics
   features.yaml    Level 2 — the parity registry
 conformance/     Shared golden vectors and the live interop runner
-python/          chaincraft-core — reference implementation
-rust/            chaincraft-core crate
+python/          chaincraft — reference implementation
+rust/            chaincraft crate
 typescript/      @chaincraft/core
 tools/           parity_check.py, sync_gap_issues.py
 AGENTS.md        Contributor contract, human and agent alike
@@ -140,7 +140,7 @@ python -m pytest tests/ -v
 ```
 
 ```python
-from chaincraft_core import Envelope, encode_frame
+from chaincraft import Envelope, encode_frame
 
 env = Envelope.build("app.counter", {"by": "alice", "delta": 1})
 print(env.id)        # sha256 over the canonical payload
@@ -152,7 +152,7 @@ A protocol implements `receive`. Peers may miss a message. A memento is for a
 consensus object, not for a chat room.
 
 ```python
-from chaincraft_core.object import SharedObject
+from chaincraft.object import SharedObject
 
 class Room(SharedObject):
     def __init__(self):

@@ -1,4 +1,4 @@
-"""chaincraft-core — Level 0 wire protocol and Level 1 object semantics.
+"""chaincraft — Level 0 wire protocol and Level 1 object semantics.
 
 Implements SPEC/wire-v1.md and SPEC/semantics-v1.md. Consensus, ledgers, storage
 and the application layer are Level 2 and live in their own modules.

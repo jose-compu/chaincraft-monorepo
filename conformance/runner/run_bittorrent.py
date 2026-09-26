@@ -30,7 +30,7 @@ from run_interop import (  # noqa: E402
 
 BT_COMMANDS = {
     "python": {
-        "cmd": [sys.executable, "-m", "chaincraft_core.bt_node"],
+        "cmd": [sys.executable, "-m", "chaincraft.bt_node"],
         "cwd": REPO / "python",
         "env_extra": {},
     },

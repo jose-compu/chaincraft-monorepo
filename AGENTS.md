@@ -95,7 +95,7 @@ the stamp in the same pull request.
 2. **Register.** Add the entry to `SPEC/features.yaml`, `planned` for all three.
 3. **Implement once.** Any language. Write vectors alongside.
 4. **Add to the manifest.** Register the feature ID in that language's feature manifest
-   (`python/chaincraft_core/features.py`, `rust/src/features.rs`,
+   (`python/chaincraft/features.py`, `rust/src/features.rs`,
    `typescript/src/features.ts`).
 5. **Update the registry** to `implemented` for that language.
 6. **Open gap issues.** CI does this automatically on merge, one per missing language.

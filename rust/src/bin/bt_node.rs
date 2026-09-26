@@ -3,9 +3,9 @@
 use std::io::BufRead;
 use std::sync::Arc;
 
-use chaincraft_core::bittorrent::{Client, WIRE_TYPE};
-use chaincraft_core::features::IMPL;
-use chaincraft_core::mesh::{emit, json_to_serde, to_json_value, Mesh};
+use chaincraft::bittorrent::{Client, WIRE_TYPE};
+use chaincraft::features::IMPL;
+use chaincraft::mesh::{emit, json_to_serde, to_json_value, Mesh};
 use serde_json::{json, Value};
 
 const MAX_STDIN_LINE: usize = 1_048_576;

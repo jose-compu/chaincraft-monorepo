@@ -1,14 +1,20 @@
 [package]
-name = "chaincraft-core"
+name = "chaincraft"
 version = "1.0.0"
 edition = "2021"
 rust-version = "1.74"
+authors = ["Chaincraft Contributors"]
 license = "MIT"
 description = "Chaincraft Level 0 wire protocol and Level 1 object semantics"
-publish = false
+readme = "README.md"
+homepage = "https://github.com/jose-compu/chaincraft-monorepo"
+repository = "https://github.com/jose-compu/chaincraft-monorepo"
+documentation = "https://docs.rs/chaincraft"
+keywords = ["blockchain", "education", "prototyping", "distributed", "consensus"]
+categories = ["network-programming", "cryptography", "science"]
 
 [lib]
-name = "chaincraft_core"
+name = "chaincraft"
 path = "src/lib.rs"
 
 [[bin]]

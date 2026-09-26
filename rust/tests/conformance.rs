@@ -7,37 +7,37 @@ use std::any::Any;
 use std::fs;
 use std::path::PathBuf;
 
-use chaincraft_core::adapters::{AdapterBus, AdapterChannel};
-use chaincraft_core::bittorrent::Swarm;
-use chaincraft_core::canonical::{
+use chaincraft::adapters::{AdapterBus, AdapterChannel};
+use chaincraft::bittorrent::Swarm;
+use chaincraft::canonical::{
     canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue,
 };
-use chaincraft_core::channel::{self, LoopBus, LoopChannel};
-use chaincraft_core::cli::NodeSession;
-use chaincraft_core::consensus_pbft::Pbft;
-use chaincraft_core::consensus_pos::ProofOfStake;
-use chaincraft_core::consensus_pow::ProofOfWork;
-use chaincraft_core::control;
-use chaincraft_core::crypto::{public_key_hex, sign, verify, Algorithm};
-use chaincraft_core::dedup::Deduplicator;
-use chaincraft_core::discovery::{self, AddressBook, LocalDiscovery};
-use chaincraft_core::envelope::Envelope;
-use chaincraft_core::fees;
-use chaincraft_core::framing::{decode_datagram, encode_datagram, encode_frame, FrameReader};
-use chaincraft_core::ledger_balance::BalanceLedger;
-use chaincraft_core::ledger_utxo::UtxoLedger;
-use chaincraft_core::memento::StateMemento;
-use chaincraft_core::mempool::Mempool;
-use chaincraft_core::mesh::to_json_value;
-use chaincraft_core::nat::{self, NatTraversal};
-use chaincraft_core::object::{
+use chaincraft::channel::{self, LoopBus, LoopChannel};
+use chaincraft::cli::NodeSession;
+use chaincraft::consensus_pbft::Pbft;
+use chaincraft::consensus_pos::ProofOfStake;
+use chaincraft::consensus_pow::ProofOfWork;
+use chaincraft::control;
+use chaincraft::crypto::{public_key_hex, sign, verify, Algorithm};
+use chaincraft::dedup::Deduplicator;
+use chaincraft::discovery::{self, AddressBook, LocalDiscovery};
+use chaincraft::envelope::Envelope;
+use chaincraft::fees;
+use chaincraft::framing::{decode_datagram, encode_datagram, encode_frame, FrameReader};
+use chaincraft::ledger_balance::BalanceLedger;
+use chaincraft::ledger_utxo::UtxoLedger;
+use chaincraft::memento::StateMemento;
+use chaincraft::mempool::Mempool;
+use chaincraft::mesh::to_json_value;
+use chaincraft::nat::{self, NatTraversal};
+use chaincraft::object::{
     frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
 };
-use chaincraft_core::pipeline::ObjectRegistry;
-use chaincraft_core::pubsub::PubSub;
-use chaincraft_core::storage::MessageStore;
-use chaincraft_core::stream::Stream;
-use chaincraft_core::{ecdsa, vdf, vrf};
+use chaincraft::pipeline::ObjectRegistry;
+use chaincraft::pubsub::PubSub;
+use chaincraft::storage::MessageStore;
+use chaincraft::stream::Stream;
+use chaincraft::{ecdsa, vdf, vrf};
 use serde_json::Value;
 
 fn vectors_dir() -> PathBuf {
@@ -55,7 +55,7 @@ fn hex_bytes(text: &str) -> Vec<u8> {
 }
 
 fn to_hex(bytes: &[u8]) -> String {
-    chaincraft_core::canonical::bytes_to_hex(bytes)
+    chaincraft::canonical::bytes_to_hex(bytes)
 }
 
 // --- conformance objects, semantics-v1 §8 ----------------------------------
@@ -1039,7 +1039,7 @@ fn consensus_pos_schedule() {
     for case in doc["schedule"].as_array().unwrap() {
         let slot = case["slot"].as_i64().unwrap();
         assert_eq!(
-            chaincraft_core::consensus_pos::proposer_for(slot, seed, &validators),
+            chaincraft::consensus_pos::proposer_for(slot, seed, &validators),
             case["proposer"].as_str().unwrap(),
             "slot {slot}"
         );
