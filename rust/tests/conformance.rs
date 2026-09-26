@@ -9,9 +9,7 @@ use std::path::PathBuf;
 
 use chaincraft::adapters::{AdapterBus, AdapterChannel};
 use chaincraft::bittorrent::Swarm;
-use chaincraft::canonical::{
-    canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue,
-};
+use chaincraft::canonical::{canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue};
 use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
 use chaincraft::consensus_pbft::Pbft;
@@ -30,9 +28,7 @@ use chaincraft::memento::StateMemento;
 use chaincraft::mempool::Mempool;
 use chaincraft::mesh::to_json_value;
 use chaincraft::nat::{self, NatTraversal};
-use chaincraft::object::{
-    frontier_digest, merkle_digest, wins_replacement, ApplicationObject,
-};
+use chaincraft::object::{frontier_digest, merkle_digest, wins_replacement, ApplicationObject};
 use chaincraft::pipeline::ObjectRegistry;
 use chaincraft::pubsub::PubSub;
 use chaincraft::storage::MessageStore;
