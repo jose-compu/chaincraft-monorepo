@@ -5,23 +5,42 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=22.6"
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jose-compu/chaincraft-monorepo.git",
+    "directory": "typescript"
+  },
+  "homepage": "https://github.com/jose-compu/chaincraft-monorepo#readme",
+  "bugs": {
+    "url": "https://github.com/jose-compu/chaincraft-monorepo/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
-    "src",
-    "dist"
+    "dist",
+    "README.md"
   ],
   "keywords": [
+    "blockchain",
+    "education",
+    "prototyping",
+    "distributed",
+    "consensus",
     "chaincraft",
     "gossip",
-    "p2p",
-    "protocol",
-    "interop"
+    "p2p"
   ],
   "scripts": {
+    "prepack": "npm run build",
     "test": "node --test test/*.test.ts",
     "features": "node src/featuresCli.ts",
     "lint": "tsc --noEmit",

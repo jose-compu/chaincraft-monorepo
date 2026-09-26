@@ -353,7 +353,7 @@ carry the same version:
 ```
 chaincraft (PyPI)    1.0.0
 chaincraft (crates)  1.0.0
-@chaincraft/core (npm)    1.0.0
+@chaincraft/core (npm)     1.0.0
 SPEC/release.yaml         1.0.0
 ```
 

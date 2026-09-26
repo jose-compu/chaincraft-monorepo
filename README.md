@@ -36,7 +36,7 @@ SPEC/            Normative specifications — the source of truth
 conformance/     Shared golden vectors and the live interop runner
 python/          chaincraft — reference implementation
 rust/            chaincraft crate
-typescript/      @chaincraft/core
+typescript/      @chaincraft/core (npm)
 tools/           parity_check.py, sync_gap_issues.py
 AGENTS.md        Contributor contract, human and agent alike
 ROADMAP.md       The parity commitment and the staged plan
@@ -130,14 +130,21 @@ Full detail in `SPEC/wire-v1.md`.
 
 ---
 
-## Quick start
+## Install
 
 ```bash
-# Python reference implementation
-cd python
-pip install -e ".[dev]"
-python -m pytest tests/ -v
+pip install chaincraft
+cargo add chaincraft
+npm install @chaincraft/core
 ```
+
+Ed25519 in Python is optional: `pip install "chaincraft[ed25519]"`.
+The npm package is `@chaincraft/core`. The unscoped name `chaincraft` on npm
+belongs to another project.
+
+## Examples
+
+These assume the packages above are installed.
 
 ```python
 from chaincraft import Envelope, encode_frame
@@ -146,6 +153,27 @@ env = Envelope.build("app.counter", {"by": "alice", "delta": 1})
 print(env.id)        # sha256 over the canonical payload
 print(env.to_json()) # canonical bytes, keys sorted
 frame = encode_frame(env.to_bytes())
+```
+
+```rust
+use chaincraft::{encode_frame, Envelope, JsonValue};
+
+let env = Envelope::build(
+    "app.counter",
+    JsonValue::object([
+        ("by".into(), JsonValue::String("alice".into())),
+        ("delta".into(), JsonValue::Number(1)),
+    ]),
+    None,
+)?;
+let frame = encode_frame(&env.to_bytes()?)?;
+```
+
+```ts
+import { Envelope, encodeFrame } from "@chaincraft/core";
+
+const env = Envelope.build("app.counter", { by: "alice", delta: 1 });
+const frame = encodeFrame(env.toBytes());
 ```
 
 A protocol implements `receive`. Peers may miss a message. A memento is for a
