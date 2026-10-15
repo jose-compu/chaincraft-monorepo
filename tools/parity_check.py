@@ -45,7 +45,7 @@ MANIFESTS = {
     "rust": {
         "cwd": "rust",
         "marker": "rust/Cargo.toml",
-        "cmd": ["cargo", "run", "--quiet", "--bin", "features"],
+        "cmd": ["cargo", "run", "--quiet", "--bin", "chaincraft-features"],
     },
     "typescript": {
         "cwd": "typescript",

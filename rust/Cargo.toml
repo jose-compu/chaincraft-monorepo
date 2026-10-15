@@ -5,28 +5,35 @@ edition = "2021"
 rust-version = "1.74"
 authors = ["Chaincraft Contributors"]
 license = "MIT"
-description = "Chaincraft Level 0 wire protocol and Level 1 object semantics"
+description = "A platform for decentralized protocols — wire, objects, and pedagogical consensus"
 readme = "README.md"
 homepage = "https://github.com/jose-compu/chaincraft-monorepo"
 repository = "https://github.com/jose-compu/chaincraft-monorepo"
 documentation = "https://docs.rs/chaincraft"
 keywords = ["blockchain", "education", "prototyping", "distributed", "consensus"]
 categories = ["network-programming", "cryptography", "science"]
+include = [
+    "src/**/*",
+    "Cargo.toml",
+    "Cargo.lock",
+    "README.md",
+    "LICENSE",
+]
 
 [lib]
 name = "chaincraft"
 path = "src/lib.rs"
 
 [[bin]]
-name = "features"
+name = "chaincraft-features"
 path = "src/bin/features.rs"
 
 [[bin]]
-name = "node"
+name = "chaincraft-node"
 path = "src/bin/node.rs"
 
 [[bin]]
-name = "bt_node"
+name = "chaincraft-bt-node"
 path = "src/bin/bt_node.rs"
 
 [dependencies]
