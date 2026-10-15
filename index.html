@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Chaincraft 1.0.0 — building blocks for decentralized protocols, in Python, Rust, and TypeScript, held at feature parity.">
-  <title>Chaincraft 1.0.0 — Building blocks for decentralized protocols</title>
+  <meta name="description" content="Chaincraft 1.0.0 — building blocks for blockchains and peer-to-peer protocols, in Python, Rust, and TypeScript, held at feature parity.">
+  <title>Chaincraft 1.0.0 — Building blocks for blockchains</title>
   <link rel="stylesheet" href="styles.css?v=3">
   <link rel="icon" href="chaincraft-logo.png" type="image/png">
 </head>
@@ -28,11 +28,12 @@
   <main id="top">
     <header class="hero">
       <img class="hero-logo" src="chaincraft-logo-full.png" alt="Chaincraft voxel chain logo" width="280" height="280">
-      <h1>Building blocks<br>for decentralized protocols</h1>
+      <h1>Building blocks<br>for blockchains</h1>
       <p class="tagline">
-        Open-source toolkit for peer-to-peer protocols. A chat room, a topic, a
-        BitTorrent swarm, or a store is a local object. Consensus is a
-        feature you add when peers must agree — in Python, Rust, and TypeScript.
+        Open-source toolkit for peer-to-peer blockchains. Assemble proof-of-work,
+        proof-of-stake, or PBFT with a balance or UTXO ledger on one mesh.
+        Chat rooms, topics, BitTorrent swarms, and stores are local objects in
+        the same library — Python, Rust, and TypeScript at feature parity.
       </p>
       <div class="hero-cta">
         <a class="btn" href="#install">Install 1.0.0</a>
@@ -44,9 +45,10 @@
     <section id="why" aria-labelledby="why-heading">
       <h2 id="why-heading">Why Chaincraft?</h2>
       <p class="section-lead">
-        Most objects do not agree on a head. Publish-subscribe, chat, BitTorrent,
-        and the content-addressed store keep whatever they have received.
-        Version 1.0.0 is the same behaviour in three languages.
+        The main path is a blockchain: consensus, a ledger, a mempool, and a
+        fee policy on the same mesh, in all three languages. Gossip objects
+        such as chat, BitTorrent, and a content-addressed store do not need a
+        head. They keep whatever they have received.
       </p>
       <div class="why-grid">
         <article class="why-card">
@@ -67,9 +69,9 @@
         <article class="why-card">
           <h3>Composable</h3>
           <p>
-            Consensus is optional. Proof-of-work, proof-of-stake, and PBFT,
-            with a balance or UTXO ledger, attach to the same mesh when a
-            protocol needs a head.
+            Compose a chain: proof-of-work, proof-of-stake, or PBFT, with a
+            balance or UTXO ledger, a mempool, and fees. The same mesh also
+            runs protocols that never agree on a head.
           </p>
         </article>
       </div>
@@ -540,7 +542,7 @@ npm install @chaincraft/core</code></pre>
 
   <footer class="site-footer">
     <img src="chaincraft-logo.png" alt="" width="48" height="48">
-      <p>Chaincraft 1.0.0 — MIT licensed · Decentralized protocol development</p>
+      <p>Chaincraft 1.0.0 — MIT licensed · Peer-to-peer blockchains</p>
     <p>
       <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a> ·
       <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a> ·
