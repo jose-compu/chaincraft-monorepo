@@ -1,30 +1,27 @@
-/* Chaincraft promo site — block/voxel aesthetic aligned with logo */
+/* Chaincraft 1.0.0 site — voxel brand, readable type */
 
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
 
 :root {
   --bg: #0d0f12;
-  --bg-elevated: #161a20;
-  --bg-card: #1c2229;
+  --bg-elevated: #14181e;
+  --bg-card: #1b2128;
   --stone: #8b939e;
   --grass: #6ecf4a;
   --grass-dim: #4a9e32;
   --dirt: #8b6914;
   --accent: #7ee05a;
   --text: #e8ecef;
-  --text-muted: #9aa3ad;
+  --text-muted: #a7b0b8;
   --border: #2a323c;
   --code-bg: #0a0c0e;
-  --pixel-shadow: 4px 4px 0 #000;
-  /* Type scale — bumped for readability */
-  --font-body: 18px;
-  --font-small: 1rem;
-  --font-code: 0.95rem;
-  --font-display: 2rem;
-  --font-section-lead: 1.85rem;
-  --font-pixel-sm: 0.7rem;
-  --font-pixel-md: 0.85rem;
-  --font-pixel-lg: 1.05rem;
+  --pixel-shadow: 3px 3px 0 #000;
+  --measure: 40rem;
+  --content: 52rem;
+  --wide: 64rem;
+  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-pixel: "Press Start 2P", cursive;
 }
 
 *,
@@ -35,19 +32,21 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
+  scroll-padding-top: 4.25rem;
 }
 
 body {
   margin: 0;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: var(--font-body);
-  line-height: 1.7;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--text);
   background: var(--bg);
   background-image:
-    linear-gradient(rgba(110, 207, 74, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(110, 207, 74, 0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
+    linear-gradient(rgba(110, 207, 74, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 207, 74, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 a {
@@ -59,26 +58,30 @@ a:hover {
   text-decoration: underline;
 }
 
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
 /* Header */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem 1.5rem;
-  padding: 0.75rem 2rem;
-  background: rgba(13, 15, 18, 0.92);
-  border-bottom: 3px solid var(--border);
-  backdrop-filter: blur(8px);
+  gap: 1rem 1.5rem;
+  padding: 0.7rem 1.5rem;
+  background: rgba(13, 15, 18, 0.94);
+  border-bottom: 2px solid var(--border);
+  backdrop-filter: blur(10px);
 }
 
 .logo-link {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 0.75rem;
   text-decoration: none;
 }
 
@@ -87,82 +90,81 @@ a:hover {
 }
 
 .logo-link img {
-  height: 40px;
+  height: 32px;
   width: auto;
   image-rendering: pixelated;
 }
 
-.logo-text {
-  font-family: "Press Start 2P", cursive;
-  font-size: var(--font-pixel-sm);
-  color: var(--grass);
-  letter-spacing: 0.05em;
-}
-
 .site-nav {
   display: flex;
-  flex: 1 1 320px;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.75rem 1rem;
-  font-size: 0.85rem;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .site-nav a {
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 .site-nav a:hover {
   color: var(--accent);
+  text-decoration: none;
 }
 
 /* Hero */
 .hero {
-  max-width: 1100px;
+  max-width: var(--content);
   margin: 0 auto;
-  padding: 4rem 2rem 5rem;
+  padding: 3.5rem 1.5rem 4rem;
   text-align: center;
 }
 
 .hero-logo {
-  width: min(280px, 70vw);
-  margin: 0 auto 2rem;
+  display: block;
+  width: min(200px, 52vw);
+  margin: 0 auto 1.75rem;
   image-rendering: pixelated;
-  filter: drop-shadow(8px 8px 0 rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(6px 6px 0 rgba(0, 0, 0, 0.45));
 }
 
 .hero h1 {
-  font-family: "Press Start 2P", cursive;
-  font-size: clamp(1.15rem, 4vw, 1.65rem);
-  line-height: 1.8;
+  font-family: var(--font-pixel);
+  font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+  line-height: 1.7;
   color: var(--text);
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
 }
 
 .hero .tagline {
-  font-family: "VT323", monospace;
-  font-size: var(--font-display);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  font-weight: 400;
   color: var(--text-muted);
-  max-width: 640px;
-  margin: 0 auto 2rem;
+  max-width: 34rem;
+  margin: 0 auto 1.75rem;
 }
 
 .hero-cta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: center;
 }
 
 .btn {
   display: inline-block;
-  padding: 0.85rem 1.5rem;
-  font-family: "Press Start 2P", cursive;
-  font-size: var(--font-pixel-sm);
+  padding: 0.7rem 1.1rem;
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  line-height: 1.3;
   text-transform: uppercase;
-  border: 3px solid var(--grass);
+  border: 2px solid var(--grass);
   background: var(--grass-dim);
   color: #0d0f12;
   box-shadow: var(--pixel-shadow);
@@ -172,7 +174,7 @@ a:hover {
 
 .btn:hover {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #000;
+  box-shadow: 1px 1px 0 #000;
   text-decoration: none;
 }
 
@@ -181,90 +183,117 @@ a:hover {
   color: var(--grass);
 }
 
-/* Sections */
+/* Sections — full-bleed background, inner measure */
 section {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
+  width: 100%;
+  max-width: none;
+  padding: 3.5rem 1.5rem;
+}
+
+section > * {
+  max-width: var(--content);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+section > .module-table,
+section > .diagram-wrap,
+section > .why-grid,
+section > .hello-steps,
+section > .pill-grid,
+section > .code-block,
+section > pre {
+  max-width: var(--wide);
 }
 
 section h2 {
-  font-family: "Press Start 2P", cursive;
-  font-size: clamp(0.85rem, 3vw, 1.15rem);
-  line-height: 1.7;
-  margin: 0 0 0.5rem;
+  font-family: var(--font-pixel);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0 0 0.9rem;
   color: var(--grass);
 }
 
 section .section-lead {
-  font-family: "VT323", monospace;
-  font-size: var(--font-section-lead);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.65;
   color: var(--text-muted);
-  margin: 0 0 2.5rem;
-  max-width: 720px;
+  margin: 0 0 1.75rem;
+  max-width: var(--measure);
 }
 
-/* Why cards — three-column feature grid */
+section p {
+  margin: 0 0 1rem;
+}
+
+/* Cards */
 .why-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.1rem;
 }
 
 .why-card {
   background: var(--bg-card);
-  border: 3px solid var(--border);
-  padding: 1.75rem;
+  border: 2px solid var(--border);
+  padding: 1.25rem 1.35rem;
   box-shadow: var(--pixel-shadow);
 }
 
 .why-card h3 {
-  font-family: "Press Start 2P", cursive;
-  font-size: var(--font-pixel-sm);
-  line-height: 1.6;
-  margin: 0 0 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 0.55rem;
   color: var(--accent);
 }
 
 .why-card p {
   margin: 0;
-  font-size: var(--font-small);
+  font-size: 0.9375rem;
+  line-height: 1.55;
   color: var(--text-muted);
 }
 
-/* Modular stack */
+/* Tables */
 .module-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-small);
-  margin: 1.5rem 0;
+  font-size: 0.9375rem;
+  margin: 1.25rem auto;
 }
 
 .module-table th,
 .module-table td {
-  border: 2px solid var(--border);
-  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  padding: 0.65rem 0.9rem;
   text-align: left;
+  vertical-align: top;
 }
 
 .module-table th {
-  background: var(--bg-elevated);
-  font-family: "Press Start 2P", cursive;
-  font-size: 0.6rem;
+  background: var(--bg-card);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--grass);
 }
 
 .module-table code {
-  font-size: var(--font-code);
+  font-size: 0.85em;
   color: var(--accent);
 }
 
 /* Architecture diagram */
 .diagram-wrap {
   background: var(--bg-card);
-  border: 3px solid var(--border);
-  padding: 2rem;
-  margin: 2rem 0;
+  border: 2px solid var(--border);
+  padding: 1.5rem;
+  margin: 1.5rem auto;
   overflow-x: auto;
   box-shadow: var(--pixel-shadow);
 }
@@ -276,77 +305,82 @@ section .section-lead {
   margin: 0 auto;
 }
 
-/* Hello World — Substrate-style steps */
+/* Hello World steps */
 .hello-steps {
   counter-reset: step;
 }
 
 .hello-step {
   position: relative;
-  margin-bottom: 3rem;
-  padding-left: 3.5rem;
-  border-left: 4px solid var(--grass-dim);
+  margin-bottom: 2.25rem;
+  padding-left: 3rem;
+  border-left: 3px solid var(--grass-dim);
 }
 
 .hello-step::before {
   counter-increment: step;
   content: counter(step);
   position: absolute;
-  left: -1.35rem;
-  top: 0;
-  width: 2.25rem;
-  height: 2.25rem;
+  left: -1.05rem;
+  top: 0.1rem;
+  width: 1.9rem;
+  height: 1.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Press Start 2P", cursive;
-  font-size: var(--font-pixel-sm);
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
   background: var(--grass);
   color: #0d0f12;
-  border: 3px solid #000;
+  border: 2px solid #000;
 }
 
 .hello-step h3 {
-  font-family: "VT323", monospace;
-  font-size: var(--font-display);
-  margin: 0 0 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 0.55rem;
   color: var(--text);
 }
 
 .hello-step h4 {
-  font-family: "Press Start 2P", monospace;
-  font-size: var(--font-pixel-sm);
-  margin: 1.25rem 0 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 1.1rem 0 0.5rem;
   color: var(--grass);
 }
 
 .hello-step p {
-  margin: 0 0 1rem;
+  margin: 0 0 0.85rem;
+  font-size: 0.975rem;
   color: var(--text-muted);
 }
 
 pre,
 .code-block {
   background: var(--code-bg);
-  border: 2px solid var(--border);
-  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  padding: 0.9rem 1.05rem;
   overflow-x: auto;
-  font-size: var(--font-code);
+  font-size: 0.84rem;
   line-height: 1.55;
-  margin: 0 0 1rem;
-  box-shadow: inset 0 0 0 1px rgba(110, 207, 74, 0.1);
+  margin: 0 auto 1rem;
+  box-shadow: inset 0 0 0 1px rgba(110, 207, 74, 0.08);
 }
 
 pre.code-block code.hljs {
   display: block;
   padding: 0;
   background: transparent;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: inherit;
   line-height: inherit;
 }
 
-/* Highlight.js — tuned to Chaincraft palette */
 .hljs {
   color: var(--text);
   background: transparent;
@@ -398,31 +432,27 @@ pre.code-block code.hljs {
   color: var(--dirt);
 }
 
-code {
-  font-family: "IBM Plex Mono", monospace;
-}
-
 .note {
-  font-size: var(--font-small);
+  font-size: 0.9rem;
   color: var(--stone);
   border-left: 3px solid var(--dirt);
-  padding-left: 1rem;
-  margin: 1rem 0;
+  padding-left: 0.9rem;
+  margin: 1rem auto;
 }
 
-/* Consensus pills */
 .pill-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 1rem 0;
+  gap: 0.45rem;
+  margin: 0.85rem auto 1.25rem;
 }
 
 .pill {
-  font-size: 0.9rem;
-  padding: 0.35rem 0.65rem;
-  background: var(--bg-elevated);
-  border: 2px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  padding: 0.3rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   color: var(--text-muted);
 }
 
@@ -431,53 +461,64 @@ code {
 .pill-pow { border-color: var(--dirt); }
 .pill-dag { border-color: #9b5bef; }
 
-/* Footer */
 .site-footer {
-  border-top: 3px solid var(--border);
-  padding: 3rem 2rem;
+  border-top: 2px solid var(--border);
+  padding: 2.25rem 1.5rem;
   text-align: center;
   color: var(--text-muted);
-  font-size: var(--font-small);
+  font-size: 0.875rem;
 }
 
 .site-footer img {
-  height: 48px;
-  margin-bottom: 1rem;
+  height: 40px;
+  margin-bottom: 0.75rem;
   opacity: 0.9;
   image-rendering: pixelated;
 }
 
-.alt-bg {
-  background: var(--bg-elevated);
-  border-top: 3px solid var(--border);
-  border-bottom: 3px solid var(--border);
+.site-footer p {
+  margin: 0.35rem 0;
 }
 
-@media (max-width: 960px) {
+.alt-bg {
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 800px) {
   .site-header {
     flex-direction: column;
     align-items: flex-start;
+    padding: 0.75rem 1rem;
   }
 
   .site-nav {
     justify-content: flex-start;
+    gap: 0.4rem 0.85rem;
+  }
+
+  .hero {
+    padding: 2.5rem 1rem 3rem;
+  }
+
+  section {
+    padding: 2.75rem 1rem;
   }
 }
 
 @media (max-width: 640px) {
-  .site-header {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-
   .hello-step {
     padding-left: 1rem;
-    border-left-width: 3px;
+    border-left-width: 2px;
   }
 
   .hello-step::before {
     position: static;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .module-table {
+    font-size: 0.85rem;
   }
 }
