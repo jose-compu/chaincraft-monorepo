@@ -4,15 +4,17 @@ Interactive version: open [`index.html`](index.html) in this folder, or the publ
 
 This walks through a gossiped message on Chaincraft 1.0.0. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
 
+Package names: `chaincraft` (PyPI and crates.io), `@chaincraft/core` (npm). Install 1.0.0 from the GitHub tag until those registries serve this release. `pip install chaincraft` currently resolves to the 0.8 line.
+
 ## Install
 
-Python 3.9+, a Rust toolchain, and Node 22.6+. From the clone root:
+Python 3.9+, a Rust toolchain, and Node 20+. From the clone root:
 
 ```bash
-git clone https://github.com/jose-compu/chaincraft-monorepo.git
+git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
 python3 -m pip install -e "./python[dev]"
-cargo build --bin node --manifest-path rust/Cargo.toml
+cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
 npm install --prefix typescript
 ```
 
@@ -41,16 +43,18 @@ Stdout events:
 
 `received` may also include `data`. Rust's node prints `id` and `type`.
 
+The core node is connect / send / ids / quit. BitTorrent is a Mesh client (`python3 -m chaincraft.bt_node`, `chaincraft-bt-node`, `npm run bt-node`).
+
 ## Run three nodes
 
 Stay at the clone root.
 
 ```bash
 # Terminal 1
-python3 -m chaincraft_core.node
+python3 -m chaincraft.node
 
 # Terminal 2
-cargo run --bin node --manifest-path rust/Cargo.toml
+cargo run --bin chaincraft-node --manifest-path rust/Cargo.toml
 
 # Terminal 3
 npm run node --prefix typescript
@@ -79,8 +83,8 @@ These do not open a socket. Each one implements `receive`, prints the message, f
 Save as `hello.py` and run `python3 hello.py`.
 
 ```python
-from chaincraft_core import Envelope, encode_frame
-from chaincraft_core.object import SharedObject
+from chaincraft import Envelope, encode_frame
+from chaincraft.object import SharedObject
 
 
 class HelloObject(SharedObject):
@@ -110,11 +114,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chaincraft-core = { path = "../rust" }
+chaincraft = { path = "../rust" }
 ```
 
 ```rust
-use chaincraft_core::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
+use chaincraft::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
 
 struct HelloObject;
 
@@ -142,7 +146,7 @@ fn main() {
 
 ### TypeScript
 
-Save as `typescript/hello.ts` and run `node hello.ts` from `typescript/`. Override `receive`.
+Save as `typescript/hello.ts` and run `node hello.ts` from `typescript/` after `npm install --prefix typescript`. Override `receive`. The checkout import is `./src/index.ts`. After `npm install @chaincraft/core`, import that package.
 
 ```typescript
 import {
@@ -168,3 +172,5 @@ console.log("frame_len", frame.length);
 ```
 
 The live 3×3 check is `python3 conformance/runner/run_interop.py` from the repository root.
+
+Release: https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0

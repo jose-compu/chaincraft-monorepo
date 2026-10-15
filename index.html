@@ -18,9 +18,9 @@
       <a href="#stack">Stack</a>
       <a href="#architecture">Architecture</a>
       <a href="#parity">Parity</a>
-      <a href="#chat">Chat</a>
       <a href="#hello">Hello World</a>
-      <a href="#start">Get started</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0" target="_blank" rel="noopener">v1.0.0</a>
       <a href="https://github.com/jose-compu/chaincraft-monorepo" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </header>
@@ -35,8 +35,9 @@
         feature you add when peers must agree — in Python, Rust, and TypeScript.
       </p>
       <div class="hero-cta">
-        <a class="btn" href="#hello">Hello World</a>
-        <a class="btn btn-secondary" href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/wire-v1.md" target="_blank" rel="noopener">Read the wire spec</a>
+        <a class="btn" href="#install">Install 1.0.0</a>
+        <a class="btn btn-secondary" href="#hello">Hello World</a>
+        <a class="btn btn-secondary" href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0" target="_blank" rel="noopener">GitHub release</a>
       </div>
     </header>
 
@@ -102,7 +103,7 @@
           <tr>
             <td>2</td>
             <td>Protocols</td>
-            <td>Publish-subscribe and chat rooms, a BitTorrent swarm, a content-addressed store. No shared head.</td>
+            <td>Publish-subscribe, chat rooms, an append-only stream, a BitTorrent swarm (Mesh client). No shared head.</td>
           </tr>
           <tr>
             <td>2</td>
@@ -122,7 +123,7 @@
           <tr>
             <td>2</td>
             <td>Network</td>
-            <td>Peer book, NAT traversal, address URIs, loop channel</td>
+            <td>Peer book, NAT (STUN, hole punch, relay), address URIs, localhost UDP, in-process pipe, pedagogical mailto/WebRTC/forum buses</td>
           </tr>
         </tbody>
       </table>
@@ -132,7 +133,7 @@
         <span class="pill pill-bft">bft: pbft pre-prepare / prepare / commit</span>
         <span class="pill pill-gossip">pos: deterministic weighted proposer</span>
       </div>
-      <pre class="code-block"><code class="language-python">from chaincraft_core import Envelope, encode_frame
+      <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame
 
 env = Envelope.build("app.counter", {"by": "alice", "delta": 1})
 frame = encode_frame(env.to_bytes())
@@ -172,8 +173,8 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
           <text x="190" y="288" fill="#9aa3ad" text-anchor="middle" font-size="9">+ relay to peers</text>
           <rect x="400" y="230" width="260" height="72" rx="4" fill="#0a0c0e" stroke="#ef5b8d" stroke-width="2"/>
           <text x="530" y="252" fill="#ef5b8d" text-anchor="middle">Control path</text>
-          <text x="530" y="272" fill="#9aa3ad" text-anchor="middle" font-size="9">ctl.* stays on the connection</text>
-          <text x="530" y="288" fill="#9aa3ad" text-anchor="middle" font-size="9">never relayed</text>
+          <text x="530" y="272" fill="#9aa3ad" text-anchor="middle" font-size="9">link.* stays on that peer</text>
+          <text x="530" y="288" fill="#9aa3ad" text-anchor="middle" font-size="9">ctl.* is mesh hello</text>
           <line x1="190" y1="302" x2="190" y2="330" stroke="#6ecf4a" marker-end="url(#arrow)"/>
           <line x1="530" y1="302" x2="530" y2="330" stroke="#ef5b8d" marker-end="url(#arrow)"/>
           <rect x="120" y="330" width="480" height="70" rx="4" fill="#1c2229" stroke="#6ecf4a" stroke-width="2"/>
@@ -191,7 +192,7 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
     <section id="parity" class="alt-bg" aria-labelledby="parity-heading">
       <h2 id="parity-heading">Parity</h2>
       <p class="section-lead">
-        34 of 34 features. Python, Rust, and TypeScript accept and reject the
+        40 of 40 features. Python, Rust, and TypeScript accept and reject the
         same inputs and emit the same bytes. The registry is
         <code>SPEC/features.yaml</code>. CI fails when a language drifts.
       </p>
@@ -206,18 +207,18 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
         <tbody>
           <tr>
             <td>Python</td>
-            <td><code>chaincraft-core</code></td>
+            <td><code>chaincraft</code> (PyPI)</td>
             <td>Reference. Vectors are generated from it.</td>
           </tr>
           <tr>
             <td>Rust</td>
-            <td><code>chaincraft-core</code></td>
-            <td>Same wire, same fork choice, same error classes.</td>
+            <td><code>chaincraft</code> (crates.io)</td>
+            <td>Same wire, same fork choice, same error classes. Bins: <code>chaincraft-node</code>, <code>chaincraft-bt-node</code>.</td>
           </tr>
           <tr>
             <td>TypeScript</td>
-            <td><code>@chaincraft/core</code></td>
-            <td>33 features. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0.</td>
+            <td><code>@chaincraft/core</code> (npm)</td>
+            <td>39 implemented. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0. The unscoped npm name <code>chaincraft</code> belongs to another project.</td>
           </tr>
         </tbody>
       </table>
@@ -256,12 +257,12 @@ python3 conformance/runner/run_interop.py</code></pre>
 
       <div class="hello-steps">
         <article class="hello-step">
-          <h3>Install from the monorepo</h3>
-          <p>Python 3.9+, a Rust toolchain, and Node 22.6+. Every command below starts from the clone root.</p>
-          <pre class="code-block"><code class="language-bash">git clone https://github.com/jose-compu/chaincraft-monorepo.git
+          <h3>Install from the v1.0.0 tag</h3>
+          <p>Python 3.9+, a Rust toolchain, and Node 20+. Every command below starts from the clone root.</p>
+          <pre class="code-block"><code class="language-bash">git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
 python3 -m pip install -e "./python[dev]"
-cargo build --bin node --manifest-path rust/Cargo.toml
+cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
 npm install --prefix typescript</code></pre>
         </article>
 
@@ -283,10 +284,10 @@ npm install --prefix typescript</code></pre>
             Point the second node at the first.
           </p>
           <pre class="code-block"><code class="language-bash"># Terminal 1
-python3 -m chaincraft_core.node
+python3 -m chaincraft.node
 
 # Terminal 2
-cargo run --bin node --manifest-path rust/Cargo.toml
+cargo run --bin chaincraft-node --manifest-path rust/Cargo.toml
 
 # Terminal 3
 npm run node --prefix typescript</code></pre>
@@ -331,8 +332,8 @@ npm run node --prefix typescript</code></pre>
           </p>
           <h4>Python</h4>
           <p>Save as <code>hello.py</code> and run <code>python3 hello.py</code>.</p>
-          <pre class="code-block"><code class="language-python">from chaincraft_core import Envelope, encode_frame
-from chaincraft_core.object import SharedObject
+          <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame
+from chaincraft.object import SharedObject
 
 
 class HelloObject(SharedObject):
@@ -362,8 +363,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chaincraft-core = { path = "../rust" }</code></pre>
-          <pre class="code-block"><code class="language-rust">use chaincraft_core::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
+chaincraft = { path = "../rust" }</code></pre>
+          <pre class="code-block"><code class="language-rust">use chaincraft::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
 
 struct HelloObject;
 
@@ -390,8 +391,11 @@ fn main() {
           <h4>TypeScript</h4>
           <p>
             Save as <code>typescript/hello.ts</code> and run
-            <code>node hello.ts</code> from <code>typescript/</code>.
-            Override <code>receive</code>.
+            <code>node hello.ts</code> from <code>typescript/</code>
+            after <code>npm install --prefix typescript</code>.
+            Override <code>receive</code>. The checkout import is
+            <code>./src/index.ts</code>. After
+            <code>npm install @chaincraft/core</code>, import that package.
           </p>
           <pre class="code-block"><code class="language-typescript">import {
   BaseSharedObject,
@@ -450,16 +454,49 @@ console.log("frame_len", frame.length);</code></pre>
       </div>
     </section>
 
-    <section id="start" class="alt-bg" aria-labelledby="start-heading">
+    <section id="install" class="alt-bg" aria-labelledby="install-heading">
+      <h2 id="install-heading">Install</h2>
+      <p class="section-lead">
+        Spec release 1.0.0. Package names are <code>chaincraft</code> on PyPI
+        and crates.io, and <code>@chaincraft/core</code> on npm.
+      </p>
+      <p>
+        Use the GitHub tag until those registries serve 1.0.0.
+        <code>pip install chaincraft</code> still resolves to the 0.8 line;
+        crates.io still serves 0.4.1. The unscoped npm name
+        <code>chaincraft</code> belongs to another project.
+      </p>
+      <pre class="code-block"><code class="language-bash">git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
+cd chaincraft-monorepo
+python3 -m pip install -e "./python[ed25519]"
+cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
+npm install --prefix typescript</code></pre>
+      <p>Library names after that install:</p>
+      <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame</code></pre>
+      <pre class="code-block"><code class="language-rust">use chaincraft::{encode_frame, Envelope, JsonValue};</code></pre>
+      <pre class="code-block"><code class="language-typescript">import { Envelope, encodeFrame } from "@chaincraft/core";</code></pre>
+      <p>
+        Release:
+        <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a>.
+        Intended registry commands, once published:
+      </p>
+      <pre class="code-block"><code class="language-bash">pip install chaincraft
+cargo add chaincraft
+npm install @chaincraft/core</code></pre>
+    </section>
+
+    <section id="start" aria-labelledby="start-heading">
       <h2 id="start-heading">Get started</h2>
       <p class="section-lead">Three paths, depending on what you are building.</p>
       <div class="why-grid">
         <article class="why-card">
           <h3>Run a mesh node</h3>
           <p>
-            <code>python -m chaincraft_core.node</code>,
-            <code>cargo run --bin node</code>, or
+            <code>python3 -m chaincraft.node</code>,
+            <code>cargo run --bin chaincraft-node</code>, or
             <code>npm run node</code>. Speak JSON lines before you write a protocol.
+            BitTorrent is a Mesh client: <code>python3 -m chaincraft.bt_node</code>,
+            <code>chaincraft-bt-node</code>, <code>npm run bt-node</code>.
           </p>
         </article>
         <article class="why-card">
@@ -484,11 +521,15 @@ console.log("frame_len", frame.length);</code></pre>
 
   <footer class="site-footer">
     <img src="chaincraft-logo.png" alt="" width="48" height="48">
-    <p>Chaincraft 1.0.0 — MIT licensed · Decentralized protocol development</p>
+      <p>Chaincraft 1.0.0 — MIT licensed · Decentralized protocol development</p>
     <p>
       <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a> ·
+      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a> ·
       <a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/wire-v1.md">Wire spec</a> ·
       <a href="hello-world.md">Hello World</a>
+    </p>
+    <p>
+      Packages: <code>chaincraft</code> (PyPI, crates.io) · <code>@chaincraft/core</code> (npm)
     </p>
   </footer>
 
