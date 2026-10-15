@@ -67,7 +67,7 @@ tests/
 
 ```bash
 cargo test --all-features --verbose
-cargo run --quiet --bin features    # feature manifest, JSON on stdout
+cargo run --quiet --bin chaincraft-features    # feature manifest, JSON on stdout
 cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings
 ```
@@ -94,7 +94,7 @@ propagating a library error.
 
 ## The feature manifest
 
-`cargo run --quiet --bin features` must print JSON on stdout in exactly this shape,
+`cargo run --quiet --bin chaincraft-features` must print JSON on stdout in exactly this shape,
 because `tools/parity_check.py` parses it:
 
 ```json

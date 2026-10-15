@@ -17,6 +17,8 @@ target/
 # TypeScript
 node_modules/
 *.tsbuildinfo
+typescript/dist/
+*.tgz
 
 # Editors and OS
 .DS_Store

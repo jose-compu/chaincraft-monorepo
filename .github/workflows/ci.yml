@@ -298,7 +298,7 @@ jobs:
       - name: Build Rust node
         if: steps.ready.outputs.ready == 'true'
         working-directory: rust
-        run: cargo build --bin node
+        run: cargo build --bin chaincraft-node
       - name: Run the 3x3 matrix
         if: steps.ready.outputs.ready == 'true'
         run: python3 conformance/runner/run_interop.py
@@ -326,7 +326,7 @@ jobs:
         run: npm ci || npm install
       - name: Build Rust node
         working-directory: rust
-        run: cargo build --bin node --bin bt_node
+        run: cargo build --bin chaincraft-node --bin chaincraft-bt-node
       - name: Run the 3-client swarm
         run: python3 conformance/runner/run_bittorrent.py
 

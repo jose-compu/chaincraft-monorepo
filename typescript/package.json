@@ -1,7 +1,7 @@
 {
   "name": "@chaincraft/core",
   "version": "1.0.0",
-  "description": "Chaincraft Level 0 wire protocol and Level 1 object semantics",
+  "description": "A platform for decentralized protocols — wire, objects, and pedagogical consensus",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -27,7 +27,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "blockchain",

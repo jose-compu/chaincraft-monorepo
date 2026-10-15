@@ -50,7 +50,7 @@ COMMANDS = {
         "env_extra": {},
     },
     "rust": {
-        "cmd": ["cargo", "run", "--quiet", "--bin", "node"],
+        "cmd": ["cargo", "run", "--quiet", "--bin", "chaincraft-node"],
         "cwd": REPO / "rust",
         "env_extra": {},
     },

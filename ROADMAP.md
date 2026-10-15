@@ -153,7 +153,7 @@ Each implementation exports the feature IDs it claims:
 | Language | Command |
 |---|---|
 | Python | `python -m chaincraft.features` |
-| Rust | `cargo run --bin features` |
+| Rust | `cargo run --bin chaincraft-features` |
 | TypeScript | `npm run --silent features` |
 
 `tools/parity_check.py` runs all three and diffs them against the registry. A registry

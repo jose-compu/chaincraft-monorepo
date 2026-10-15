@@ -35,7 +35,7 @@ BT_COMMANDS = {
         "env_extra": {},
     },
     "rust": {
-        "cmd": ["cargo", "run", "--quiet", "--bin", "bt_node"],
+        "cmd": ["cargo", "run", "--quiet", "--bin", "chaincraft-bt-node"],
         "cwd": REPO / "rust",
         "env_extra": {},
     },
