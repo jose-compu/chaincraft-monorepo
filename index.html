@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Chaincraft 1.0.0 — building blocks for decentralized protocols, in Python, Rust, and TypeScript, held at feature parity.">
   <title>Chaincraft 1.0.0 — Building blocks for decentralized protocols</title>
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
   <link rel="icon" href="chaincraft-logo.png" type="image/png">
 </head>
 <body>
@@ -490,30 +490,49 @@ npm install @chaincraft/core</code></pre>
       <p class="section-lead">Three paths, depending on what you are building.</p>
       <div class="why-grid">
         <article class="why-card">
-          <h3>Run a mesh node</h3>
+          <h3><a href="#hello">Run a mesh node</a></h3>
           <p>
-            <code>python3 -m chaincraft.node</code>,
-            <code>cargo run --bin chaincraft-node</code>, or
-            <code>npm run node</code>. Speak JSON lines before you write a protocol.
-            BitTorrent is a Mesh client: <code>python3 -m chaincraft.bt_node</code>,
-            <code>chaincraft-bt-node</code>, <code>npm run bt-node</code>.
+            Speak JSON lines before you write a protocol.
+            Core node: connect, send, ids, quit.
+            BitTorrent is a separate Mesh client.
           </p>
+          <ul class="card-links">
+            <li><a href="#install">Install 1.0.0</a></li>
+            <li><a href="#hello">Hello World</a></li>
+            <li><a href="hello-world.md">Walkthrough</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/cli-node.md">cli.node spec</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/bittorrent-swarm.md">BitTorrent client</a></li>
+          </ul>
         </article>
         <article class="why-card">
-          <h3>Implement an object</h3>
+          <h3><a href="#hello">Implement an object</a></h3>
           <p>
             Chat, a counter, a beacon: implement <code>receive</code>.
             The message is applied on the node that has it. A disconnect
             may leave a gap.
           </p>
+          <ul class="card-links">
+            <li><a href="#hello">Hello World</a></li>
+            <li><a href="#chat">Chat rooms</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/semantics-v1.md">Object semantics</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/app-pubsub.md">app.pubsub</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/app-stream.md">app.stream</a></li>
+          </ul>
         </article>
         <article class="why-card">
-          <h3>Assemble a chain</h3>
+          <h3><a href="#parity">Assemble a chain</a></h3>
           <p>
             Proof-of-work or proof-of-stake, a balance or UTXO ledger, a
-            mempool and a fee policy. The three languages must agree; the
-            parity gate checks that.
+            mempool and a fee policy. The three languages must agree.
           </p>
+          <ul class="card-links">
+            <li><a href="#parity">Parity gate</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/consensus-pow.md">Proof of work</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/consensus-pos.md">Proof of stake</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/consensus-pbft.md">PBFT</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/ledger-balance.md">Balance ledger</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/ROADMAP.md">Roadmap</a></li>
+          </ul>
         </article>
       </div>
     </section>
