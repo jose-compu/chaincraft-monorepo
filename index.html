@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Chaincraft 1.0.0 — open-source toolkit for peer-to-peer protocols like blockchains, in Python, Rust, and TypeScript, held at feature parity.">
   <title>Chaincraft 1.0.0 — Open-source toolkit for peer-to-peer protocols</title>
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
   <link rel="icon" href="chaincraft-logo.png" type="image/png">
 </head>
 <body>
@@ -287,11 +287,11 @@ python3 conformance/runner/run_interop.py</code></pre>
         <article class="hello-step">
           <h3>Install 1.0.0</h3>
           <p>
-            Rust and TypeScript from the registries. Python from the
-            <code>v1.0.0</code> tag until PyPI serves 1.0.0.
-            To run the three nodes below, clone the tag.
+            Libraries from the registries. To run the three nodes below,
+            clone the tag (Python 3.9+, Rust toolchain, Node 20+).
           </p>
-          <pre class="code-block"><code class="language-bash">cargo add chaincraft
+          <pre class="code-block"><code class="language-bash">pip install chaincraft
+cargo add chaincraft
 npm install @chaincraft/core
 
 git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
@@ -492,30 +492,31 @@ console.log("frame_len", frame.length);</code></pre>
     <section id="install" class="alt-bg" aria-labelledby="install-heading">
       <h2 id="install-heading">Install</h2>
       <p class="section-lead">
-        Spec release 1.0.0 is published on
-        <a href="https://crates.io/crates/chaincraft">crates.io</a> and
-        <a href="https://www.npmjs.com/package/@chaincraft/core">npm</a>.
-        Package names are <code>chaincraft</code> on PyPI and crates.io, and
-        <code>@chaincraft/core</code> on npm.
+        1.0.0 —
+        <a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> on PyPI</a>,
+        <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> on crates.io</a>,
+        <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> on npm</a>.
       </p>
-      <pre class="code-block"><code class="language-bash">cargo add chaincraft
+      <pre class="code-block"><code class="language-bash">pip install chaincraft
+cargo add chaincraft
 npm install @chaincraft/core</code></pre>
       <p>
-        <a href="https://pypi.org/project/chaincraft/"><code>pip install chaincraft</code></a>
-        still resolves to 0.8.0. Until PyPI publishes 1.0.0, install Python
-        from the GitHub tag. The unscoped npm name <code>chaincraft</code>
-        belongs to another project.
+        Ed25519: <code>pip install "chaincraft[ed25519]"</code>.
+        The unscoped npm name <code>chaincraft</code> belongs to another project.
+        <a href="https://pypi.org/project/chaincraft/">PyPI</a> still indexes
+        0.8.0 as latest; until <code>chaincraft==1.0.0</code> is there, install
+        Python 1.0.0 from the tag:
       </p>
-      <pre class="code-block"><code class="language-bash">git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
-cd chaincraft-monorepo
-python3 -m pip install -e "./python[ed25519]"</code></pre>
-      <p>Library names after that install:</p>
+      <pre class="code-block"><code class="language-bash">pip install "git+https://github.com/jose-compu/chaincraft-monorepo.git@v1.0.0#subdirectory=python"</code></pre>
+      <p>Then:</p>
       <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame</code></pre>
       <pre class="code-block"><code class="language-rust">use chaincraft::{encode_frame, Envelope, JsonValue};</code></pre>
       <pre class="code-block"><code class="language-typescript">import { Envelope, encodeFrame } from "@chaincraft/core";</code></pre>
       <p>
         Release:
         <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a>.
+        Nodes from source are in
+        <a href="#hello">Hello World</a>.
       </p>
     </section>
 
