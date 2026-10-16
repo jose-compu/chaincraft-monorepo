@@ -92,7 +92,8 @@ The spec release is 1.0.0 (`SPEC/release.yaml`). The wire protocol number stays 
 Git tag [`v1.0.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0).
 [crates.io `chaincraft` 1.0.0](https://crates.io/crates/chaincraft) and
 [npm `@chaincraft/core` 1.0.0](https://www.npmjs.com/package/@chaincraft/core)
-are published. PyPI still serves the pre-rewrite `chaincraft` 0.8.0 line.
+are published. [PyPI `chaincraft`](https://pypi.org/project/chaincraft/) still
+indexes 0.8.0 as latest.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.
 
@@ -137,24 +138,22 @@ Full detail in `SPEC/wire-v1.md`.
 ## Install
 
 ```bash
+pip install chaincraft
 cargo add chaincraft
 npm install @chaincraft/core
 ```
 
 [crates.io](https://crates.io/crates/chaincraft) and
 [npm](https://www.npmjs.com/package/@chaincraft/core) serve 1.0.0.
-[`pip install chaincraft`](https://pypi.org/project/chaincraft/) still
-resolves to 0.8.0. Until PyPI publishes 1.0.0, install Python from the tag:
+PyPI still indexes 0.8.0 as latest. Until `chaincraft==1.0.0` is there:
 
 ```bash
-git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
-cd chaincraft-monorepo
-python3 -m pip install -e "./python[ed25519]"
+pip install "git+https://github.com/jose-compu/chaincraft-monorepo.git@v1.0.0#subdirectory=python"
 ```
 
-Ed25519 in Python is optional: `pip install "chaincraft[ed25519]"` once 1.0.0
-is on PyPI. The npm package is `@chaincraft/core`. The unscoped name
-`chaincraft` on npm belongs to another project.
+Ed25519 is optional: `pip install "chaincraft[ed25519]"`. The npm package is
+`@chaincraft/core`. The unscoped name `chaincraft` on npm belongs to another
+project.
 
 ## Examples
 

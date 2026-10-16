@@ -8,17 +8,17 @@ BitTorrent swarms, and content-addressed stores.
 
 ## Install
 
-PyPI still serves the pre-rewrite 0.8.0 line. Until
-[chaincraft 1.0.0](https://pypi.org/project/chaincraft/) is published there:
-
 ```bash
-git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
-cd chaincraft-monorepo
-python3 -m pip install -e "./python[ed25519]"
+pip install chaincraft
 ```
 
-After 1.0.0 is on PyPI: `pip install chaincraft`. Ed25519 is optional:
-`pip install "chaincraft[ed25519]"`.
+PyPI still indexes 0.8.0 as latest. Until `chaincraft==1.0.0` is there:
+
+```bash
+pip install "git+https://github.com/jose-compu/chaincraft-monorepo.git@v1.0.0#subdirectory=python"
+```
+
+Ed25519 is optional: `pip install "chaincraft[ed25519]"`.
 
 ## Example
 
