@@ -1,13 +1,13 @@
 # Chaincraft Monorepo
 
-Chaincraft in three languages — Python, Rust and TypeScript — held at **100% feature
-parity** by a specification, shared conformance vectors, and a CI gate that fails on
-drift.
+Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
+BitTorrent swarms, and content-addressed stores. Three languages — Python, Rust
+and TypeScript — held at **100% feature parity** by a specification, shared
+conformance vectors, and a CI gate that fails on drift.
 
-Chaincraft is a platform for decentralized protocols. The ordinary object is
-local: a chat room, a publish-subscribe topic, a BitTorrent swarm, or a
-content-addressed store. A node applies the messages it has. A gap after a
-disconnect is allowed.
+The ordinary object is local: a chat room, a publish-subscribe topic, a
+BitTorrent swarm, or a content-addressed store. A node applies the messages it
+has. A gap after a disconnect is allowed.
 
 Consensus is a feature class in the same library, not the default. Proof of
 work, proof of stake, and PBFT, with a balance or UTXO ledger, are there when
@@ -87,8 +87,12 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, and NAT traversal:
-38 of 38 features each (TypeScript 37 implemented plus the UDP exemption).
+40 of 40 features each (TypeScript 39 implemented plus the UDP exemption).
 The spec release is 1.0.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+Git tag [`v1.0.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0).
+[crates.io `chaincraft` 1.0.0](https://crates.io/crates/chaincraft) and
+[npm `@chaincraft/core` 1.0.0](https://www.npmjs.com/package/@chaincraft/core)
+are published. PyPI still serves the pre-rewrite `chaincraft` 0.8.0 line.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.
 
@@ -133,14 +137,24 @@ Full detail in `SPEC/wire-v1.md`.
 ## Install
 
 ```bash
-pip install chaincraft
 cargo add chaincraft
 npm install @chaincraft/core
 ```
 
-Ed25519 in Python is optional: `pip install "chaincraft[ed25519]"`.
-The npm package is `@chaincraft/core`. The unscoped name `chaincraft` on npm
-belongs to another project.
+[crates.io](https://crates.io/crates/chaincraft) and
+[npm](https://www.npmjs.com/package/@chaincraft/core) serve 1.0.0.
+[`pip install chaincraft`](https://pypi.org/project/chaincraft/) still
+resolves to 0.8.0. Until PyPI publishes 1.0.0, install Python from the tag:
+
+```bash
+git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
+cd chaincraft-monorepo
+python3 -m pip install -e "./python[ed25519]"
+```
+
+Ed25519 in Python is optional: `pip install "chaincraft[ed25519]"` once 1.0.0
+is on PyPI. The npm package is `@chaincraft/core`. The unscoped name
+`chaincraft` on npm belongs to another project.
 
 ## Examples
 

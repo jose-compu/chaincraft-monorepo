@@ -4,8 +4,13 @@ Chaincraft is a platform for decentralized protocols. The ordinary object is
 local: a chat room, publish-subscribe, a BitTorrent swarm, or a content-addressed
 store. Consensus, ledgers, and sync are a feature class in the same library.
 
-Three implementations — Python, Rust, TypeScript — are held at **100% feature
+Open-source toolkit for peer-to-peer protocols like blockchains. Three
+implementations — Python, Rust, TypeScript — are held at **100% feature
 parity**. Spec release **1.0.0** (`SPEC/release.yaml`). Wire protocol **v1**.
+Tagged [`v1.0.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0).
+Published: [crates.io `chaincraft` 1.0.0](https://crates.io/crates/chaincraft),
+[npm `@chaincraft/core` 1.0.0](https://www.npmjs.com/package/@chaincraft/core).
+PyPI still serves `chaincraft` 0.8.0.
 
 This document defines what that commitment means, why it is achievable, and the
 machinery that enforces it. The enforcement is automated: parity is a CI gate, not a
@@ -322,7 +327,8 @@ No field was added. The new vector files are `app-pubsub.json` and
 `SPEC/release.yaml` is **1.0.0**, the same version as the three packages. Every
 markdown file under `SPEC/` carries `**Release:** 1.0.0` and is listed there. The
 parity gate fails if a package version, an in-code version, the wire number, or a
-stamp drifts. Nothing is tagged and nothing is published.
+stamp drifts. Tagged `v1.0.0`. crates.io and npm published 1.0.0. PyPI 1.0.0
+is not on the index yet.
 
 ### Stage 15 — Channel adapters ✅
 
@@ -357,10 +363,11 @@ chaincraft (crates)  1.0.0
 SPEC/release.yaml         1.0.0
 ```
 
-That is the current release. There is no git tag and no registry publish yet. A
-later minor version still ships all three together. A language cannot ship a minor
-version alone, because a minor version means a new feature, and a new feature means
-all three have it.
+That is the current release. The git tag is `v1.0.0`. crates.io and npm
+serve 1.0.0. PyPI still serves 0.8.0 until the trusted-publisher job lands.
+A later minor version still ships all three together. A language cannot ship a
+minor version alone, because a minor version means a new feature, and a new
+feature means all three have it.
 
 Patch releases MAY be per-language for language-specific bug fixes, tagged
 `v1.0.1-python`.

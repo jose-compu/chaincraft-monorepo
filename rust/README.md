@@ -1,6 +1,10 @@
 # chaincraft
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
+Release **[1.0.0](https://crates.io/crates/chaincraft/1.0.0)** on crates.io.
+
+Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
+BitTorrent swarms, and content-addressed stores.
 
 ## Install
 
