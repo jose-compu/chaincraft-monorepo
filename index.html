@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Chaincraft 1.0.0 — building blocks for blockchains and peer-to-peer protocols, in Python, Rust, and TypeScript, held at feature parity.">
-  <title>Chaincraft 1.0.0 — Building blocks for blockchains</title>
-  <link rel="stylesheet" href="styles.css?v=3">
+  <meta name="description" content="Chaincraft 1.0.0 — open-source toolkit for peer-to-peer protocols like blockchains, in Python, Rust, and TypeScript, held at feature parity.">
+  <title>Chaincraft 1.0.0 — Open-source toolkit for peer-to-peer protocols</title>
+  <link rel="stylesheet" href="styles.css?v=4">
   <link rel="icon" href="chaincraft-logo.png" type="image/png">
 </head>
 <body>
@@ -28,12 +28,12 @@
   <main id="top">
     <header class="hero">
       <img class="hero-logo" src="chaincraft-logo-full.png" alt="Chaincraft voxel chain logo" width="280" height="280">
-      <h1>Building blocks<br>for blockchains</h1>
+      <h1>Open-source toolkit<br>for peer-to-peer protocols</h1>
       <p class="tagline">
-        Open-source toolkit for peer-to-peer blockchains. Assemble proof-of-work,
-        proof-of-stake, or PBFT with a balance or UTXO ledger on one mesh.
-        Chat rooms, topics, BitTorrent swarms, and stores are local objects in
-        the same library — Python, Rust, and TypeScript at feature parity.
+        Peer-to-peer protocols like blockchains, chat rooms, BitTorrent swarms,
+        and content-addressed stores. Assemble proof-of-work, proof-of-stake,
+        or PBFT with a balance or UTXO ledger on one mesh — Python, Rust, and
+        TypeScript at feature parity.
       </p>
       <div class="hero-cta">
         <a class="btn" href="#install">Install 1.0.0</a>
@@ -235,18 +235,18 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
         <tbody>
           <tr>
             <td>Python</td>
-            <td><code>chaincraft</code> (PyPI)</td>
-            <td>Reference. Vectors are generated from it.</td>
+            <td><a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> (PyPI)</a></td>
+            <td>Reference. Vectors are generated from it. 1.0.0 is not on PyPI yet (latest is 0.8.0); install from the <code>v1.0.0</code> tag.</td>
           </tr>
           <tr>
             <td>Rust</td>
-            <td><code>chaincraft</code> (crates.io)</td>
-            <td>Same wire, same fork choice, same error classes. Bins: <code>chaincraft-node</code>, <code>chaincraft-bt-node</code>.</td>
+            <td><a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.0.0 (crates.io)</a></td>
+            <td>Published. Same wire, same fork choice, same error classes. Bins: <code>chaincraft-node</code>, <code>chaincraft-bt-node</code>.</td>
           </tr>
           <tr>
             <td>TypeScript</td>
-            <td><code>@chaincraft/core</code> (npm)</td>
-            <td>39 implemented. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0. The unscoped npm name <code>chaincraft</code> belongs to another project.</td>
+            <td><a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.0.0 (npm)</a></td>
+            <td>Published. 39 implemented. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0. The unscoped npm name <code>chaincraft</code> belongs to another project.</td>
           </tr>
         </tbody>
       </table>
@@ -285,9 +285,16 @@ python3 conformance/runner/run_interop.py</code></pre>
 
       <div class="hello-steps">
         <article class="hello-step">
-          <h3>Install from the v1.0.0 tag</h3>
-          <p>Python 3.9+, a Rust toolchain, and Node 20+. Every command below starts from the clone root.</p>
-          <pre class="code-block"><code class="language-bash">git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
+          <h3>Install 1.0.0</h3>
+          <p>
+            Rust and TypeScript from the registries. Python from the
+            <code>v1.0.0</code> tag until PyPI serves 1.0.0.
+            To run the three nodes below, clone the tag.
+          </p>
+          <pre class="code-block"><code class="language-bash">cargo add chaincraft
+npm install @chaincraft/core
+
+git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
 python3 -m pip install -e "./python[dev]"
 cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
@@ -485,20 +492,23 @@ console.log("frame_len", frame.length);</code></pre>
     <section id="install" class="alt-bg" aria-labelledby="install-heading">
       <h2 id="install-heading">Install</h2>
       <p class="section-lead">
-        Spec release 1.0.0. Package names are <code>chaincraft</code> on PyPI
-        and crates.io, and <code>@chaincraft/core</code> on npm.
+        Spec release 1.0.0 is published on
+        <a href="https://crates.io/crates/chaincraft">crates.io</a> and
+        <a href="https://www.npmjs.com/package/@chaincraft/core">npm</a>.
+        Package names are <code>chaincraft</code> on PyPI and crates.io, and
+        <code>@chaincraft/core</code> on npm.
       </p>
+      <pre class="code-block"><code class="language-bash">cargo add chaincraft
+npm install @chaincraft/core</code></pre>
       <p>
-        Use the GitHub tag until those registries serve 1.0.0.
-        <code>pip install chaincraft</code> still resolves to the 0.8 line;
-        crates.io still serves 0.4.1. The unscoped npm name
-        <code>chaincraft</code> belongs to another project.
+        <a href="https://pypi.org/project/chaincraft/"><code>pip install chaincraft</code></a>
+        still resolves to 0.8.0. Until PyPI publishes 1.0.0, install Python
+        from the GitHub tag. The unscoped npm name <code>chaincraft</code>
+        belongs to another project.
       </p>
       <pre class="code-block"><code class="language-bash">git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
-python3 -m pip install -e "./python[ed25519]"
-cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
-npm install --prefix typescript</code></pre>
+python3 -m pip install -e "./python[ed25519]"</code></pre>
       <p>Library names after that install:</p>
       <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame</code></pre>
       <pre class="code-block"><code class="language-rust">use chaincraft::{encode_frame, Envelope, JsonValue};</code></pre>
@@ -506,11 +516,7 @@ npm install --prefix typescript</code></pre>
       <p>
         Release:
         <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a>.
-        Intended registry commands, once published:
       </p>
-      <pre class="code-block"><code class="language-bash">pip install chaincraft
-cargo add chaincraft
-npm install @chaincraft/core</code></pre>
     </section>
 
     <section id="start" aria-labelledby="start-heading">
@@ -568,7 +574,7 @@ npm install @chaincraft/core</code></pre>
 
   <footer class="site-footer">
     <img src="chaincraft-logo.png" alt="" width="48" height="48">
-      <p>Chaincraft 1.0.0 — MIT licensed · Peer-to-peer blockchains</p>
+      <p>Chaincraft 1.0.0 — MIT licensed · Open-source toolkit for peer-to-peer protocols like blockchains</p>
     <p>
       <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a> ·
       <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a> ·
@@ -576,7 +582,10 @@ npm install @chaincraft/core</code></pre>
       <a href="hello-world.md">Hello World</a>
     </p>
     <p>
-      Packages: <code>chaincraft</code> (PyPI, crates.io) · <code>@chaincraft/core</code> (npm)
+      Packages:
+      <a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> (PyPI)</a> ·
+      <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.0.0 (crates.io)</a> ·
+      <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.0.0 (npm)</a>
     </p>
   </footer>
 

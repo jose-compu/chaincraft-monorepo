@@ -2,13 +2,20 @@
 
 Interactive version: open [`index.html`](index.html) in this folder, or the published site.
 
-This walks through a gossiped message on Chaincraft 1.0.0. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
+Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.0.0. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
 
-Package names: `chaincraft` (PyPI and crates.io), `@chaincraft/core` (npm). Install 1.0.0 from the GitHub tag until those registries serve this release. `pip install chaincraft` currently resolves to the 0.8 line.
+Published: [`chaincraft` 1.0.0 on crates.io](https://crates.io/crates/chaincraft), [`@chaincraft/core` 1.0.0 on npm](https://www.npmjs.com/package/@chaincraft/core). [`pip install chaincraft`](https://pypi.org/project/chaincraft/) still resolves to 0.8.0. Until PyPI serves 1.0.0, install Python from the GitHub tag.
 
 ## Install
 
-Python 3.9+, a Rust toolchain, and Node 20+. From the clone root:
+Libraries:
+
+```bash
+cargo add chaincraft
+npm install @chaincraft/core
+```
+
+To run the three nodes below: Python 3.9+, a Rust toolchain, and Node 20+. From the clone root:
 
 ```bash
 git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
