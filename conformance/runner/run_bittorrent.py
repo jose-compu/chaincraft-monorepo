@@ -30,17 +30,17 @@ from run_interop import (  # noqa: E402
 
 BT_COMMANDS = {
     "python": {
-        "cmd": [sys.executable, "-m", "chaincraft.bt_node"],
+        "cmd": [sys.executable, "-m", "chaincraft.bt_node", "127.0.0.1:0"],
         "cwd": REPO / "python",
         "env_extra": {},
     },
     "rust": {
-        "cmd": ["cargo", "run", "--quiet", "--bin", "chaincraft-bt-node"],
+        "cmd": ["cargo", "run", "--quiet", "--bin", "chaincraft-bt-node", "--", "127.0.0.1:0"],
         "cwd": REPO / "rust",
         "env_extra": {},
     },
     "typescript": {
-        "cmd": ["npm", "run", "--silent", "bt-node"],
+        "cmd": ["npm", "run", "--silent", "bt-node", "--", "127.0.0.1:0"],
         "cwd": REPO / "typescript",
         "env_extra": {},
     },

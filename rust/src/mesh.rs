@@ -18,9 +18,10 @@ use crate::envelope::Envelope;
 use crate::features::IMPL;
 use crate::framing::{encode_frame, FrameReader};
 
-pub const MAX_PEERS: usize = 16;
+pub const MAX_PEERS: usize = 256;
 pub const MAX_RECEIVED: usize = 4096;
 pub const NODE_MAX_FRAME: u32 = 262_144;
+pub const DEFAULT_LISTEN: &str = "0.0.0.0:9735";
 
 pub type AppHandler = Arc<dyn Fn(&str, &JsonValue) + Send + Sync>;
 pub type LinkHandler = Arc<dyn Fn(&str, &str, &JsonValue) + Send + Sync>;
@@ -42,7 +43,11 @@ pub struct Mesh {
 
 impl Mesh {
     pub fn start() -> Result<Arc<Mutex<Self>>, String> {
-        let listener = TcpListener::bind("127.0.0.1:0").map_err(|err| err.to_string())?;
+        Self::bind("127.0.0.1:0")
+    }
+
+    pub fn bind(addr: &str) -> Result<Arc<Mutex<Self>>, String> {
+        let listener = TcpListener::bind(addr).map_err(|err| err.to_string())?;
         let listen_addr = listener
             .local_addr()
             .map_err(|err| err.to_string())?

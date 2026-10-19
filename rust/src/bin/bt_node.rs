@@ -5,13 +5,16 @@ use std::sync::Arc;
 
 use chaincraft::bittorrent::{Client, WIRE_TYPE};
 use chaincraft::features::IMPL;
-use chaincraft::mesh::{emit, json_to_serde, to_json_value, Mesh};
+use chaincraft::mesh::{emit, json_to_serde, to_json_value, Mesh, DEFAULT_LISTEN};
 use serde_json::{json, Value};
 
 const MAX_STDIN_LINE: usize = 1_048_576;
 
 fn main() {
-    let mesh = Mesh::start().expect("bind");
+    let listen = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| DEFAULT_LISTEN.to_string());
+    let mesh = Mesh::bind(&listen).expect("bind");
     let client = Arc::new(Client::new());
     {
         let mesh_for_app = Arc::clone(&mesh);

@@ -14,7 +14,7 @@ from typing import Any, Dict
 from . import IMPL
 from .bittorrent import BitTorrentClient
 from .envelope import ProtocolError
-from .mesh import MAX_STDIN_LINE, Mesh, emit
+from .mesh import MAX_STDIN_LINE, Mesh, emit, parse_listen
 
 
 def main() -> int:
@@ -22,7 +22,8 @@ def main() -> int:
     mesh = Mesh(IMPL, on_event=lambda e: emit(e, out_lock))
     client = BitTorrentClient(mesh.broadcast)
     mesh.on_app = client.on_app
-    mesh.start()
+    host, port = parse_listen(sys.argv[1] if len(sys.argv) > 1 else None)
+    mesh.start(host, port)
     emit({"event": "ready", "addr": mesh.listen_addr, "impl": IMPL}, out_lock)
     try:
         for line in sys.stdin:

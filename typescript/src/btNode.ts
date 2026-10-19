@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * BitTorrent mesh client — Swarm on top of the Level 0 mesh.
  *
@@ -7,7 +8,7 @@
 import * as readline from 'node:readline';
 
 import { type JsonValue, BitTorrentClient, IMPL, ProtocolError } from './index.ts';
-import { Mesh } from './mesh.ts';
+import { Mesh, parseListen } from './mesh.ts';
 
 const MAX_STDIN_LINE = 1_048_576;
 
@@ -18,7 +19,8 @@ function emit(event: Record<string, unknown>): void {
 const mesh = new Mesh(IMPL, emit);
 const client = new BitTorrentClient((typeName, data) => mesh.broadcast(typeName, data));
 mesh.onApp = (typeName, data) => client.onApp(typeName, data);
-await mesh.start();
+const listen = parseListen(process.argv[2]);
+await mesh.start(listen.host, listen.port);
 emit({ event: 'ready', addr: mesh.listenAddr, impl: IMPL });
 
 const rl = readline.createInterface({ input: process.stdin });

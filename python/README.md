@@ -1,7 +1,7 @@
 # chaincraft
 
 Reference implementation of the Chaincraft wire protocol and object semantics.
-Release **1.0.0**.
+Release **[1.1.0](https://pypi.org/project/chaincraft/1.1.0/)** on PyPI.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.
@@ -12,24 +12,54 @@ BitTorrent swarms, and content-addressed stores.
 pip install chaincraft
 ```
 
-PyPI still indexes 0.8.0 as latest. Until `chaincraft==1.0.0` is there:
+Ed25519 is optional: `pip install "chaincraft[ed25519]"`. The node is
+`python3 -m chaincraft.node`. Default listen is `0.0.0.0:9735`.
 
-```bash
-pip install "git+https://github.com/jose-compu/chaincraft-monorepo.git@v1.0.0#subdirectory=python"
-```
+## Hello World
 
-Ed25519 is optional: `pip install "chaincraft[ed25519]"`.
-
-## Example
-
-Assumes `chaincraft` is installed.
+Two TCP nodes in one process. A listens on `9735`, B on `9736`, B dials A and
+gossips `app.hello`.
 
 ```python
-from chaincraft import Envelope, encode_frame
+import time
+from chaincraft.mesh import Mesh
+from chaincraft.object import SharedObject
 
-env = Envelope.build("app.counter", {"by": "alice", "delta": 1})
-frame = encode_frame(env.to_bytes())
+
+class Hello(SharedObject):
+    def receive(self, message):
+        print("Received:", message["message"])
+
+
+hello = Hello()
+a = Mesh(on_app=lambda t, d: hello.receive(d) if t == "app.hello" else None)
+b = Mesh()
+print("listening", a.start("127.0.0.1", 9735))
+print("listening", b.start("127.0.0.1", 9736))
+b.connect(a.listen_addr)
+digest = b.broadcast("app.hello", {"message": "Hello, Chaincraft!"})
+time.sleep(0.4)
+print(digest)
+a.close()
+b.close()
 ```
+
+CLI, three languages on one loopback mesh:
+
+```bash
+python3 -m chaincraft.node
+chaincraft-node 127.0.0.1:9736
+chaincraft-ts-node 127.0.0.1:9737
+```
+
+Then `{"cmd":"connect","addr":"127.0.0.1:9735"}` on the last two, and
+`{"cmd":"send","type":"app.hello","data":{"message":"Hello, Chaincraft!"}}` on
+Python.
+
+Further local nodes take unused ports and connect. Remote hosts dial this
+machine's unicast IPv4 or DNS name on 9735. `connect` allows loopback,
+RFC1918, public unicast IPv4, `localhost`, `.local`, and ordinary DNS names.
+Each mesh keeps at most 256 peers.
 
 Specification and the Rust and TypeScript implementations live in the
 [monorepo](https://github.com/jose-compu/chaincraft-monorepo).

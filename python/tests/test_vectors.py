@@ -426,6 +426,13 @@ def test_discovery_peer_invalid(case):
     assert is_valid_address(case["address"]) is False
 
 
+@cases("discovery-peer.json", "connect")
+def test_discovery_peer_connect(case):
+    from chaincraft.discovery import is_connect_allowed
+
+    assert is_connect_allowed(case["address"]) is case["allowed"]
+
+
 @cases("discovery-peer.json", "sequence")
 def test_discovery_peer_sequence(case):
     from chaincraft.discovery import AddressBook

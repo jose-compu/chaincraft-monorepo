@@ -6,11 +6,11 @@ store. Consensus, ledgers, and sync are a feature class in the same library.
 
 Open-source toolkit for peer-to-peer protocols like blockchains. Three
 implementations — Python, Rust, TypeScript — are held at **100% feature
-parity**. Spec release **1.0.0** (`SPEC/release.yaml`). Wire protocol **v1**.
-Tagged [`v1.0.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0).
-Published: [crates.io `chaincraft` 1.0.0](https://crates.io/crates/chaincraft),
-[npm `@chaincraft/core` 1.0.0](https://www.npmjs.com/package/@chaincraft/core).
-PyPI still serves `chaincraft` 0.8.0.
+parity**. Spec release **1.1.0** (`SPEC/release.yaml`). Wire protocol **v1**.
+Tagged [`v1.1.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0).
+Published: [crates.io `chaincraft` 1.1.0](https://crates.io/crates/chaincraft),
+[npm `@chaincraft/core` 1.1.0](https://www.npmjs.com/package/@chaincraft/core).
+PyPI serves `chaincraft` 1.1.0.
 
 This document defines what that commitment means, why it is achievable, and the
 machinery that enforces it. The enforcement is automated: parity is a CI gate, not a
@@ -349,6 +349,11 @@ chat room. Issues #38 and #39.
 `channel.pipe`. An in-process datagram pipe with the UDP byte cap, so a
 mesh can be simulated on one computer without a kernel socket. Issue #40.
 
+### Stage 16 — Internet mesh 1.1.0
+
+Public unicast IPv4 and DNS names on `connect`. Default listen `0.0.0.0:9735`.
+Live peer cap 256. Issues #49, #50, #51. Wire protocol stays 1.
+
 ---
 
 ## 6. Versioning
@@ -357,14 +362,14 @@ Full parity implies **lockstep releases**. All three packages and `SPEC/release.
 carry the same version:
 
 ```
-chaincraft (PyPI)    1.0.0
-chaincraft (crates)  1.0.0
-@chaincraft/core (npm)     1.0.0
-SPEC/release.yaml         1.0.0
+chaincraft (PyPI)    1.1.0
+chaincraft (crates)  1.1.0
+@chaincraft/core (npm)     1.1.0
+SPEC/release.yaml         1.1.0
 ```
 
-That is the current release. The git tag is `v1.0.0`. crates.io and npm
-serve 1.0.0. PyPI still serves 0.8.0 until the trusted-publisher job lands.
+That is the current release. The git tag is `v1.1.0`. PyPI, crates.io and npm
+serve 1.1.0.
 A later minor version still ships all three together. A language cannot ship a
 minor version alone, because a minor version means a new feature, and a new
 feature means all three have it.

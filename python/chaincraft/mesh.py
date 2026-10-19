@@ -18,11 +18,24 @@ from .discovery import is_connect_allowed, is_resolved_ip_allowed
 from .envelope import Envelope, ProtocolError
 from .framing import FrameReader, FramingError, encode_frame
 
-MAX_PEERS = 16
+MAX_PEERS = 256
 MAX_RECEIVED = 4096
 MAX_STDIN_LINE = 1_048_576
 CONNECT_TIMEOUT_S = 5
 NODE_MAX_FRAME = 262_144
+DEFAULT_LISTEN = "0.0.0.0:9735"
+
+
+def parse_listen(raw: Optional[str] = None) -> tuple[str, int]:
+    """Parse ``host:port``. Default is all interfaces on 9735."""
+    text = DEFAULT_LISTEN if raw is None or raw == "" else raw
+    if ":" not in text:
+        raise ValueError("listen must be host:port")
+    host, port_s = text.rsplit(":", 1)
+    port = int(port_s)
+    if not host or port < 0 or port > 65535:
+        raise ValueError("invalid listen")
+    return host, port
 
 EventFn = Callable[[Dict[str, Any]], None]
 AppFn = Callable[[str, Any], None]

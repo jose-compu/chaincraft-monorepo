@@ -851,6 +851,21 @@ fn discovery_peer_invalid() {
 }
 
 #[test]
+fn discovery_peer_connect() {
+    let doc = load("discovery-peer.json");
+    for case in doc["connect"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let address = case["address"].as_str().unwrap();
+        let allowed = case["allowed"].as_bool().unwrap();
+        assert_eq!(
+            discovery::is_connect_allowed(address),
+            allowed,
+            "{name} {address}"
+        );
+    }
+}
+
+#[test]
 fn discovery_peer_sequence() {
     let doc = load("discovery-peer.json");
     let timeout = doc["default_timeout_ms"].as_i64().unwrap();
