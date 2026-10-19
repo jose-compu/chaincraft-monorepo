@@ -1173,13 +1173,28 @@ def discovery_peer_vectors() -> Dict[str, Any]:
             "discovery.peer",
             "SPEC/features/discovery-peer.md",
             "Address book: IPv4/hostname:port, FIFO insert eviction, "
-            "no-evict ingest, code-point advertise, injected clock.",
+            "no-evict ingest, code-point advertise, injected clock. "
+            "Connect allows public unicast IPv4 and DNS names.",
         ),
         "now_ms": NOW,
         "default_capacity": discovery.DEFAULT_CAPACITY,
         "default_timeout_ms": discovery.DEFAULT_TIMEOUT_MS,
         "valid": [{"name": addr, "address": addr} for addr in valid],
         "invalid": [{"name": name, "address": addr} for name, addr in invalid],
+        "connect": [
+            {"name": name, "address": addr, "allowed": discovery.is_connect_allowed(addr)}
+            for name, addr in [
+                ("loopback", "127.0.0.1:21000"),
+                ("rfc1918", "10.0.0.2:9735"),
+                ("public ipv4", "8.8.8.8:53"),
+                ("public hostname", "example.com:443"),
+                ("localhost", "localhost:9735"),
+                ("mdns", "node-a.local:8080"),
+                ("unspecified", "0.0.0.0:21000"),
+                ("link local", "169.254.169.254:80"),
+                ("multicast", "224.0.0.1:9735"),
+            ]
+        ],
         "sequence": sequence,
     }
 
@@ -2086,6 +2101,7 @@ def wire_channel_vectors() -> Dict[str, Any]:
         ("tcp rfc1918", "tcp://10.0.0.1:9735"),
         ("udp localhost", "udp://localhost:9735"),
         ("public ipv4", "8.8.8.8:53"),
+        ("public hostname", "example.com:443"),
         ("link local", "169.254.1.1:9735"),
         ("loop name", "loop:alice"),
         ("pipe name", "pipe:alice"),

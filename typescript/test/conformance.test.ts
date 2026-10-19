@@ -52,6 +52,7 @@ import {
   encodeFrame,
   frontierDigest,
   hexToBytes,
+  isConnectAllowed,
   isValidAddress,
   merkleDigest,
   parseJson,
@@ -393,6 +394,10 @@ eachCase('discovery-peer.json', 'valid', (c) => {
 
 eachCase('discovery-peer.json', 'invalid', (c) => {
   assert.equal(isValidAddress(c['address']), false);
+});
+
+eachCase('discovery-peer.json', 'connect', (c) => {
+  assert.equal(isConnectAllowed(c['address']), c['allowed']);
 });
 
 eachCase('discovery-peer.json', 'sequence', (c, doc) => {

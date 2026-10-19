@@ -1,6 +1,6 @@
 # crypto.vrf
 
-**Release:** 1.0.0
+**Release:** 1.1.0
 
 Deterministic uniqueness VRF built on `crypto.ecdsa`.
 

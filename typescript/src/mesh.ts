@@ -16,10 +16,23 @@ import { ProtocolError } from './errors.ts';
 import { IMPL } from './features.ts';
 import { FrameReader, encodeFrame } from './framing.ts';
 
-export const MAX_PEERS = 16;
+export const MAX_PEERS = 256;
 export const MAX_RECEIVED = 4096;
 export const CONNECT_TIMEOUT_MS = 5000;
 export const NODE_MAX_FRAME = 262_144;
+export const DEFAULT_LISTEN = '0.0.0.0:9735';
+
+export function parseListen(raw?: string): { host: string; port: number } {
+  const text = raw && raw.length > 0 ? raw : DEFAULT_LISTEN;
+  const idx = text.lastIndexOf(':');
+  if (idx <= 0) throw new Error('listen must be host:port');
+  const host = text.slice(0, idx);
+  const port = Number(text.slice(idx + 1));
+  if (!host || !Number.isInteger(port) || port < 0 || port > 65535) {
+    throw new Error('invalid listen');
+  }
+  return { host, port };
+}
 
 export type MeshEvent = Record<string, unknown>;
 export type AppHandler = (typeName: string, data: JsonValue) => void;

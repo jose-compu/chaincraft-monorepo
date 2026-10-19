@@ -226,7 +226,12 @@
     {
       "name": "public ipv4",
       "input": "8.8.8.8:53",
-      "allowed": false
+      "allowed": true
+    },
+    {
+      "name": "public hostname",
+      "input": "example.com:443",
+      "allowed": true
     },
     {
       "name": "link local",

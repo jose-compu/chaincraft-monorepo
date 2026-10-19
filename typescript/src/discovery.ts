@@ -9,22 +9,27 @@ export const DEFAULT_TIMEOUT_MS = 120_000;
 export function isResolvedIpAllowed(ip: string): boolean {
   const labels = ip.split('.');
   if (labels.length !== 4 || !labels.every((label) => /^[0-9]+$/.test(label))) return false;
-  const a = Number(labels[0]);
-  const b = Number(labels[1]);
-  if (a === 127) return true;
-  if (a === 10) return true;
-  if (a === 192 && b === 168) return true;
-  if (a === 172 && b >= 16 && b <= 31) return true;
-  return false;
+  const first = labels[0];
+  const second = labels[1];
+  if (first === undefined || second === undefined) return false;
+  const octets = labels.map((label) => Number(label));
+  if (octets.some((octet) => !Number.isSafeInteger(octet) || octet > 255)) return false;
+  const a = Number(first);
+  const b = Number(second);
+  if (a === 0 || a >= 224) return false;
+  if (a === 169 && b === 254) return false;
+  return true;
 }
 
 export function isConnectAllowed(address: string): boolean {
   if (!isValidAddress(address)) return false;
   const split = splitHostPort(address);
   if (!split) return false;
-  const lowered = split.host.toLowerCase();
-  if (lowered === 'localhost' || lowered.endsWith('.local')) return true;
-  return isResolvedIpAllowed(split.host);
+  const labels = split.host.split('.');
+  if (labels.length === 4 && labels.every((label) => /^[0-9]+$/.test(label))) {
+    return isResolvedIpAllowed(split.host);
+  }
+  return true;
 }
 
 export function isValidAddress(address: string): boolean {

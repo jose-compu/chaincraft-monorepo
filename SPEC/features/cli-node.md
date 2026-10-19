@@ -1,6 +1,6 @@
 # cli.node
 
-**Release:** 1.0.0
+**Release:** 1.1.0
 
 JSON-lines command surface for a node process. The live interop runner
 (`conformance/runner/run_interop.py`) speaks this protocol on stdin and
@@ -39,6 +39,18 @@ After `quit`, every subsequent non-empty line emits
 `start()` emits `{"event":"ready","addr":"<listen>","impl":"<impl>"}`.
 `listen` is a constructor string (the advertised bind address). `impl`
 is a non-empty constructor string.
+
+The live mesh process accepts an optional `host:port` argument. The
+default is `0.0.0.0:9735`, so another host can reach this process on
+port 9735. `127.0.0.1:9735` binds loopback only. `127.0.0.1:0` binds an
+ephemeral port. A mesh keeps at most 256 live TCP peers; a further
+socket is closed and is not a peer.
+
+After a registry install the processes are `python3 -m chaincraft.node`,
+`chaincraft-node`, and `chaincraft-ts-node`. Hello World uses Python on
+`9735`, Rust on `9736`, and TypeScript on `9737`, then connects the last
+two to `127.0.0.1:9735` (loopback still works when the listener is
+`0.0.0.0`). Remote peers dial this host's unicast IPv4 or DNS name.
 
 ## Events
 

@@ -45,17 +45,17 @@ LANGUAGES = ("python", "rust", "typescript")
 
 COMMANDS = {
     "python": {
-        "cmd": [sys.executable, "-m", "chaincraft.node"],
+        "cmd": [sys.executable, "-m", "chaincraft.node", "127.0.0.1:0"],
         "cwd": REPO / "python",
         "env_extra": {},
     },
     "rust": {
-        "cmd": ["cargo", "run", "--quiet", "--bin", "chaincraft-node"],
+        "cmd": ["cargo", "run", "--quiet", "--bin", "chaincraft-node", "--", "127.0.0.1:0"],
         "cwd": REPO / "rust",
         "env_extra": {},
     },
     "typescript": {
-        "cmd": ["npm", "run", "--silent", "node"],
+        "cmd": ["npm", "run", "--silent", "node", "--", "127.0.0.1:0"],
         "cwd": REPO / "typescript",
         "env_extra": {},
     },
