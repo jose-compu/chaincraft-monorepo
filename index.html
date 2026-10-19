@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Chaincraft 1.0.0 — open-source toolkit for peer-to-peer protocols like blockchains, in Python, Rust, and TypeScript, held at feature parity.">
-  <title>Chaincraft 1.0.0 — Open-source toolkit for peer-to-peer protocols</title>
-  <link rel="stylesheet" href="styles.css?v=5">
+  <meta name="description" content="Chaincraft 1.1.0 — open-source toolkit for peer-to-peer protocols like blockchains, in Python, Rust, and TypeScript, held at feature parity.">
+  <title>Chaincraft 1.1.0 — Open-source toolkit for peer-to-peer protocols</title>
+  <link rel="stylesheet" href="styles.css?v=7">
   <link rel="icon" href="chaincraft-logo.png" type="image/png">
 </head>
 <body>
@@ -20,7 +20,7 @@
       <a href="#parity">Parity</a>
       <a href="#hello">Hello</a>
       <a href="#install">Install</a>
-      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0" target="_blank" rel="noopener">v1.0.0</a>
+      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0" target="_blank" rel="noopener">v1.1.0</a>
       <a href="https://github.com/jose-compu/chaincraft-monorepo" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </header>
@@ -36,9 +36,9 @@
         TypeScript at feature parity.
       </p>
       <div class="hero-cta">
-        <a class="btn" href="#install">Install 1.0.0</a>
+        <a class="btn" href="#install">Install 1.1.0</a>
         <a class="btn btn-secondary" href="#hello">Hello World</a>
-        <a class="btn btn-secondary" href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0" target="_blank" rel="noopener">GitHub release</a>
+        <a class="btn btn-secondary" href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0" target="_blank" rel="noopener">GitHub release</a>
       </div>
     </header>
 
@@ -78,7 +78,7 @@
     </section>
 
     <section id="stack" class="alt-bg" aria-labelledby="stack-heading">
-      <h2 id="stack-heading">Protocol stack (1.0.0)</h2>
+      <h2 id="stack-heading">Protocol stack (1.1.0)</h2>
       <p class="section-lead">
         Wire, objects, then a blockchain stack: consensus, ledger, mempool,
         fees. Invalid messages are rejected the same way in every language.
@@ -129,7 +129,7 @@
           </tr>
         </tbody>
       </table>
-      <p><strong>Consensus in 1.0.0</strong> (same decisions in all three languages):</p>
+      <p><strong>Consensus in 1.1.0</strong> (same decisions in all three languages):</p>
       <div class="pill-grid">
         <span class="pill pill-pow">pow: leading-zero work, longest tip, multi-block reorgs</span>
         <span class="pill pill-bft">bft: pbft pre-prepare / prepare / commit</span>
@@ -147,7 +147,8 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
       <p class="section-lead">
         A mesh node listens, completes <code>ctl.hello</code>, deduplicates by
         payload id, and applies your objects only after every object accepts
-        the message. Your protocol does not open sockets.
+        the message. The mesh opens the TCP sockets. Your protocol implements
+        <code>receive</code>.
       </p>
       <div class="diagram-wrap" role="img" aria-label="Chaincraft mesh node pipeline: TCP listen, hello, dedup, then gossip or control into blockchain objects">
         <svg viewBox="0 0 720 500" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="13">
@@ -229,23 +230,23 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
           <tr>
             <th>Core</th>
             <th>Package</th>
-            <th>1.0.0</th>
+            <th>1.1.0</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Python</td>
             <td><a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> (PyPI)</a></td>
-            <td>Reference. Vectors are generated from it. 1.0.0 is not on PyPI yet (latest is 0.8.0); install from the <code>v1.0.0</code> tag.</td>
+            <td>Published. Reference. Vectors are generated from it. Node: <code>python3 -m chaincraft.node</code>.</td>
           </tr>
           <tr>
             <td>Rust</td>
-            <td><a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.0.0 (crates.io)</a></td>
+            <td><a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.1.0 (crates.io)</a></td>
             <td>Published. Same wire, same fork choice, same error classes. Bins: <code>chaincraft-node</code>, <code>chaincraft-bt-node</code>.</td>
           </tr>
           <tr>
             <td>TypeScript</td>
-            <td><a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.0.0 (npm)</a></td>
+            <td><a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.1.0 (npm)</a></td>
             <td>Published. 39 implemented. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0. The unscoped npm name <code>chaincraft</code> belongs to another project.</td>
           </tr>
         </tbody>
@@ -279,26 +280,29 @@ python3 conformance/runner/run_interop.py</code></pre>
     <section id="hello" aria-labelledby="hello-heading">
       <h2 id="hello-heading">Hello World</h2>
       <p class="section-lead">
-        From a checkout to a gossiped message. The control channel is JSON
+        These examples open TCP sockets. Run one node on the local default
+        port <code>127.0.0.1:9735</code>, two nodes in one program, then a
+        three-language mesh on loopback or a LAN. The control channel is JSON
         lines on stdin. The same commands work in all three nodes.
       </p>
 
       <div class="hello-steps">
         <article class="hello-step">
-          <h3>Install 1.0.0</h3>
+          <h3>Install 1.1.0</h3>
           <p>
-            Libraries from the registries. To run the three nodes below,
-            clone the tag (Python 3.9+, Rust toolchain, Node 20+).
+            From the package registries. Python 3.9+, a Rust toolchain, and
+            Node 20+.
           </p>
           <pre class="code-block"><code class="language-bash">pip install chaincraft
-cargo add chaincraft
-npm install @chaincraft/core
-
-git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
-cd chaincraft-monorepo
-python3 -m pip install -e "./python[dev]"
-cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
-npm install --prefix typescript</code></pre>
+cargo install chaincraft
+npm install --global @chaincraft/core</code></pre>
+          <p>
+            <code>cargo add chaincraft</code> and
+            <code>npm install @chaincraft/core</code> are the library
+            installs, for the programs below.
+            Clone only if you want the source tree:
+            <code>git clone https://github.com/jose-compu/chaincraft-monorepo.git</code>.
+          </p>
         </article>
 
         <article class="hello-step">
@@ -313,23 +317,51 @@ npm install --prefix typescript</code></pre>
         </article>
 
         <article class="hello-step">
-          <h3>Start two nodes</h3>
+          <h3>One node on the default port</h3>
           <p>
-            Each process prints <code>ready</code> with the address it bound.
-            Point the second node at the first.
+            With no argument the node binds <code>0.0.0.0:9735</code>.
+            Local peers still dial <code>127.0.0.1:9735</code>.
+            It prints <code>ready</code> with the bound address.
           </p>
-          <pre class="code-block"><code class="language-bash"># Terminal 1
+          <pre class="code-block"><code class="language-bash">python3 -m chaincraft.node</code></pre>
+          <pre class="code-block"><code class="language-json">{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.1.0"}</code></pre>
+          <p>
+            Same bind after the registry installs:
+            <code>chaincraft-node</code> and
+            <code>chaincraft-ts-node</code>.
+            Pass <code>host:port</code> to override. <code>127.0.0.1:0</code>
+            is an ephemeral port.
+          </p>
+        </article>
+
+        <article class="hello-step">
+          <h3>Three nodes, one language each</h3>
+          <p>
+            One local TCP mesh. Python holds the default port. Rust and
+            TypeScript take the next two and dial Python. Three terminals,
+            after the registry installs above.
+            If a node prints a different <code>ready.addr</code>, connect
+            to that address.
+          </p>
+          <pre class="code-block"><code class="language-bash"># Terminal 1 — Python
 python3 -m chaincraft.node
+# ready addr 0.0.0.0:9735
 
-# Terminal 2
-cargo run --bin chaincraft-node --manifest-path rust/Cargo.toml
+# Terminal 2 — Rust
+chaincraft-node 127.0.0.1:9736
 
-# Terminal 3
-npm run node --prefix typescript</code></pre>
+# Terminal 3 — TypeScript
+chaincraft-ts-node 127.0.0.1:9737
+# fallback: node node_modules/@chaincraft/core/dist/node.js 127.0.0.1:9737</code></pre>
           <p>
-            Read <code>addr</code> from terminal 1. On terminal 2 and terminal 3, send:
+            On terminal 2 and terminal 3, connect to the default port:
           </p>
-          <pre class="code-block"><code class="language-json">{"cmd":"connect","addr":"127.0.0.1:PORT"}</code></pre>
+          <pre class="code-block"><code class="language-json">{"cmd":"connect","addr":"127.0.0.1:9735"}</code></pre>
+          <p>
+            Each prints <code>connected</code>, then <code>hello</code> after
+            <code>ctl.hello</code>. The three processes are now one network
+            on loopback.
+          </p>
           <p class="note">
             Commands: <code>connect</code>, <code>send</code>, <code>ids</code>,
             <code>quit</code>. Stdout events:
@@ -345,52 +377,59 @@ npm run node --prefix typescript</code></pre>
         </article>
 
         <article class="hello-step">
-          <h3>Send the first gossiped message</h3>
+          <h3>Gossip Hello World across the three languages</h3>
           <p>
-            Type this on the node that should originate the message. Peers
-            that already completed <code>ctl.hello</code> receive the same
-            payload id.
+            On the Python node (terminal 1):
           </p>
           <pre class="code-block"><code class="language-json">{"cmd":"send","type":"app.hello","data":{"message":"Hello, Chaincraft!"}}</code></pre>
           <p>
-            Same content, same canonical JSON, same id. Deduplication stops
-            the relay from looping.
+            Python prints <code>sent</code> with a 64-hex <code>id</code>.
+            After <code>ctl.hello</code>, Rust and TypeScript print
+            <code>received</code> with that same id. On any node:
+          </p>
+          <pre class="code-block"><code class="language-json">{"cmd":"ids"}</code></pre>
+          <p>
+            All three lists contain the same digest. Same content, same
+            canonical JSON, same id. Deduplication stops the relay from
+            looping. Send from Rust or TypeScript the same way; the other
+            two languages receive it.
           </p>
         </article>
 
         <article class="hello-step">
-          <h3>Build the same envelope in code</h3>
+          <h3>Two TCP nodes in one program</h3>
           <p>
-            These three programs do not open a socket. Each one accepts the
-            message, prints it, and frames an envelope. They print the same
-            payload id.
+            These open sockets. Node A listens on <code>9735</code>, node B on
+            <code>9736</code>. B dials A and gossips <code>app.hello</code>.
+            Both record the same payload id.
           </p>
           <h4>Python</h4>
           <p>Save as <code>hello.py</code> and run <code>python3 hello.py</code>.</p>
-          <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame
+          <pre class="code-block"><code class="language-python">import time
+from chaincraft.mesh import Mesh
 from chaincraft.object import SharedObject
 
 
-class HelloObject(SharedObject):
+class Hello(SharedObject):
     def receive(self, message):
         print("Received:", message["message"])
 
 
-data = {"message": "Hello, Chaincraft!"}
-HelloObject().receive(data)
-
-env = Envelope.build("app.hello", data)
-frame = encode_frame(env.to_bytes())
-print(env.id)
-print("frame_len", len(frame))</code></pre>
+hello = Hello()
+a = Mesh(on_app=lambda t, d: hello.receive(d) if t == "app.hello" else None)
+b = Mesh()
+print("listening", a.start("127.0.0.1", 9735))
+print("listening", b.start("127.0.0.1", 9736))
+b.connect(a.listen_addr)
+digest = b.broadcast("app.hello", {"message": "Hello, Chaincraft!"})
+time.sleep(0.4)
+print(digest)
+a.close()
+b.close()</code></pre>
           <h4>Rust</h4>
           <p>
-            Save the manifest as <code>hello/Cargo.toml</code> and the program
-            as <code>hello/src/main.rs</code>, then
-            <code>cargo run --manifest-path hello/Cargo.toml</code>.
-            Implement <code>Protocol</code> and <code>receive</code>.
-            <code>Envelope::build</code> takes the timestamp as a third argument;
-            <code>None</code> uses the clock. The digest does not.
+            After <code>cargo add chaincraft</code>, save as
+            <code>src/main.rs</code> and run <code>cargo run</code>.
           </p>
           <pre class="code-block"><code class="language-ini">[package]
 name = "hello"
@@ -398,12 +437,17 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chaincraft = { path = "../rust" }</code></pre>
-          <pre class="code-block"><code class="language-rust">use chaincraft::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
+chaincraft = "1.1.0"</code></pre>
+          <pre class="code-block"><code class="language-rust">use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-struct HelloObject;
+use chaincraft::mesh::Mesh;
+use chaincraft::{parse_json, JsonValue, Protocol};
 
-impl Protocol for HelloObject {
+struct Hello;
+
+impl Protocol for Hello {
     fn receive(&amp;mut self, message: &amp;JsonValue) {
         let text = message
             .as_object()
@@ -415,43 +459,55 @@ impl Protocol for HelloObject {
 }
 
 fn main() {
+    let a = Mesh::bind("127.0.0.1:9735").unwrap();
+    let b = Mesh::bind("127.0.0.1:9736").unwrap();
+    a.lock().unwrap().set_on_app(Arc::new(|_t, data| {
+        Hello.receive(data);
+    }));
+    Mesh::connect(&amp;b, "127.0.0.1:9735").unwrap();
     let data = parse_json(r#"{"message":"Hello, Chaincraft!"}"#).unwrap();
-    HelloObject.receive(&amp;data);
-
-    let env = Envelope::build("app.hello", data, None).unwrap();
-    let frame = encode_frame(&amp;env.to_bytes().unwrap()).unwrap();
-    println!("{}", env.id);
-    println!("frame_len {}", frame.len());
+    let id = Mesh::broadcast(&amp;b, "app.hello", data).unwrap();
+    thread::sleep(Duration::from_millis(400));
+    println!("{id}");
 }</code></pre>
           <h4>TypeScript</h4>
           <p>
-            Save as <code>typescript/hello.ts</code> and run
-            <code>node hello.ts</code> from <code>typescript/</code>
-            after <code>npm install --prefix typescript</code>.
-            Override <code>receive</code>. The checkout import is
-            <code>./src/index.ts</code>. After
-            <code>npm install @chaincraft/core</code>, import that package.
+            After <code>npm install @chaincraft/core</code>, save as
+            <code>hello.mjs</code> and run <code>node hello.mjs</code>.
           </p>
-          <pre class="code-block"><code class="language-typescript">import {
-  BaseSharedObject,
-  Envelope,
-  encodeFrame,
-  type JsonValue,
-} from "./src/index.ts";
+          <pre class="code-block"><code class="language-javascript">import { Mesh } from "@chaincraft/core";
 
-class HelloObject extends BaseSharedObject {
-  receive(message: JsonValue): void {
-    console.log("Received:", (message as { message: string }).message);
-  }
-}
+const a = new Mesh();
+const b = new Mesh();
+a.onApp = (_t, data) =&gt; {
+  console.log("Received:", data.message);
+};
 
-const data = { message: "Hello, Chaincraft!" };
-new HelloObject().receive(data);
+console.log("listening", await a.start("127.0.0.1", 9735));
+console.log("listening", await b.start("127.0.0.1", 9736));
+await b.connect(a.listenAddr);
+const id = b.broadcast("app.hello", { message: "Hello, Chaincraft!" });
+await new Promise((r) =&gt; setTimeout(r, 400));
+console.log(id);
+a.close();
+b.close();</code></pre>
+        </article>
 
-const env = Envelope.build("app.hello", data);
-const frame = encodeFrame(env.toBytes());
-console.log(env.id);
-console.log("frame_len", frame.length);</code></pre>
+        <article class="hello-step">
+          <h3>More nodes, local or remote</h3>
+          <p>
+            Start further processes on unused ports and
+            <code>connect</code> them to a node that is already listening.
+            Each mesh keeps at most 256 peers.
+            <code>connect</code> allows loopback, RFC1918, public unicast
+            IPv4, <code>localhost</code>, <code>.local</code>, and ordinary
+            DNS names. Unspecified, link-local, multicast, and reserved
+            addresses are refused. Default bind is <code>0.0.0.0:9735</code>.
+          </p>
+          <pre class="code-block"><code class="language-bash">python3 -m chaincraft.node
+# other host
+python3 -m chaincraft.node 0.0.0.0:9736
+# then: {"cmd":"connect","addr":"203.0.113.10:9735"}</code></pre>
         </article>
 
         <article class="hello-step">
@@ -492,7 +548,7 @@ console.log("frame_len", frame.length);</code></pre>
     <section id="install" class="alt-bg" aria-labelledby="install-heading">
       <h2 id="install-heading">Install</h2>
       <p class="section-lead">
-        1.0.0 —
+        1.1.0 —
         <a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> on PyPI</a>,
         <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> on crates.io</a>,
         <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> on npm</a>.
@@ -503,18 +559,14 @@ npm install @chaincraft/core</code></pre>
       <p>
         Ed25519: <code>pip install "chaincraft[ed25519]"</code>.
         The unscoped npm name <code>chaincraft</code> belongs to another project.
-        <a href="https://pypi.org/project/chaincraft/">PyPI</a> still indexes
-        0.8.0 as latest; until <code>chaincraft==1.0.0</code> is there, install
-        Python 1.0.0 from the tag:
       </p>
-      <pre class="code-block"><code class="language-bash">pip install "git+https://github.com/jose-compu/chaincraft-monorepo.git@v1.0.0#subdirectory=python"</code></pre>
-      <p>Then:</p>
-      <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame</code></pre>
-      <pre class="code-block"><code class="language-rust">use chaincraft::{encode_frame, Envelope, JsonValue};</code></pre>
-      <pre class="code-block"><code class="language-typescript">import { Envelope, encodeFrame } from "@chaincraft/core";</code></pre>
+      <p>Then a two-node TCP mesh:</p>
+      <pre class="code-block"><code class="language-python">from chaincraft.mesh import Mesh</code></pre>
+      <pre class="code-block"><code class="language-rust">use chaincraft::mesh::Mesh;</code></pre>
+      <pre class="code-block"><code class="language-javascript">import { Mesh } from "@chaincraft/core";</code></pre>
       <p>
         Release:
-        <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a>.
+        <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0">v1.1.0</a>.
         Nodes from source are in
         <a href="#hello">Hello World</a>.
       </p>
@@ -527,12 +579,14 @@ npm install @chaincraft/core</code></pre>
         <article class="why-card">
           <h3><a href="#hello">Run a mesh node</a></h3>
           <p>
-            Speak JSON lines before you write a protocol.
+            One node on <code>127.0.0.1:9735</code>, two sockets in one
+            program, or three nodes — Python, Rust, TypeScript — on loopback
+            or a LAN.
             Core node: connect, send, ids, quit.
             BitTorrent is a separate Mesh client.
           </p>
           <ul class="card-links">
-            <li><a href="#install">Install 1.0.0</a></li>
+            <li><a href="#install">Install 1.1.0</a></li>
             <li><a href="#hello">Hello World</a></li>
             <li><a href="hello-world.md">Walkthrough</a></li>
             <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/cli-node.md">cli.node spec</a></li>
@@ -575,18 +629,18 @@ npm install @chaincraft/core</code></pre>
 
   <footer class="site-footer">
     <img src="chaincraft-logo.png" alt="" width="48" height="48">
-      <p>Chaincraft 1.0.0 — MIT licensed · Open-source toolkit for peer-to-peer protocols like blockchains</p>
+      <p>Chaincraft 1.1.0 — MIT licensed · Open-source toolkit for peer-to-peer protocols like blockchains</p>
     <p>
       <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a> ·
-      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0">v1.0.0</a> ·
+      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0">v1.1.0</a> ·
       <a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/wire-v1.md">Wire spec</a> ·
       <a href="hello-world.md">Hello World</a>
     </p>
     <p>
       Packages:
       <a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> (PyPI)</a> ·
-      <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.0.0 (crates.io)</a> ·
-      <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.0.0 (npm)</a>
+      <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.1.0 (crates.io)</a> ·
+      <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.1.0 (npm)</a>
     </p>
   </footer>
 

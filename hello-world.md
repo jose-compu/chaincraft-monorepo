@@ -2,32 +2,24 @@
 
 Interactive version: open [`index.html`](index.html) in this folder, or the published site.
 
-Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.0.0. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
+Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.1.0 over **TCP sockets**: default bind `0.0.0.0:9735`, local dial `127.0.0.1:9735`, two nodes in one program, then a three-language mesh on loopback or across hosts. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
 
-Published: [`chaincraft` 1.0.0 on crates.io](https://crates.io/crates/chaincraft), [`@chaincraft/core` 1.0.0 on npm](https://www.npmjs.com/package/@chaincraft/core). PyPI still indexes 0.8.0 as latest; use the tag for Python 1.0.0 until `chaincraft==1.0.0` is on the index.
+Published: [`chaincraft` 1.1.0 on PyPI](https://pypi.org/project/chaincraft/1.1.0/), [`chaincraft` 1.1.0 on crates.io](https://crates.io/crates/chaincraft), [`@chaincraft/core` 1.1.0 on npm](https://www.npmjs.com/package/@chaincraft/core).
 
 ## Install
 
 ```bash
 pip install chaincraft
-cargo add chaincraft
-npm install @chaincraft/core
+cargo install chaincraft
+npm install --global @chaincraft/core
 ```
 
-Until PyPI serves 1.0.0:
+Libraries (for the programs later): `cargo add chaincraft`, `npm install @chaincraft/core`.
+
+Clone only as a fallback if you want the source tree:
 
 ```bash
-pip install "git+https://github.com/jose-compu/chaincraft-monorepo.git@v1.0.0#subdirectory=python"
-```
-
-To run the three nodes below: Python 3.9+, a Rust toolchain, and Node 20+. From the clone root:
-
-```bash
-git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
-cd chaincraft-monorepo
-python3 -m pip install -e "./python[dev]"
-cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
-npm install --prefix typescript
+git clone https://github.com/jose-compu/chaincraft-monorepo.git
 ```
 
 ## Commands
@@ -55,69 +47,58 @@ Stdout events:
 
 `received` may also include `data`. Rust's node prints `id` and `type`.
 
-The core node is connect / send / ids / quit. BitTorrent is a Mesh client (`python3 -m chaincraft.bt_node`, `chaincraft-bt-node`, `npm run bt-node`).
+The core node is connect / send / ids / quit. BitTorrent is a Mesh client (`python3 -m chaincraft.bt_node`, `chaincraft-bt-node`, `chaincraft-ts-bt-node`).
 
-## Run three nodes
+## One node on the default port
 
-Stay at the clone root.
+With no argument the node binds `0.0.0.0:9735`. Local Hello World still dials `127.0.0.1:9735`.
 
 ```bash
-# Terminal 1
 python3 -m chaincraft.node
-
-# Terminal 2
-cargo run --bin chaincraft-node --manifest-path rust/Cargo.toml
-
-# Terminal 3
-npm run node --prefix typescript
 ```
-
-Read `addr` from the first `ready` event. On terminal 2 and terminal 3:
 
 ```json
-{"cmd":"connect","addr":"127.0.0.1:PORT"}
+{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.1.0"}
 ```
 
-On terminal 1:
+Same default in Rust (`chaincraft-node`) and TypeScript (`chaincraft-ts-node`). Pass `host:port` to override. `127.0.0.1:0` is ephemeral.
 
-```json
-{"cmd":"send","type":"app.hello","data":{"message":"Hello, Chaincraft!"}}
-```
+## Two TCP nodes in one program
 
-`sent.id` is SHA-256 of the canonical payload. After `ctl.hello`, the other two nodes print `received` with that same id. `{"cmd":"ids"}` lists it on every node. `{"cmd":"quit"}` stops a node.
-
-## The same program in each language
-
-These do not open a socket. Each one implements `receive`, prints the message, frames the envelope, and prints the same id. A memento is not involved.
+These open real sockets. Node A listens on `9735`, node B on `9736`, B dials A, then B gossips `app.hello`. Both record the same payload id.
 
 ### Python
 
 Save as `hello.py` and run `python3 hello.py`.
 
 ```python
-from chaincraft import Envelope, encode_frame
+import time
+from chaincraft.mesh import Mesh
 from chaincraft.object import SharedObject
 
 
-class HelloObject(SharedObject):
+class Hello(SharedObject):
     def receive(self, message):
         print("Received:", message["message"])
 
 
-data = {"message": "Hello, Chaincraft!"}
-HelloObject().receive(data)
-
-env = Envelope.build("app.hello", data)
-frame = encode_frame(env.to_bytes())
-print(env.id)
-print("frame_len", len(frame))
+hello = Hello()
+a = Mesh(on_app=lambda t, d: hello.receive(d) if t == "app.hello" else None)
+b = Mesh()
+print("listening", a.start("127.0.0.1", 9735))
+print("listening", b.start("127.0.0.1", 9736))
+b.connect(a.listen_addr)
+digest = b.broadcast("app.hello", {"message": "Hello, Chaincraft!"})
+time.sleep(0.4)
+print(digest)
+print(a.ids())
+a.close()
+b.close()
 ```
 
 ### Rust
 
-Save the manifest as `hello/Cargo.toml` and the program as `hello/src/main.rs`. Then `cargo run --manifest-path hello/Cargo.toml`.
-
-Implement `Protocol` and `receive`. `Envelope::build` takes the timestamp as a third argument. `None` uses the clock. The digest does not.
+After `cargo add chaincraft`, save as `src/main.rs` and run `cargo run`.
 
 ```toml
 [package]
@@ -126,15 +107,20 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chaincraft = { path = "../rust" }
+chaincraft = "1.1.0"
 ```
 
 ```rust
-use chaincraft::{encode_frame, parse_json, Envelope, JsonValue, Protocol};
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-struct HelloObject;
+use chaincraft::mesh::Mesh;
+use chaincraft::{parse_json, JsonValue, Protocol};
 
-impl Protocol for HelloObject {
+struct Hello;
+
+impl Protocol for Hello {
     fn receive(&mut self, message: &JsonValue) {
         let text = message
             .as_object()
@@ -146,43 +132,87 @@ impl Protocol for HelloObject {
 }
 
 fn main() {
+    let a = Mesh::bind("127.0.0.1:9735").unwrap();
+    let b = Mesh::bind("127.0.0.1:9736").unwrap();
+    a.lock().unwrap().set_on_app(Arc::new(|_t, data| {
+        Hello.receive(data);
+    }));
+    Mesh::connect(&b, "127.0.0.1:9735").unwrap();
     let data = parse_json(r#"{"message":"Hello, Chaincraft!"}"#).unwrap();
-    HelloObject.receive(&data);
-
-    let env = Envelope::build("app.hello", data, None).unwrap();
-    let frame = encode_frame(&env.to_bytes().unwrap()).unwrap();
-    println!("{}", env.id);
-    println!("frame_len {}", frame.len());
+    let id = Mesh::broadcast(&b, "app.hello", data).unwrap();
+    thread::sleep(Duration::from_millis(400));
+    println!("{id}");
 }
 ```
 
 ### TypeScript
 
-Save as `typescript/hello.ts` and run `node hello.ts` from `typescript/` after `npm install --prefix typescript`. Override `receive`. The checkout import is `./src/index.ts`. After `npm install @chaincraft/core`, import that package.
+After `npm install @chaincraft/core`, save as `hello.mjs` and run `node hello.mjs`.
 
-```typescript
-import {
-  BaseSharedObject,
-  Envelope,
-  encodeFrame,
-  type JsonValue,
-} from "./src/index.ts";
+```js
+import { Mesh } from "@chaincraft/core";
 
-class HelloObject extends BaseSharedObject {
-  receive(message: JsonValue): void {
-    console.log("Received:", (message as { message: string }).message);
-  }
-}
+const a = new Mesh();
+const b = new Mesh();
+a.onApp = (_t, data) => {
+  console.log("Received:", data.message);
+};
 
-const data = { message: "Hello, Chaincraft!" };
-new HelloObject().receive(data);
+console.log("listening", await a.start("127.0.0.1", 9735));
+console.log("listening", await b.start("127.0.0.1", 9736));
+await b.connect(a.listenAddr);
+const id = b.broadcast("app.hello", { message: "Hello, Chaincraft!" });
+await new Promise((r) => setTimeout(r, 400));
+console.log(id);
+a.close();
+b.close();
+```
 
-const env = Envelope.build("app.hello", data);
-const frame = encodeFrame(env.toBytes());
-console.log(env.id);
-console.log("frame_len", frame.length);
+## Three nodes, one language each
+
+Python holds `9735`. Rust binds `9736`. TypeScript binds `9737`. Both dial Python.
+
+```bash
+# Terminal 1 — Python
+python3 -m chaincraft.node
+
+# Terminal 2 — Rust
+chaincraft-node 127.0.0.1:9736
+
+# Terminal 3 — TypeScript
+chaincraft-ts-node 127.0.0.1:9737
+# fallback: node node_modules/@chaincraft/core/dist/node.js 127.0.0.1:9737
+```
+
+If a node prints a different `ready.addr`, connect to that address.
+
+On terminal 2 and terminal 3:
+
+```json
+{"cmd":"connect","addr":"127.0.0.1:9735"}
+```
+
+On terminal 1:
+
+```json
+{"cmd":"send","type":"app.hello","data":{"message":"Hello, Chaincraft!"}}
+```
+
+`sent.id` is SHA-256 of the canonical payload. After `ctl.hello`, Rust and TypeScript print `received` with that same id. `{"cmd":"ids"}` lists it on every node. Send from any language; the other two receive it. `{"cmd":"quit"}` stops a node.
+
+## More nodes, local or LAN
+
+Start further processes on unused ports and `connect` them to a node that is already listening. Each mesh keeps at most 256 peers.
+
+`connect` allows loopback, RFC1918, public unicast IPv4, `localhost`, `.local`, and ordinary DNS names. Unspecified, link-local, multicast, and reserved addresses are refused. Default bind is `0.0.0.0:9735`.
+
+```bash
+python3 -m chaincraft.node
+# other host
+python3 -m chaincraft.node 0.0.0.0:9736
+# then: {"cmd":"connect","addr":"203.0.113.10:9735"}
 ```
 
 The live 3×3 check is `python3 conformance/runner/run_interop.py` from the repository root.
 
-Release: https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.0.0
+Release: https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0
