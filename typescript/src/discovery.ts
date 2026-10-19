@@ -9,10 +9,13 @@ export const DEFAULT_TIMEOUT_MS = 120_000;
 export function isResolvedIpAllowed(ip: string): boolean {
   const labels = ip.split('.');
   if (labels.length !== 4 || !labels.every((label) => /^[0-9]+$/.test(label))) return false;
+  const first = labels[0];
+  const second = labels[1];
+  if (first === undefined || second === undefined) return false;
   const octets = labels.map((label) => Number(label));
   if (octets.some((octet) => !Number.isSafeInteger(octet) || octet > 255)) return false;
-  const a = octets[0];
-  const b = octets[1];
+  const a = Number(first);
+  const b = Number(second);
   if (a === 0 || a >= 224) return false;
   if (a === 169 && b === 254) return false;
   return true;
