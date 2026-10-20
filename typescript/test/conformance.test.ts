@@ -847,6 +847,34 @@ eachCase('wire-paths.json', 'classify', (c) => {
 
 // --- vector hygiene ---------------------------------------------------------
 
+test('channel.peer transcript', async () => {
+  const { EnvelopeRelay, DEFAULT_PEER_ORIGIN, parsePeerIdBody, peerOptions } = await import(
+    '../src/peer.ts'
+  );
+  const doc = load('channel-peer.json');
+  assert.equal(doc['origin'], DEFAULT_PEER_ORIGIN);
+  assert.deepEqual(peerOptions(), doc['options']);
+  for (const item of doc['ids'] as Array<{ name: string; input: string; id: string | null }>) {
+    assert.equal(parsePeerIdBody(item.input), item.id ?? undefined, item.name);
+  }
+  const relay = new EnvelopeRelay();
+  for (const step of doc['steps'] as Array<Record<string, unknown>>) {
+    if (step['op'] === 'join') {
+      assert.equal(relay.join(String(step['addr'])), step['ok'], String(step['addr']));
+    } else if (step['op'] === 'publish') {
+      assert.equal(
+        relay.publish(String(step['src']), String(step['type']), JSON.parse(String(step['data']))),
+        step['id'] ?? undefined,
+        String(step['src']),
+      );
+    } else if (step['op'] === 'take') {
+      assert.deepEqual(relay.take(String(step['addr'])), step['inbox'], String(step['addr']));
+    } else {
+      assert.fail(String(step['op']));
+    }
+  }
+});
+
 test('every vector file declares its feature', () => {
   const files = [
     'canonical-json.json',
@@ -877,6 +905,7 @@ test('every vector file declares its feature', () => {
     'discovery-nat.json',
     'wire-channel.json',
     'channel-adapters.json',
+    'channel-peer.json',
     'app-pubsub.json',
     'app-stream.json',
   ];

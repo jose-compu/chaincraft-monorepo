@@ -27,6 +27,7 @@ pub mod mempool;
 pub mod mesh;
 pub mod nat;
 pub mod object;
+pub mod peer;
 pub mod pipeline;
 pub mod pubsub;
 pub mod storage;

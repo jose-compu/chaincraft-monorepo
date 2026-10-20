@@ -2071,6 +2071,8 @@ def wire_channel_vectors() -> Dict[str, Any]:
         ("hostname local", "node.local:9735"),
         ("mailto", "mailto:alice@example.com"),
         ("webrtc", f"webrtc:{peer}"),
+        ("peerjs uuid", "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"),
+        ("peerjs short", "webrtc:abcd"),
         ("forum", "forum:disc:t1"),
         ("loop", "loop:alice"),
         ("pipe", "pipe:alice"),
@@ -2084,7 +2086,9 @@ def wire_channel_vectors() -> Dict[str, Any]:
         ("unicode ipv4 octet", "tcp://127.0.0.١:1"),
         ("leading zero port", "127.0.0.1:09735"),
         ("mailto missing at", "mailto:alice"),
-        ("webrtc short", "webrtc:abcd"),
+        ("webrtc space", "webrtc:bad id"),
+        ("webrtc too long", "webrtc:" + ("a" * 65)),
+        ("webrtc dot", "webrtc:ab.cd"),
         ("forum extra colon", "forum:disc:t:1"),
         ("loop hyphen edge", "loop:-alice"),
         ("loop uppercase", "loop:Alice"),
@@ -3129,6 +3133,83 @@ def paths_vectors() -> Dict[str, Any]:
     }
 
 
+def channel_peer_vectors() -> Dict[str, Any]:
+    from chaincraft.peer import (
+        DEFAULT_PEER_ORIGIN,
+        EnvelopeRelay,
+        parse_peer_id_body,
+        peer_options,
+    )
+
+    ids = []
+    for name, raw in (
+        ("empty", ""),
+        ("uuid", "283e9542-cc0a-4301-8c37-70cd162fa2f8"),
+        ("hex64", "ab" * 32),
+        ("short", "abcd"),
+        ("trim", "  abcd\n"),
+        ("upper", "Abcd"),
+        ("underscore", "peer_1"),
+        ("space", "bad id"),
+        ("dot", "ab.cd"),
+        ("too long", "a" * 65),
+        ("slash", "ab/cd"),
+    ):
+        ids.append({"name": name, "input": raw, "id": parse_peer_id_body(raw)})
+
+    relay = EnvelopeRelay()
+    steps: List[Dict[str, Any]] = []
+    peer_addr = "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"
+    pipe_addr = "pipe:alice"
+    mail_addr = "mailto:bob@example.com"
+
+    def join(addr: str) -> None:
+        steps.append({"op": "join", "addr": addr, "ok": relay.join(addr)})
+
+    def publish(src: str, data: Dict[str, Any]) -> None:
+        steps.append(
+            {
+                "op": "publish",
+                "src": src,
+                "type": "app.hello",
+                "data": json.dumps(data, separators=(",", ":"), ensure_ascii=False),
+                "id": relay.publish(src, "app.hello", data),
+            }
+        )
+
+    def take(addr: str) -> None:
+        steps.append({"op": "take", "addr": addr, "inbox": relay.take(addr)})
+
+    join(peer_addr)
+    join(pipe_addr)
+    join(mail_addr)
+    join(peer_addr)
+    join("tcp://127.0.0.1:9735")
+    join("webrtc:bad id")
+    publish(peer_addr, {"message": "hi"})
+    take(pipe_addr)
+    take(mail_addr)
+    take(peer_addr)
+    publish(peer_addr, {"message": "hi"})
+    take(pipe_addr)
+    publish("pipe:nobody", {"message": "no"})
+    publish(pipe_addr, {"message": "ho"})
+    take(peer_addr)
+    take(mail_addr)
+    take(pipe_addr)
+    return {
+        **header(
+            "channel.peer",
+            "SPEC/features/channel-peer.md",
+            "PeerJS ids, default broker options, and one cross-scheme relay.",
+        ),
+        "origin": DEFAULT_PEER_ORIGIN,
+        "options": peer_options(),
+        "ids": ids,
+        "steps": steps,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -3170,6 +3251,7 @@ def main() -> int:
     print("\nLevel 2 — channel")
     write("wire-channel.json", wire_channel_vectors())
     write("channel-adapters.json", adapter_vectors())
+    write("channel-peer.json", channel_peer_vectors())
     print("\nLevel 2 — publish-subscribe")
     write("app-pubsub.json", app_pubsub_vectors())
     print("\nLevel 2 — event stream")

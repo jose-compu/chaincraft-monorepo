@@ -15,7 +15,11 @@ const FAIL: ParsedAddress = { ok: false, scheme: '', canonical: '', cap: '' };
 const AUTHORITY = new Set(['tcp', 'udp']);
 const COLON = ['mailto', 'webrtc', 'forum', 'loop', 'pipe'] as const;
 const HEX = /^[0-9a-f]+$/;
-const HEX64 = /^[0-9a-f]{64}$/;
+const PEER_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+export function isPeerId(value: string): boolean {
+  return PEER_ID.test(value);
+}
 const LOCAL = /^[A-Za-z0-9._+-]{1,64}$/;
 const LABEL = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
 const THREAD = /^[A-Za-z0-9._-]{1,64}$/;
@@ -63,7 +67,7 @@ function parseColon(scheme: string, rest: string): ParsedAddress {
     return ok(scheme, `mailto:${rest}`);
   }
   if (scheme === 'webrtc') {
-    if (!HEX64.test(rest)) return { ...FAIL };
+    if (!isPeerId(rest)) return { ...FAIL };
     return ok(scheme, `webrtc:${rest}`);
   }
   if (scheme === 'forum') {

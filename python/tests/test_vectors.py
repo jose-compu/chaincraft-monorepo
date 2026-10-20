@@ -981,6 +981,34 @@ def test_app_stream_replay(case):
             ), where
 
 
+def test_channel_peer_transcript():
+    from chaincraft.peer import (
+        DEFAULT_PEER_ORIGIN,
+        EnvelopeRelay,
+        parse_peer_id_body,
+        peer_options,
+    )
+
+    doc = load("channel-peer.json")
+    assert doc["origin"] == DEFAULT_PEER_ORIGIN
+    assert peer_options() == doc["options"]
+    for case in doc["ids"]:
+        assert parse_peer_id_body(case["input"]) == case["id"], case["name"]
+    relay = EnvelopeRelay()
+    for step in doc["steps"]:
+        if step["op"] == "join":
+            assert relay.join(step["addr"]) is step["ok"], step["addr"]
+        elif step["op"] == "publish":
+            assert (
+                relay.publish(step["src"], step["type"], json.loads(step["data"]))
+                == step["id"]
+            ), step["src"]
+        elif step["op"] == "take":
+            assert relay.take(step["addr"]) == step["inbox"], step["addr"]
+        else:
+            raise AssertionError(step["op"])
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

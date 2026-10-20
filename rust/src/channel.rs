@@ -34,6 +34,14 @@ fn ok(scheme: &str, canonical: String) -> ParsedAddress {
     }
 }
 
+pub fn is_peer_id(value: &str) -> bool {
+    let n = value.len();
+    (1..=64).contains(&n)
+        && value
+            .bytes()
+            .all(|b| matches!(b, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' | b'_' | b'-'))
+}
+
 pub fn parse_address(raw: &str) -> ParsedAddress {
     if raw.is_empty() {
         return fail();
@@ -95,7 +103,7 @@ fn parse_colon(scheme: &str, rest: &str) -> ParsedAddress {
             ok(scheme, format!("mailto:{rest}"))
         }
         "webrtc" => {
-            if rest.len() != 64 || !rest.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
+            if !is_peer_id(rest) {
                 return fail();
             }
             ok(scheme, format!("webrtc:{rest}"))
