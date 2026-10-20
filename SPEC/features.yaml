@@ -268,7 +268,7 @@ features:
   - id: discovery.peer
     level: 2
     spec: SPEC/features/discovery-peer.md
-    summary: Address book for host:port peers over ctl.peers
+    summary: Address book for host:port peers; TCP connect allows public IPv4 and DNS names
     vectors: conformance/vectors/discovery-peer.json
     backfill: true
     legacy: python/chaincraft@0.7 discovery
@@ -464,12 +464,32 @@ features:
   - id: channel.webrtc
     level: 2
     spec: SPEC/features/channel-adapters.md
-    summary: In-memory data-channel bus for webrtc peer ids
+    summary: In-memory data-channel bus for PeerJS peer ids
     vectors: conformance/vectors/channel-adapters.json
     status:
       python:     { state: implemented, since: "2026-09-22" }
       rust:       { state: implemented, since: "2026-09-22" }
       typescript: { state: implemented, since: "2026-09-22" }
+
+  - id: channel.peer
+    level: 2
+    spec: SPEC/features/channel-peer.md
+    summary: PeerJS ids, broker options, and an in-memory cross-scheme envelope relay
+    vectors: conformance/vectors/channel-peer.json
+    status:
+      python:     { state: implemented, since: "2026-10-20" }
+      rust:       { state: implemented, since: "2026-10-20" }
+      typescript: { state: implemented, since: "2026-10-20" }
+
+  - id: channel.hybrid
+    level: 2
+    spec: SPEC/features/channel-hybrid.md
+    summary: One mesh relays gossip across channel schemes and may listen on UDP
+    vectors: conformance/vectors/channel-hybrid.json
+    status:
+      python:     { state: implemented, since: "2026-10-20" }
+      rust:       { state: implemented, since: "2026-10-20" }
+      typescript: { state: implemented, since: "2026-10-20" }
 
   - id: channel.forum
     level: 2

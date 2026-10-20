@@ -29,26 +29,25 @@ def is_resolved_ip_allowed(ip: str) -> bool:
     labels = ip.split(".")
     if len(labels) != 4 or not all(_ascii_digits(label) for label in labels):
         return False
-    a, b = int(labels[0]), int(labels[1])
-    if a == 127:
-        return True
-    if a == 10:
-        return True
-    if a == 192 and b == 168:
-        return True
-    if a == 172 and 16 <= b <= 31:
-        return True
-    return False
+    octets = [int(label) for label in labels]
+    if any(octet > 255 for octet in octets):
+        return False
+    a, b = octets[0], octets[1]
+    if a == 0 or a >= 224:
+        return False
+    if a == 169 and b == 254:
+        return False
+    return True
 
 
 def is_connect_allowed(address: str) -> bool:
     if not is_valid_address(address):
         return False
     host, _port = address.rsplit(":", 1)
-    lowered = host.lower()
-    if lowered == "localhost" or lowered.endswith(".local"):
-        return True
-    return is_resolved_ip_allowed(host)
+    labels = host.split(".")
+    if len(labels) == 4 and all(_ascii_digits(label) for label in labels):
+        return is_resolved_ip_allowed(host)
+    return True
 
 
 def is_valid_address(address: str) -> bool:

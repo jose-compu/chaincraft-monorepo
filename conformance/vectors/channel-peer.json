@@ -1,0 +1,191 @@
+{
+  "feature": "channel.peer",
+  "spec": "SPEC/features/channel-peer.md",
+  "description": "PeerJS ids, default broker options, and one cross-scheme relay.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "origin": "https://dechess-org-peerjs.vercel.app",
+  "options": {
+    "host": "dechess-org-peerjs.vercel.app",
+    "port": 443,
+    "path": "/",
+    "secure": true,
+    "key": "peerjs"
+  },
+  "ids": [
+    {
+      "name": "empty",
+      "input": "",
+      "id": null
+    },
+    {
+      "name": "uuid",
+      "input": "283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "id": "283e9542-cc0a-4301-8c37-70cd162fa2f8"
+    },
+    {
+      "name": "hex64",
+      "input": "abababababababababababababababababababababababababababababababab",
+      "id": "abababababababababababababababababababababababababababababababab"
+    },
+    {
+      "name": "short",
+      "input": "abcd",
+      "id": "abcd"
+    },
+    {
+      "name": "trim",
+      "input": "  abcd\n",
+      "id": "abcd"
+    },
+    {
+      "name": "upper",
+      "input": "Abcd",
+      "id": "Abcd"
+    },
+    {
+      "name": "underscore",
+      "input": "peer_1",
+      "id": "peer_1"
+    },
+    {
+      "name": "space",
+      "input": "bad id",
+      "id": null
+    },
+    {
+      "name": "dot",
+      "input": "ab.cd",
+      "id": null
+    },
+    {
+      "name": "too long",
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "id": null
+    },
+    {
+      "name": "slash",
+      "input": "ab/cd",
+      "id": null
+    }
+  ],
+  "steps": [
+    {
+      "op": "join",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "ok": true
+    },
+    {
+      "op": "join",
+      "addr": "pipe:alice",
+      "ok": true
+    },
+    {
+      "op": "join",
+      "addr": "mailto:bob@example.com",
+      "ok": true
+    },
+    {
+      "op": "join",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "ok": false
+    },
+    {
+      "op": "join",
+      "addr": "tcp://127.0.0.1:9735",
+      "ok": false
+    },
+    {
+      "op": "join",
+      "addr": "webrtc:bad id",
+      "ok": false
+    },
+    {
+      "op": "publish",
+      "src": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "type": "app.hello",
+      "data": "{\"message\":\"hi\"}",
+      "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755"
+    },
+    {
+      "op": "take",
+      "addr": "pipe:alice",
+      "inbox": [
+        {
+          "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755",
+          "type": "app.hello",
+          "from": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "mailto:bob@example.com",
+      "inbox": [
+        {
+          "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755",
+          "type": "app.hello",
+          "from": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "inbox": []
+    },
+    {
+      "op": "publish",
+      "src": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "type": "app.hello",
+      "data": "{\"message\":\"hi\"}",
+      "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755"
+    },
+    {
+      "op": "take",
+      "addr": "pipe:alice",
+      "inbox": []
+    },
+    {
+      "op": "publish",
+      "src": "pipe:nobody",
+      "type": "app.hello",
+      "data": "{\"message\":\"no\"}",
+      "id": null
+    },
+    {
+      "op": "publish",
+      "src": "pipe:alice",
+      "type": "app.hello",
+      "data": "{\"message\":\"ho\"}",
+      "id": "274478551dca0a3f6de3166cc8e48372497d0b61dcd1a90029d5b656aebfe550"
+    },
+    {
+      "op": "take",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "inbox": [
+        {
+          "id": "274478551dca0a3f6de3166cc8e48372497d0b61dcd1a90029d5b656aebfe550",
+          "type": "app.hello",
+          "from": "pipe:alice"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "mailto:bob@example.com",
+      "inbox": [
+        {
+          "id": "274478551dca0a3f6de3166cc8e48372497d0b61dcd1a90029d5b656aebfe550",
+          "type": "app.hello",
+          "from": "pipe:alice"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "pipe:alice",
+      "inbox": []
+    }
+  ]
+}

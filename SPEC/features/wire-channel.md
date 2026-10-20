@@ -1,6 +1,6 @@
 # wire.channel
 
-**Release:** 1.0.0
+**Release:** 1.3.0
 
 Address URIs and an in-process loop channel. UDP, email, WebRTC, forum,
 and the in-process pipe are `SPEC/features/channel-adapters.md`. TCP
@@ -22,7 +22,7 @@ is unchanged.
 | `tcp` | `tcp://host:port` | `tcp` |
 | `udp` | `udp://host:port` | `udp` |
 | `mailto` | `mailto:local@domain` | `mailto` |
-| `webrtc` | `webrtc:<64 lowercase hex>` | `webrtc` |
+| `webrtc` | `webrtc:<peer id>` | `webrtc` |
 | `forum` | `forum:<profile>:<thread>` | `forum` |
 | `loop` | `loop:<name>` | `loop` |
 | `pipe` | `pipe:<name>` | `pipe` |
@@ -40,6 +40,9 @@ are rejected).
 `profile`, `loop` `name`, and `pipe` `name` are 1–32 characters of
 `a-z0-9-`, not starting or ending with a hyphen. `thread` is 1–64 characters of
 `A-Za-z0-9._-`. `forum` rest contains exactly one `:`.
+
+A `webrtc` peer id is 1–64 characters of `A-Za-z0-9_-`. A 64-character
+lowercase hex id remains valid. The same grammar is `channel.peer`.
 
 ## Parse
 

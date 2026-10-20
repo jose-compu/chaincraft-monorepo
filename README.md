@@ -1,13 +1,13 @@
 # Chaincraft Monorepo
 
-Chaincraft in three languages — Python, Rust and TypeScript — held at **100% feature
-parity** by a specification, shared conformance vectors, and a CI gate that fails on
-drift.
+Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
+BitTorrent swarms, and content-addressed stores. Three languages — Python, Rust
+and TypeScript — held at **100% feature parity** by a specification, shared
+conformance vectors, and a CI gate that fails on drift.
 
-Chaincraft is a platform for decentralized protocols. The ordinary object is
-local: a chat room, a publish-subscribe topic, a BitTorrent swarm, or a
-content-addressed store. A node applies the messages it has. A gap after a
-disconnect is allowed.
+The ordinary object is local: a chat room, a publish-subscribe topic, a
+BitTorrent swarm, or a content-addressed store. A node applies the messages it
+has. A gap after a disconnect is allowed.
 
 Consensus is a feature class in the same library, not the default. Proof of
 work, proof of stake, and PBFT, with a balance or UTXO ledger, are there when
@@ -87,8 +87,14 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, and NAT traversal:
-38 of 38 features each (TypeScript 37 implemented plus the UDP exemption).
-The spec release is 1.0.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+42 of 42 features each (TypeScript 41 implemented plus the UDP framing exemption).
+The spec release is 1.3.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+Git tag [`v1.3.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.3.0).
+[PyPI `chaincraft` 1.3.0](https://pypi.org/project/chaincraft/1.3.0/),
+[crates.io `chaincraft` 1.3.0](https://crates.io/crates/chaincraft) and
+[npm `@chaincraft/core` 1.3.0](https://www.npmjs.com/package/@chaincraft/core).
+`@chaincraft/core/browser` fetches a PeerJS id and does not import the TCP mesh.
+The default broker is `https://dechess-org-peerjs.vercel.app`.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no
 raw UDP socket and UDP is optional at Level 0.
 
@@ -135,63 +141,107 @@ Full detail in `SPEC/wire-v1.md`.
 ```bash
 pip install chaincraft
 cargo add chaincraft
+cargo install chaincraft
 npm install @chaincraft/core
 ```
 
-Ed25519 in Python is optional: `pip install "chaincraft[ed25519]"`.
-The npm package is `@chaincraft/core`. The unscoped name `chaincraft` on npm
-belongs to another project.
+The node CLIs are `python3 -m chaincraft.node`, `chaincraft-node`, and
+`chaincraft-ts-node` (`npm install --global @chaincraft/core`). Default listen
+is `0.0.0.0:9735`. Local Hello World still dials `127.0.0.1:9735`.
 
-## Examples
+Ed25519 is optional: `pip install "chaincraft[ed25519]"`. The npm package is
+`@chaincraft/core`. The unscoped name `chaincraft` on npm belongs to another
+project.
 
-These assume the packages above are installed.
+## Hello World
 
-```python
-from chaincraft import Envelope, encode_frame
+These assume the packages above are installed. They open real TCP sockets.
 
-env = Envelope.build("app.counter", {"by": "alice", "delta": 1})
-print(env.id)        # sha256 over the canonical payload
-print(env.to_json()) # canonical bytes, keys sorted
-frame = encode_frame(env.to_bytes())
-```
+### Two local nodes
 
-```rust
-use chaincraft::{encode_frame, Envelope, JsonValue};
-
-let env = Envelope::build(
-    "app.counter",
-    JsonValue::object([
-        ("by".into(), JsonValue::String("alice".into())),
-        ("delta".into(), JsonValue::Number(1)),
-    ]),
-    None,
-)?;
-let frame = encode_frame(&env.to_bytes()?)?;
-```
-
-```ts
-import { Envelope, encodeFrame } from "@chaincraft/core";
-
-const env = Envelope.build("app.counter", { by: "alice", delta: 1 });
-const frame = encodeFrame(env.toBytes());
-```
-
-A protocol implements `receive`. Peers may miss a message. A memento is for a
-consensus object, not for a chat room.
+Save as `hello.py` and run `python3 hello.py`. Node A listens on `9735`, node B
+on `9736`, B dials A, then B gossips `app.hello`. Both record the same payload
+id.
 
 ```python
+import time
+from chaincraft.mesh import Mesh
 from chaincraft.object import SharedObject
 
-class Room(SharedObject):
-    def __init__(self):
-        self.lines = []
 
+class Hello(SharedObject):
     def receive(self, message):
-        self.lines.append(message["text"])
+        print("Received:", message["message"])
+
+
+hello = Hello()
+a = Mesh(on_app=lambda t, d: hello.receive(d) if t == "app.hello" else None)
+b = Mesh()
+print("listening", a.start("127.0.0.1", 9735))
+print("listening", b.start("127.0.0.1", 9736))
+b.connect(a.listen_addr)
+digest = b.broadcast("app.hello", {"message": "Hello, Chaincraft!"})
+time.sleep(0.4)
+print(digest)
+print(a.ids())
+a.close()
+b.close()
 ```
 
-Rust implements `Protocol`. TypeScript extends `BaseSharedObject` and overrides
-`receive`. Reject a message by overriding `is_valid` (`accept` in Rust).
+Rust: `Mesh::bind`, `Mesh::connect`, `Mesh::broadcast` (`use chaincraft::mesh::Mesh`).
+TypeScript: `new Mesh()`, `await mesh.start`, `await mesh.connect`, `mesh.broadcast`.
+A prototype implements `receive` and attaches it to `on_app` / `onApp`. Peers may
+miss a message. A memento is for a consensus object, not for a chat room.
+
+### Three languages on one mesh
+
+Python holds `9735`. Rust binds `9736`. TypeScript binds `9737`. The last two
+dial Python.
+
+```bash
+# Terminal 1
+python3 -m chaincraft.node
+
+# Terminal 2
+chaincraft-node 127.0.0.1:9736
+
+# Terminal 3
+chaincraft-ts-node 127.0.0.1:9737
+```
+
+On terminals 2 and 3:
+
+```json
+{"cmd":"connect","addr":"127.0.0.1:9735"}
+```
+
+On terminal 1:
+
+```json
+{"cmd":"send","type":"app.hello","data":{"message":"Hello, Chaincraft!"}}
+```
+
+`sent.id` is SHA-256 of the canonical payload. After `ctl.hello`, the other
+nodes print `received` with that same id. `{"cmd":"ids"}` lists it on every
+node. `{"cmd":"quit"}` stops a process.
+
+### More nodes, local or LAN
+
+Start further processes on unused ports and `connect` them to a node that is
+already listening. Each mesh keeps at most 256 peers.
+
+`connect` allows loopback, RFC1918, public unicast IPv4, `localhost`,
+`.local`, and ordinary DNS names. Unspecified (`0.0.0.0`), link-local,
+multicast, and reserved addresses are refused.
+
+The default bind is `0.0.0.0:9735`. On another host:
+
+```bash
+python3 -m chaincraft.node
+# other host
+python3 -m chaincraft.node 0.0.0.0:9736
+# then: {"cmd":"connect","addr":"203.0.113.10:9735"}
+```
 
 ## Development
 

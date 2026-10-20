@@ -3,13 +3,16 @@
 use std::io::BufRead;
 
 use chaincraft::features::IMPL;
-use chaincraft::mesh::{emit, to_json_value, Mesh};
+use chaincraft::mesh::{emit, to_json_value, Mesh, DEFAULT_LISTEN};
 use serde_json::{json, Value};
 
 const MAX_STDIN_LINE: usize = 1_048_576;
 
 fn main() {
-    let mesh = Mesh::start().expect("bind");
+    let listen = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| DEFAULT_LISTEN.to_string());
+    let mesh = Mesh::bind(&listen).expect("bind");
     let listen_addr = mesh.lock().unwrap().listen_addr().to_string();
     emit(json!({"event":"ready","addr":listen_addr,"impl":IMPL}));
 

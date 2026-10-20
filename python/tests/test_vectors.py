@@ -426,6 +426,13 @@ def test_discovery_peer_invalid(case):
     assert is_valid_address(case["address"]) is False
 
 
+@cases("discovery-peer.json", "connect")
+def test_discovery_peer_connect(case):
+    from chaincraft.discovery import is_connect_allowed
+
+    assert is_connect_allowed(case["address"]) is case["allowed"]
+
+
 @cases("discovery-peer.json", "sequence")
 def test_discovery_peer_sequence(case):
     from chaincraft.discovery import AddressBook
@@ -972,6 +979,60 @@ def test_app_stream_replay(case):
                 obj.read(probe["stream"], probe["partition"], probe["after"], probe["limit"])
                 == probe["events"]
             ), where
+
+
+def test_channel_peer_transcript():
+    from chaincraft.peer import (
+        DEFAULT_PEER_ORIGIN,
+        EnvelopeRelay,
+        parse_peer_id_body,
+        peer_options,
+    )
+
+    doc = load("channel-peer.json")
+    assert doc["origin"] == DEFAULT_PEER_ORIGIN
+    assert peer_options() == doc["options"]
+    for case in doc["ids"]:
+        assert parse_peer_id_body(case["input"]) == case["id"], case["name"]
+    relay = EnvelopeRelay()
+    for step in doc["steps"]:
+        if step["op"] == "join":
+            assert relay.join(step["addr"]) is step["ok"], step["addr"]
+        elif step["op"] == "publish":
+            assert (
+                relay.publish(step["src"], step["type"], json.loads(step["data"]))
+                == step["id"]
+            ), step["src"]
+        elif step["op"] == "take":
+            assert relay.take(step["addr"]) == step["inbox"], step["addr"]
+        else:
+            raise AssertionError(step["op"])
+
+
+def test_channel_hybrid_transcript():
+    from chaincraft.hybrid import LinkMesh, hello_caps
+
+    doc = load("channel-hybrid.json")
+    assert hello_caps(False) == doc["caps_tcp"]
+    assert hello_caps(True) == doc["caps_udp"]
+    mesh = LinkMesh()
+    for step in doc["steps"]:
+        if step["op"] == "join":
+            assert mesh.join(step["addr"]) is step["ok"], step["addr"]
+        elif step["op"] == "gossip":
+            assert (
+                mesh.gossip(step["src"], step["type"], json.loads(step["data"]))
+                == step["id"]
+            ), step["src"]
+        elif step["op"] == "direct":
+            assert (
+                mesh.direct(step["src"], step["dst"], step["type"], json.loads(step["data"]))
+                == step["id"]
+            ), step["dst"]
+        elif step["op"] == "take":
+            assert mesh.take(step["addr"]) == step["inbox"], step["addr"]
+        else:
+            raise AssertionError(step["op"])
 
 
 # --- vector hygiene ---------------------------------------------------------

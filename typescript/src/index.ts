@@ -126,6 +126,18 @@ export {
 } from './bittorrent.ts';
 export { Mesh } from './mesh.ts';
 export {
+  DEFAULT_PEER_ORIGIN,
+  PEER_KEY,
+  EnvelopeRelay,
+  fetchPeerId,
+  isPeerId,
+  parsePeerIdBody,
+  peerOptions,
+  type PeerOptions,
+  type RelayItem,
+} from './peer.ts';
+export { HOP_CAP, LinkMesh, helloCaps, type HybridItem } from './hybrid.ts';
+export {
   type CodecResult as NatCodecResult,
   type HandleOut as NatHandle,
   type NatMessage,

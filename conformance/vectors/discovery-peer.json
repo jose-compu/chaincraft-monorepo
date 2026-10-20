@@ -1,7 +1,7 @@
 {
   "feature": "discovery.peer",
   "spec": "SPEC/features/discovery-peer.md",
-  "description": "Address book: IPv4/hostname:port, FIFO insert eviction, no-evict ingest, code-point advertise, injected clock.",
+  "description": "Address book: IPv4/hostname:port, FIFO insert eviction, no-evict ingest, code-point advertise, injected clock. Connect allows public unicast IPv4 and DNS names.",
   "generator": "conformance/generate_vectors.py",
   "wire_version": 1,
   "now_ms": 1757430000000,
@@ -85,6 +85,53 @@
     {
       "name": "unicode ipv4 octet",
       "address": "127.0.0.١:1"
+    }
+  ],
+  "connect": [
+    {
+      "name": "loopback",
+      "address": "127.0.0.1:21000",
+      "allowed": true
+    },
+    {
+      "name": "rfc1918",
+      "address": "10.0.0.2:9735",
+      "allowed": true
+    },
+    {
+      "name": "public ipv4",
+      "address": "8.8.8.8:53",
+      "allowed": true
+    },
+    {
+      "name": "public hostname",
+      "address": "example.com:443",
+      "allowed": true
+    },
+    {
+      "name": "localhost",
+      "address": "localhost:9735",
+      "allowed": true
+    },
+    {
+      "name": "mdns",
+      "address": "node-a.local:8080",
+      "allowed": true
+    },
+    {
+      "name": "unspecified",
+      "address": "0.0.0.0:21000",
+      "allowed": false
+    },
+    {
+      "name": "link local",
+      "address": "169.254.169.254:80",
+      "allowed": false
+    },
+    {
+      "name": "multicast",
+      "address": "224.0.0.1:9735",
+      "allowed": false
     }
   ],
   "sequence": [

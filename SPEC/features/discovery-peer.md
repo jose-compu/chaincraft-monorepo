@@ -1,6 +1,6 @@
 # discovery.peer
 
-**Release:** 1.0.0
+**Release:** 1.3.0
 
 Address book for `host:port` peers. Used by `ctl.peers.request` / `ctl.peers`
 (wire-v1 §5.2) and by `discovery.local`.
@@ -42,17 +42,23 @@ IPv6 is rejected. Brackets, paths, spaces and empty labels are rejected.
 
 ## Node connect policy
 
-`is_valid_address` is the book format. A node CLI `connect` is stricter:
-it is a prototype dial, not an open proxy.
+`is_valid_address` is the book format. A node CLI `connect` is a real
+dial: public unicast IPv4 and DNS hostnames are in scope.
 
-`is_connect_allowed(addr)` is true only when `addr` is a valid address
-and the host is loopback (`127.0.0.0/8` or `localhost`), RFC1918
-(`10/8`, `172.16/12`, `192.168/16`), or a `.local` hostname.
+`is_connect_allowed(addr)` is true when `addr` is a valid address and:
+
+1. **IPv4 host.** `is_resolved_ip_allowed(host)` is true.
+2. **Hostname.** Any valid hostname, including `localhost`, `.local`, and
+   public DNS names such as `example.com`. The IP check runs after DNS.
+
+`is_resolved_ip_allowed(ip)` is true for IPv4 unicast: loopback
+(`127/8`), RFC1918, and public addresses. It is false for unspecified
+(`0/8`), link-local (`169.254/16`), multicast (`224/4`), reserved
+(`240/4`), and any string that is not four decimal octets.
 
 After DNS resolution the node MUST dial only the first IPv4 result, and
-MUST refuse it unless that IP is loopback or RFC1918. Link-local
-(`169.254/16`), unspecified (`0.0.0.0`) and public addresses are
-refused. IPv6 is refused. Connect MUST time out within 5 seconds.
+MUST refuse it unless `is_resolved_ip_allowed` is true. IPv6 is refused.
+Connect MUST time out within 5 seconds.
 
 The stored form is the input string after it has passed validation. No
 normalization of case. Comparison is exact.

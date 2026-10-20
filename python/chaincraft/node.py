@@ -12,13 +12,14 @@ import threading
 
 from . import IMPL
 from .envelope import ProtocolError
-from .mesh import MAX_STDIN_LINE, Mesh, emit
+from .mesh import MAX_STDIN_LINE, Mesh, emit, parse_listen
 
 
 def main() -> int:
     out_lock = threading.Lock()
     mesh = Mesh(IMPL, on_event=lambda e: emit(e, out_lock))
-    mesh.start()
+    host, port = parse_listen(sys.argv[1] if len(sys.argv) > 1 else None)
+    mesh.start(host, port)
     emit({"event": "ready", "addr": mesh.listen_addr, "impl": IMPL}, out_lock)
     try:
         for line in sys.stdin:

@@ -2,7 +2,7 @@
 
 import { parseJson, payloadDigest, type JsonValue } from './canonical.ts';
 import { CanonicalError } from './errors.ts';
-import { isValidAddress } from './discovery.ts';
+import { parseAddress } from './channel.ts';
 
 const TYPE_RE = /^[a-z0-9._-]{1,64}$/;
 
@@ -64,7 +64,7 @@ export class NodeSession {
 
   private connect(command: Record<string, JsonValue>): CliEvent[] {
     const addr = command['addr'];
-    if (typeof addr !== 'string' || !isValidAddress(addr)) return [error('invalid address')];
+    if (typeof addr !== 'string' || !parseAddress(addr).ok) return [error('invalid address')];
     if (!this.peers.includes(addr)) this.peers.push(addr);
     return [{ event: 'connected', addr }];
   }

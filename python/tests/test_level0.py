@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 import pytest
 
 from chaincraft import canonical, control, crypto, envelope, framing
@@ -10,7 +12,7 @@ from chaincraft.dedup import Deduplicator, SeenDigests
 from chaincraft.envelope import Envelope, ProtocolError
 from chaincraft.discovery import is_connect_allowed, is_resolved_ip_allowed
 from chaincraft.framing import FrameReader, FramingError, encode_frame
-from chaincraft.mesh import Mesh
+from chaincraft.mesh import DEFAULT_LISTEN, MAX_PEERS, Mesh, parse_listen
 
 
 # --- section 1: canonical JSON ---------------------------------------------
@@ -442,17 +444,60 @@ class TestDeduplication:
 
 
 class TestConnectPolicy:
-    def test_loopback_and_rfc1918_allowed(self):
+    def test_loopback_rfc1918_and_public_allowed(self):
         assert is_connect_allowed("127.0.0.1:21000")
         assert is_connect_allowed("10.0.0.2:9735")
         assert is_connect_allowed("192.168.1.8:8080")
         assert is_connect_allowed("172.16.0.1:1")
         assert is_connect_allowed("localhost:9735")
         assert is_connect_allowed("node-a.local:8080")
+        assert is_connect_allowed("8.8.8.8:53")
+        assert is_connect_allowed("example.com:443")
+        assert is_resolved_ip_allowed("1.1.1.1")
 
-    def test_public_and_metadata_refused(self):
-        assert not is_connect_allowed("8.8.8.8:53")
+    def test_unspecified_link_local_and_multicast_refused(self):
         assert not is_connect_allowed("169.254.169.254:80")
         assert not is_connect_allowed("0.0.0.0:21000")
-        assert not is_connect_allowed("example.com:443")
-        assert not is_resolved_ip_allowed("1.1.1.1")
+        assert not is_connect_allowed("224.0.0.1:9735")
+        assert not is_connect_allowed("255.255.255.255:1")
+        assert not is_resolved_ip_allowed("0.0.0.0")
+        assert not is_resolved_ip_allowed("224.0.0.1")
+
+
+class TestListen:
+    def test_default_is_all_interfaces_9735(self):
+        assert DEFAULT_LISTEN == "0.0.0.0:9735"
+        assert parse_listen() == ("0.0.0.0", 9735)
+        assert parse_listen("") == ("0.0.0.0", 9735)
+        assert MAX_PEERS == 256
+
+    def test_ephemeral_and_explicit(self):
+        assert parse_listen("127.0.0.1:0") == ("127.0.0.1", 0)
+        assert parse_listen("127.0.0.1:9736") == ("127.0.0.1", 9736)
+
+    def test_rejects_bad_listen(self):
+        with pytest.raises(ValueError):
+            parse_listen("9735")
+        with pytest.raises(ValueError):
+            parse_listen("127.0.0.1:65536")
+
+
+class TestTwoNodeMesh:
+    def test_two_local_sockets_gossip_hello(self):
+        got = []
+        a = Mesh(on_app=lambda t, d: got.append((t, d)))
+        b = Mesh()
+        try:
+            addr_a = a.start("127.0.0.1", 0)
+            b.start("127.0.0.1", 0)
+            b.connect(addr_a)
+            digest = b.broadcast("app.hello", {"message": "Hello, Chaincraft!"})
+            deadline = time.time() + 2
+            while time.time() < deadline and not got:
+                time.sleep(0.05)
+            assert got == [("app.hello", {"message": "Hello, Chaincraft!"})]
+            assert digest in a.ids()
+            assert digest in b.ids()
+        finally:
+            a.close()
+            b.close()

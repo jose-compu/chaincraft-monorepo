@@ -52,6 +52,7 @@ import {
   encodeFrame,
   frontierDigest,
   hexToBytes,
+  isConnectAllowed,
   isValidAddress,
   merkleDigest,
   parseJson,
@@ -393,6 +394,10 @@ eachCase('discovery-peer.json', 'valid', (c) => {
 
 eachCase('discovery-peer.json', 'invalid', (c) => {
   assert.equal(isValidAddress(c['address']), false);
+});
+
+eachCase('discovery-peer.json', 'connect', (c) => {
+  assert.equal(isConnectAllowed(c['address']), c['allowed']);
 });
 
 eachCase('discovery-peer.json', 'sequence', (c, doc) => {
@@ -842,6 +847,68 @@ eachCase('wire-paths.json', 'classify', (c) => {
 
 // --- vector hygiene ---------------------------------------------------------
 
+test('channel.peer transcript', async () => {
+  const { EnvelopeRelay, DEFAULT_PEER_ORIGIN, parsePeerIdBody, peerOptions } = await import(
+    '../src/peer.ts'
+  );
+  const doc = load('channel-peer.json');
+  assert.equal(doc['origin'], DEFAULT_PEER_ORIGIN);
+  assert.deepEqual(peerOptions(), doc['options']);
+  for (const item of doc['ids'] as Array<{ name: string; input: string; id: string | null }>) {
+    assert.equal(parsePeerIdBody(item.input), item.id ?? undefined, item.name);
+  }
+  const relay = new EnvelopeRelay();
+  for (const step of doc['steps'] as Array<Record<string, unknown>>) {
+    if (step['op'] === 'join') {
+      assert.equal(relay.join(String(step['addr'])), step['ok'], String(step['addr']));
+    } else if (step['op'] === 'publish') {
+      assert.equal(
+        relay.publish(String(step['src']), String(step['type']), JSON.parse(String(step['data']))),
+        step['id'] ?? undefined,
+        String(step['src']),
+      );
+    } else if (step['op'] === 'take') {
+      assert.deepEqual(relay.take(String(step['addr'])), step['inbox'], String(step['addr']));
+    } else {
+      assert.fail(String(step['op']));
+    }
+  }
+});
+
+test('channel.hybrid transcript', async () => {
+  const { LinkMesh, helloCaps } = await import('../src/hybrid.ts');
+  const doc = load('channel-hybrid.json');
+  assert.deepEqual(helloCaps(false), doc['caps_tcp']);
+  assert.deepEqual(helloCaps(true), doc['caps_udp']);
+  const mesh = new LinkMesh();
+  for (const step of doc['steps'] as Array<Record<string, unknown>>) {
+    if (step['op'] === 'join') {
+      assert.equal(mesh.join(String(step['addr'])), step['ok'], String(step['addr']));
+    } else if (step['op'] === 'gossip') {
+      assert.equal(
+        mesh.gossip(String(step['src']), String(step['type']), JSON.parse(String(step['data']))),
+        step['id'] ?? undefined,
+        String(step['src']),
+      );
+    } else if (step['op'] === 'direct') {
+      assert.equal(
+        mesh.direct(
+          String(step['src']),
+          String(step['dst']),
+          String(step['type']),
+          JSON.parse(String(step['data'])),
+        ),
+        step['id'] ?? undefined,
+        String(step['dst']),
+      );
+    } else if (step['op'] === 'take') {
+      assert.deepEqual(mesh.take(String(step['addr'])), step['inbox'], String(step['addr']));
+    } else {
+      assert.fail(String(step['op']));
+    }
+  }
+});
+
 test('every vector file declares its feature', () => {
   const files = [
     'canonical-json.json',
@@ -872,6 +939,8 @@ test('every vector file declares its feature', () => {
     'discovery-nat.json',
     'wire-channel.json',
     'channel-adapters.json',
+    'channel-peer.json',
+    'channel-hybrid.json',
     'app-pubsub.json',
     'app-stream.json',
   ];

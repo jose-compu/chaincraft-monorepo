@@ -279,3 +279,13 @@ test('registration order is reported and enforced as unique', () => {
   assert.deepEqual(registry.names, ['counter', 'mirror']);
   assert.throws(() => registry.register('counter', new Counter()));
 });
+
+test('node listen defaults to 0.0.0.0:9735', async () => {
+  const { DEFAULT_LISTEN, MAX_PEERS, parseListen } = await import('../src/mesh.ts');
+  assert.equal(DEFAULT_LISTEN, '0.0.0.0:9735');
+  assert.equal(MAX_PEERS, 256);
+  assert.deepEqual(parseListen(), { host: '0.0.0.0', port: 9735 });
+  assert.deepEqual(parseListen('127.0.0.1:0'), { host: '127.0.0.1', port: 0 });
+  assert.deepEqual(parseListen('127.0.0.1:9736'), { host: '127.0.0.1', port: 9736 });
+  assert.throws(() => parseListen('9735'));
+});

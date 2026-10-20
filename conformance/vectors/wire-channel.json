@@ -55,6 +55,22 @@
       "cap": "webrtc"
     },
     {
+      "name": "peerjs uuid",
+      "input": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "ok": true,
+      "scheme": "webrtc",
+      "canonical": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "cap": "webrtc"
+    },
+    {
+      "name": "peerjs short",
+      "input": "webrtc:abcd",
+      "ok": true,
+      "scheme": "webrtc",
+      "canonical": "webrtc:abcd",
+      "cap": "webrtc"
+    },
+    {
       "name": "forum",
       "input": "forum:disc:t1",
       "ok": true,
@@ -159,8 +175,24 @@
       "cap": ""
     },
     {
-      "name": "webrtc short",
-      "input": "webrtc:abcd",
+      "name": "webrtc space",
+      "input": "webrtc:bad id",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "webrtc too long",
+      "input": "webrtc:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": false,
+      "scheme": "",
+      "canonical": "",
+      "cap": ""
+    },
+    {
+      "name": "webrtc dot",
+      "input": "webrtc:ab.cd",
       "ok": false,
       "scheme": "",
       "canonical": "",
@@ -226,7 +258,12 @@
     {
       "name": "public ipv4",
       "input": "8.8.8.8:53",
-      "allowed": false
+      "allowed": true
+    },
+    {
+      "name": "public hostname",
+      "input": "example.com:443",
+      "allowed": true
     },
     {
       "name": "link local",

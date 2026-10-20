@@ -1,6 +1,6 @@
 # Chaincraft Wire Protocol — v1 (Level 0)
 
-**Release:** 1.0.0
+**Release:** 1.3.0
 
 **Status:** Current
 **Protocol version on the wire:** `1`

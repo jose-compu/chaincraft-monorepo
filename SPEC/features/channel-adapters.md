@@ -1,6 +1,6 @@
 # channel adapters
 
-**Release:** 1.0.0
+**Release:** 1.3.0
 
 Live delivery for the schemes in `wire.channel`, other than `tcp` and `loop`.
 `ctl.hello.listen` stays one `host:port` string. These adapters do not add a
@@ -8,10 +8,11 @@ field to `ctl.hello` and do not change envelope `v`.
 
 `udp` is a localhost datagram socket. `pipe` is an in-process datagram pipe
 with the same byte cap, for simulating a mesh on one computer. `mailto`,
-`webrtc`, and `forum` are in-memory buses: v1 has no SMTP server, no ICE
-agent, and no HTTP forum. A bus is the allow-list. A message is delivered
+`webrtc`, and `forum` are in-memory buses: this release has no SMTP server,
+no ICE agent, and no HTTP forum. A bus is the allow-list. A message is delivered
 only to an address that is listening on that bus. The pipe does not bind a
-kernel socket.
+kernel socket. PeerJS signaling and the cross-scheme relay are
+`channel.peer`.
 
 ## Bus
 
@@ -22,7 +23,7 @@ as the loop channel.
 |---|---|---|
 | `udp` | `udp://host:port` | 65507 |
 | `mailto` | `mailto:local@domain` | 4096 |
-| `webrtc` | `webrtc:<64 lowercase hex>` | 65507 |
+| `webrtc` | `webrtc:<peer id>` | 65507 |
 | `forum` | `forum:<profile>:<thread>` | 4096 |
 | `pipe` | `pipe:<name>` | 65507 |
 

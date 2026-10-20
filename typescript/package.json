@@ -1,6 +1,6 @@
 {
   "name": "@chaincraft/core",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "A platform for decentralized protocols — wire, objects, and pedagogical consensus",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "default": "./dist/browser.js"
     }
+  },
+  "bin": {
+    "chaincraft-ts-node": "dist/node.js",
+    "chaincraft-ts-bt-node": "dist/btNode.js"
   },
   "files": [
     "dist",

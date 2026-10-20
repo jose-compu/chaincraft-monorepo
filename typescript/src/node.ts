@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Minimal TCP mesh node — SPEC/wire-v1.md §4, §5, §7, §8.
  *
@@ -7,7 +8,7 @@
 import * as readline from 'node:readline';
 
 import { type JsonValue, IMPL, ProtocolError } from './index.ts';
-import { Mesh } from './mesh.ts';
+import { Mesh, parseListen } from './mesh.ts';
 
 const MAX_STDIN_LINE = 1_048_576;
 
@@ -16,7 +17,8 @@ function emit(event: Record<string, unknown>): void {
 }
 
 const mesh = new Mesh(IMPL, emit);
-await mesh.start();
+const listen = parseListen(process.argv[2]);
+await mesh.start(listen.host, listen.port);
 emit({ event: 'ready', addr: mesh.listenAddr, impl: IMPL });
 
 const rl = readline.createInterface({ input: process.stdin });
