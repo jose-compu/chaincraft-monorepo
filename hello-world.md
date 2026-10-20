@@ -2,9 +2,9 @@
 
 Interactive version: open [`index.html`](index.html) in this folder, or the published site.
 
-Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.1.0 over **TCP sockets**: default bind `0.0.0.0:9735`, local dial `127.0.0.1:9735`, two nodes in one program, then a three-language mesh on loopback or across hosts. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
+Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.2.0 over **TCP sockets**: default bind `0.0.0.0:9735`, local dial `127.0.0.1:9735`, two nodes in one program, then a three-language mesh on loopback or across hosts. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
 
-Published: [`chaincraft` 1.1.0 on PyPI](https://pypi.org/project/chaincraft/1.1.0/), [`chaincraft` 1.1.0 on crates.io](https://crates.io/crates/chaincraft), [`@chaincraft/core` 1.1.0 on npm](https://www.npmjs.com/package/@chaincraft/core).
+Published: [`chaincraft` 1.2.0 on PyPI](https://pypi.org/project/chaincraft/1.2.0/), [`chaincraft` 1.2.0 on crates.io](https://crates.io/crates/chaincraft), [`@chaincraft/core` 1.2.0 on npm](https://www.npmjs.com/package/@chaincraft/core).
 
 ## Install
 
@@ -15,6 +15,8 @@ npm install --global @chaincraft/core
 ```
 
 Libraries (for the programs later): `cargo add chaincraft`, `npm install @chaincraft/core`.
+
+A browser page imports `@chaincraft/core/browser`. That entry does not import the TCP mesh. `fetchPeerId()` reads `GET /peerjs/id` from `https://dechess-org-peerjs.vercel.app`, and `peerOptions()` is what you pass to `Peer`. The data channel is yours.
 
 Clone only as a fallback if you want the source tree:
 
@@ -58,7 +60,7 @@ python3 -m chaincraft.node
 ```
 
 ```json
-{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.1.0"}
+{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.2.0"}
 ```
 
 Same default in Rust (`chaincraft-node`) and TypeScript (`chaincraft-ts-node`). Pass `host:port` to override. `127.0.0.1:0` is ephemeral.
@@ -107,7 +109,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chaincraft = "1.1.0"
+chaincraft = "1.2.0"
 ```
 
 ```rust
@@ -215,4 +217,4 @@ python3 -m chaincraft.node 0.0.0.0:9736
 
 The live 3×3 check is `python3 conformance/runner/run_interop.py` from the repository root.
 
-Release: https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0
+Release: https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.2.0
