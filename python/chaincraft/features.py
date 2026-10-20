@@ -57,6 +57,7 @@ FEATURES = frozenset(
         "channel.udp",
         "channel.mailto",
         "channel.webrtc",
+        "channel.peer",
         "channel.forum",
         "channel.pipe",
         "app.pubsub",

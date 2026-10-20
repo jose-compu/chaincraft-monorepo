@@ -3,14 +3,15 @@
 TypeScript implementation of the Chaincraft wire protocol, object semantics, and
 Level 2 stack (consensus, ledgers, BitTorrent, channels). Same observable
 behaviour as the Python `chaincraft` package and the Rust `chaincraft` crate.
-Release **[1.1.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
+Release **[1.2.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.
 
-Node **20+**, ESM only (`"type": "module"`). `Mesh` uses `node:net`; it is not a
-browser package. Raw UDP is the one registry exemption (browsers have no UDP
-socket). The unscoped npm name `chaincraft` belongs to another project.
+Node **20+**, ESM only (`"type": "module"`). The default entry and `Mesh` use
+`node:net`; browser consumers can use the `@chaincraft/core/browser` entry.
+Raw UDP is the one registry exemption (browsers have no UDP socket). The
+unscoped npm name `chaincraft` belongs to another project.
 
 ## Install
 
@@ -29,6 +30,22 @@ npx chaincraft-ts-node
 # or
 node node_modules/@chaincraft/core/dist/node.js
 ```
+
+## Browser
+
+`@chaincraft/core/browser` does not import `node:net`. `Mesh` stays on the Node
+entry. A page asks the PeerJS broker for an id and passes `peerOptions()` to
+`Peer`. The default broker is `https://dechess-org-peerjs.vercel.app`.
+
+```js
+import { fetchPeerId, peerOptions } from "@chaincraft/core/browser";
+
+const id = await fetchPeerId();
+const peer = new Peer(id, peerOptions());
+```
+
+The data channel is the caller's. `EnvelopeRelay` is the in-memory stand-in
+used by the conformance vectors.
 
 ## Envelope
 

@@ -1,6 +1,6 @@
 # fees.policy
 
-**Release:** 1.1.0
+**Release:** 1.2.0
 
 Prototype fee policy. It ranks candidates for a block, splits a fee
 into burned and tip portions, estimates a clearing fee, and steps a

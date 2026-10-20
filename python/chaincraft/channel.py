@@ -12,13 +12,14 @@ __all__ = [
     "MAX_LOOP_BYTES",
     "parse_address",
     "is_connect_allowed",
+    "is_peer_id",
     "LoopBus",
     "LoopChannel",
 ]
 
 MAX_LOOP_BYTES = 64
 _HEX = re.compile(r"^[0-9a-f]+$")
-_HEX64 = re.compile(r"^[0-9a-f]{64}$")
+_PEER_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 _LOCAL = re.compile(r"^[A-Za-z0-9._+-]{1,64}$")
 _LABEL = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$")
 _THREAD = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
@@ -48,6 +49,10 @@ def parse_address(raw: Any) -> Dict[str, Any]:
     return dict(_FAIL)
 
 
+def is_peer_id(value: Any) -> bool:
+    return isinstance(value, str) and _PEER_ID.fullmatch(value) is not None
+
+
 def is_connect_allowed(raw: str) -> bool:
     parsed = parse_address(raw)
     if not parsed["ok"]:
@@ -71,7 +76,7 @@ def _parse_colon(scheme: str, rest: str) -> Dict[str, Any]:
             return dict(_FAIL)
         return _ok(scheme, f"mailto:{rest}")
     if scheme == "webrtc":
-        if _HEX64.fullmatch(rest) is None:
+        if not is_peer_id(rest):
             return dict(_FAIL)
         return _ok(scheme, f"webrtc:{rest}")
     if scheme == "forum":

@@ -354,6 +354,15 @@ mesh can be simulated on one computer without a kernel socket. Issue #40.
 Public unicast IPv4 and DNS names on `connect`. Default listen `0.0.0.0:9735`.
 Live peer cap 256. Issues #49, #50, #51. Wire protocol stays 1.
 
+### Stage 18 — PeerJS ids 1.2.0
+
+`channel.peer`. A WebRTC address accepts a PeerJS id (`A-Za-z0-9_-`, 1–64),
+including the previous 64-hex form. `fetch_peer_id` reads `GET /peerjs/id`.
+The default broker is `https://dechess-org-peerjs.vercel.app`.
+`@chaincraft/core/browser` does not import the TCP mesh. `EnvelopeRelay`
+delivers one envelope id across `webrtc`, `pipe`, `mailto`, `forum`, and
+`udp` in memory. ICE, SMTP, and a live UDP mesh remain open.
+
 ---
 
 ## 6. Versioning
@@ -362,14 +371,14 @@ Full parity implies **lockstep releases**. All three packages and `SPEC/release.
 carry the same version:
 
 ```
-chaincraft (PyPI)    1.1.0
-chaincraft (crates)  1.1.0
-@chaincraft/core (npm)     1.1.0
-SPEC/release.yaml         1.1.0
+chaincraft (PyPI)    1.2.0
+chaincraft (crates)  1.2.0
+@chaincraft/core (npm)     1.2.0
+SPEC/release.yaml         1.2.0
 ```
 
-That is the current release. The git tag is `v1.1.0`. PyPI, crates.io and npm
-serve 1.1.0.
+That is the current release. The git tag is `v1.2.0`. PyPI, crates.io and npm
+serve 1.2.0.
 A later minor version still ships all three together. A language cannot ship a
 minor version alone, because a minor version means a new feature, and a new
 feature means all three have it.
