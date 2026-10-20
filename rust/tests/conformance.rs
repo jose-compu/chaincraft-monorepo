@@ -2012,6 +2012,73 @@ fn channel_peer_transcript() {
 }
 
 #[test]
+fn channel_hybrid_transcript() {
+    use chaincraft::hybrid::{self, LinkMesh};
+
+    let doc = load("channel-hybrid.json");
+    assert_eq!(
+        hybrid::hello_caps(false),
+        doc["caps_tcp"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| item.as_str().unwrap())
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(
+        hybrid::hello_caps(true),
+        doc["caps_udp"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| item.as_str().unwrap())
+            .collect::<Vec<_>>()
+    );
+    let mut mesh = LinkMesh::new();
+    for step in doc["steps"].as_array().unwrap() {
+        match step["op"].as_str().unwrap() {
+            "join" => {
+                let addr = step["addr"].as_str().unwrap();
+                assert_eq!(mesh.join(addr), step["ok"].as_bool().unwrap(), "{addr}");
+            }
+            "gossip" => {
+                let src = step["src"].as_str().unwrap();
+                let data = parse_json(step["data"].as_str().unwrap()).unwrap();
+                let got = mesh.gossip(src, step["type"].as_str().unwrap(), data);
+                assert_eq!(got.as_deref(), step["id"].as_str(), "{src}");
+            }
+            "direct" => {
+                let dst = step["dst"].as_str().unwrap();
+                let data = parse_json(step["data"].as_str().unwrap()).unwrap();
+                let got = mesh.direct(
+                    step["src"].as_str().unwrap(),
+                    dst,
+                    step["type"].as_str().unwrap(),
+                    data,
+                );
+                assert_eq!(got.as_deref(), step["id"].as_str(), "{dst}");
+            }
+            "take" => {
+                let addr = step["addr"].as_str().unwrap();
+                let got: Vec<Value> = mesh
+                    .take(addr)
+                    .into_iter()
+                    .map(|item| {
+                        serde_json::json!({
+                            "id": item.id,
+                            "type": item.type_name,
+                            "from": item.from,
+                        })
+                    })
+                    .collect();
+                assert_eq!(Value::Array(got), step["inbox"], "{addr}");
+            }
+            other => panic!("unknown op {other}"),
+        }
+    }
+}
+
+#[test]
 fn vector_files_declare_feature() {
     for name in [
         "canonical-json.json",
@@ -2043,6 +2110,7 @@ fn vector_files_declare_feature() {
         "wire-channel.json",
         "channel-adapters.json",
         "channel-peer.json",
+        "channel-hybrid.json",
         "app-pubsub.json",
         "app-stream.json",
     ] {

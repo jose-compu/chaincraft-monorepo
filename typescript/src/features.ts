@@ -8,7 +8,7 @@
  * Add an ID here only when the feature is implemented and its vectors pass.
  */
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';
 export const WIRE_VERSION = 1;
 export const IMPL = `ts-chaincraft/${VERSION}`;
 export const LANGUAGE = 'typescript';
@@ -55,6 +55,7 @@ export const FEATURES: readonly string[] = [
   'channel.mailto',
   'channel.webrtc',
   'channel.peer',
+  'channel.hybrid',
   'channel.forum',
   'channel.pipe',
   'app.pubsub',

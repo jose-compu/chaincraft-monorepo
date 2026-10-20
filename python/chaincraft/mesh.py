@@ -13,10 +13,13 @@ from typing import Any, Callable, Dict, List, Optional
 
 from . import IMPL
 from . import control
+from .adapters import UdpLink
+from .channel import parse_address
 from .dedup import Deduplicator
 from .discovery import is_connect_allowed, is_resolved_ip_allowed
 from .envelope import Envelope, ProtocolError
-from .framing import FrameReader, FramingError, encode_frame
+from .framing import MAX_UDP_BYTES, FrameReader, FramingError, encode_frame
+from .hybrid import hello_caps
 
 MAX_PEERS = 256
 MAX_RECEIVED = 4096
@@ -70,6 +73,8 @@ class Mesh:
         self.lock = threading.Lock()
         self.listen_addr = ""
         self._listener: Optional[socket.socket] = None
+        self._udp: Optional[UdpLink] = None
+        self._udp_peers: List[str] = []
 
     def start(self, host: str = "127.0.0.1", port: int = 0) -> str:
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -82,7 +87,24 @@ class Mesh:
         threading.Thread(target=self._accept, daemon=True).start()
         return self.listen_addr
 
+    def bind_udp(self) -> str:
+        """Optional datagram listener. Advertised as the ``udp`` hello cap."""
+        if self._udp is None:
+            self._udp = UdpLink()
+            threading.Thread(target=self._udp_loop, daemon=True).start()
+        return self._udp.host_port
+
     def connect(self, addr: str) -> None:
+        parsed = parse_address(addr)
+        if parsed["ok"] and parsed["scheme"] == "udp":
+            self._connect_udp(parsed["canonical"].split("://", 1)[1])
+            return
+        if parsed["ok"] and parsed["scheme"] == "tcp":
+            addr = parsed["canonical"].split("://", 1)[1]
+        elif not parsed["ok"]:
+            raise ValueError("address not allowed")
+        else:
+            raise ValueError("address not allowed")
         if not is_connect_allowed(addr):
             raise ValueError("address not allowed")
         host, port_s = addr.rsplit(":", 1)
@@ -108,6 +130,7 @@ class Mesh:
         if fresh:
             for peer in peers:
                 self._write(peer, env)
+            self._send_udp(env)
             self.on_app(type_name, data)
         return env.id
 
@@ -138,6 +161,11 @@ class Mesh:
                 self._listener.close()
             except OSError:
                 pass
+        if self._udp is not None:
+            try:
+                self._udp.close()
+            except OSError:
+                pass
         with self.lock:
             peers = list(self.peers)
         for peer in peers:
@@ -165,7 +193,7 @@ class Mesh:
                     pass
                 return
             self.peers.append(peer)
-        self._write(peer, control.hello(self.impl, listen=self.listen_addr))
+        self._write(peer, control.hello(self.impl, caps=self._caps(), listen=self.listen_addr))
         threading.Thread(target=self._read_loop, args=(peer,), daemon=True).start()
 
     def _write(self, peer: _Peer, env: Envelope) -> None:
@@ -217,6 +245,90 @@ class Mesh:
                     self._write(other, env)
                 except OSError:
                     pass
+            self._send_udp(env)
+        self.on_app(env.type, env.data)
+
+    def _caps(self) -> List[str]:
+        return hello_caps(self._udp is not None)
+
+    def _connect_udp(self, host_port: str) -> None:
+        if not is_connect_allowed(host_port):
+            raise ValueError("address not allowed")
+        self.bind_udp()
+        with self.lock:
+            if host_port not in self._udp_peers:
+                if len(self.peers) + len(self._udp_peers) >= MAX_PEERS:
+                    raise ValueError("too many peers")
+                self._udp_peers.append(host_port)
+        env = control.hello(
+            self.impl,
+            caps=self._caps(),
+            listen=self.listen_addr or None,
+        )
+        assert self._udp is not None
+        self._udp.send(host_port, env.to_bytes())
+
+    def _send_udp(self, env: Envelope, skip: str = "") -> None:
+        if self._udp is None:
+            return
+        body = env.to_bytes()
+        if len(body) > MAX_UDP_BYTES:
+            return
+        with self.lock:
+            peers = list(self._udp_peers)
+        for host_port in peers:
+            if host_port == skip:
+                continue
+            try:
+                self._udp.send(host_port, body)
+            except OSError:
+                pass
+
+    def _udp_loop(self) -> None:
+        assert self._udp is not None
+        while True:
+            try:
+                src, body = self._udp.recv()
+            except socket.timeout:
+                continue
+            except OSError:
+                return
+            try:
+                self._handle_datagram(src, body)
+            except (ProtocolError, ValueError) as exc:
+                self.on_event({"event": "error", "message": str(exc), "addr": src})
+
+    def _handle_datagram(self, src: str, body: bytes) -> None:
+        if len(body) > MAX_UDP_BYTES:
+            return
+        env = Envelope.parse(body)
+        with self.lock:
+            if src not in self._udp_peers and len(self.peers) + len(self._udp_peers) < MAX_PEERS:
+                self._udp_peers.append(src)
+        if env.type.startswith("ctl."):
+            if env.type == control.HELLO:
+                hello = control.parse_hello(env)
+                self.on_event({"event": "hello", "peer": hello["impl"], "addr": src})
+            return
+        if env.is_control():
+            self.on_link(src, env.type, env.data)
+            return
+        with self.lock:
+            if not self.dedup.should_process(env):
+                return
+            self._record(env)
+            should_relay = self.dedup.should_relay(env)
+            peers = list(self.peers)
+        self.on_event(
+            {"event": "received", "id": env.id, "type": env.type, "data": env.data}
+        )
+        if should_relay:
+            for other in peers:
+                try:
+                    self._write(other, env)
+                except OSError:
+                    pass
+            self._send_udp(env, skip=src)
         self.on_app(env.type, env.data)
 
     def _drop(self, peer: _Peer) -> None:

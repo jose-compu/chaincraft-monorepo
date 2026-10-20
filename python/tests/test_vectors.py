@@ -1009,6 +1009,32 @@ def test_channel_peer_transcript():
             raise AssertionError(step["op"])
 
 
+def test_channel_hybrid_transcript():
+    from chaincraft.hybrid import LinkMesh, hello_caps
+
+    doc = load("channel-hybrid.json")
+    assert hello_caps(False) == doc["caps_tcp"]
+    assert hello_caps(True) == doc["caps_udp"]
+    mesh = LinkMesh()
+    for step in doc["steps"]:
+        if step["op"] == "join":
+            assert mesh.join(step["addr"]) is step["ok"], step["addr"]
+        elif step["op"] == "gossip":
+            assert (
+                mesh.gossip(step["src"], step["type"], json.loads(step["data"]))
+                == step["id"]
+            ), step["src"]
+        elif step["op"] == "direct":
+            assert (
+                mesh.direct(step["src"], step["dst"], step["type"], json.loads(step["data"]))
+                == step["id"]
+            ), step["dst"]
+        elif step["op"] == "take":
+            assert mesh.take(step["addr"]) == step["inbox"], step["addr"]
+        else:
+            raise AssertionError(step["op"])
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

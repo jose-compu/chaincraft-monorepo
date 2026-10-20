@@ -875,6 +875,40 @@ test('channel.peer transcript', async () => {
   }
 });
 
+test('channel.hybrid transcript', async () => {
+  const { LinkMesh, helloCaps } = await import('../src/hybrid.ts');
+  const doc = load('channel-hybrid.json');
+  assert.deepEqual(helloCaps(false), doc['caps_tcp']);
+  assert.deepEqual(helloCaps(true), doc['caps_udp']);
+  const mesh = new LinkMesh();
+  for (const step of doc['steps'] as Array<Record<string, unknown>>) {
+    if (step['op'] === 'join') {
+      assert.equal(mesh.join(String(step['addr'])), step['ok'], String(step['addr']));
+    } else if (step['op'] === 'gossip') {
+      assert.equal(
+        mesh.gossip(String(step['src']), String(step['type']), JSON.parse(String(step['data']))),
+        step['id'] ?? undefined,
+        String(step['src']),
+      );
+    } else if (step['op'] === 'direct') {
+      assert.equal(
+        mesh.direct(
+          String(step['src']),
+          String(step['dst']),
+          String(step['type']),
+          JSON.parse(String(step['data'])),
+        ),
+        step['id'] ?? undefined,
+        String(step['dst']),
+      );
+    } else if (step['op'] === 'take') {
+      assert.deepEqual(mesh.take(String(step['addr'])), step['inbox'], String(step['addr']));
+    } else {
+      assert.fail(String(step['op']));
+    }
+  }
+});
+
 test('every vector file declares its feature', () => {
   const files = [
     'canonical-json.json',
@@ -906,6 +940,7 @@ test('every vector file declares its feature', () => {
     'wire-channel.json',
     'channel-adapters.json',
     'channel-peer.json',
+    'channel-hybrid.json',
     'app-pubsub.json',
     'app-stream.json',
   ];

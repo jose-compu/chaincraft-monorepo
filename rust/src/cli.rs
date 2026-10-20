@@ -1,7 +1,7 @@
 //! Node JSON-lines command surface — SPEC/features/cli-node.md.
 
 use crate::canonical::{parse_json, payload_digest, JsonValue};
-use crate::discovery::is_valid_address;
+use crate::channel::parse_address;
 
 fn type_ok(value: &str) -> bool {
     (1..=64).contains(&value.len())
@@ -94,7 +94,7 @@ impl NodeSession {
         let Some(addr) = command.get("addr").and_then(JsonValue::as_str) else {
             return vec![error_event("invalid address")];
         };
-        if !is_valid_address(addr) {
+        if !parse_address(addr).ok {
             return vec![error_event("invalid address")];
         }
         if !self.peers.iter().any(|item| item == addr) {

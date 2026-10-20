@@ -1,6 +1,6 @@
 # wire.channel
 
-**Release:** 1.2.0
+**Release:** 1.3.0
 
 Address URIs and an in-process loop channel. UDP, email, WebRTC, forum,
 and the in-process pipe are `SPEC/features/channel-adapters.md`. TCP

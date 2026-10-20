@@ -3,7 +3,7 @@
 TypeScript implementation of the Chaincraft wire protocol, object semantics, and
 Level 2 stack (consensus, ledgers, BitTorrent, channels). Same observable
 behaviour as the Python `chaincraft` package and the Rust `chaincraft` crate.
-Release **[1.2.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
+Release **[1.3.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.

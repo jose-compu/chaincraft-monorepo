@@ -1,6 +1,6 @@
 # cli.node
 
-**Release:** 1.2.0
+**Release:** 1.3.0
 
 JSON-lines command surface for a node process. The live interop runner
 (`conformance/runner/run_interop.py`) speaks this protocol on stdin and
@@ -25,7 +25,7 @@ A JSON value that is not an object is the same error.
 
 | `cmd` | Fields | Effect |
 |---|---|---|
-| `connect` | `addr` | If `addr` is a valid `discovery.peer` address, append it to `peers` unless already present, then emit `connected`. Otherwise emit `invalid address`. |
+| `connect` | `addr` | If `parse_address(addr)` succeeds, append `addr` to `peers` unless already present, then emit `connected`. Otherwise emit `invalid address`. A bare `host:port` still succeeds as `tcp`. |
 | `send` | `type`, `data` | If `type` matches `^[a-z0-9._-]{1,64}$` and `data` is canonicalizable, append the payload digest to `ids` and emit `sent`. Otherwise emit `invalid send`. |
 | `ids` | — | Emit the recorded send ids in insertion order. |
 | `quit` | — | Set `closed` and emit `quit`. |

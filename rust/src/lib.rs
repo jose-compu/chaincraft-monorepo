@@ -20,6 +20,7 @@ pub mod error;
 pub mod features;
 pub mod fees;
 pub mod framing;
+pub mod hybrid;
 pub mod ledger_balance;
 pub mod ledger_utxo;
 pub mod memento;

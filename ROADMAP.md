@@ -363,6 +363,14 @@ The default broker is `https://dechess-org-peerjs.vercel.app`.
 delivers one envelope id across `webrtc`, `pipe`, `mailto`, `forum`, and
 `udp` in memory. ICE, SMTP, and a live UDP mesh remain open.
 
+### Stage 19 — Hybrid mesh 1.3.0
+
+`channel.hybrid`. One mesh joins `tcp`, `udp`, `webrtc`, `pipe`, `mailto`,
+`forum`, and `loop`. Gossip is relayed to every member whose hop can hold
+the envelope. `link.*` goes to one member. The TCP mesh can bind a localhost
+UDP listener and advertise the `udp` cap. `cli.node` `connect` accepts a
+channel URI. `mailto` and `webrtc` stay in-memory. Issues #2 and #45.
+
 ---
 
 ## 6. Versioning
@@ -371,14 +379,14 @@ Full parity implies **lockstep releases**. All three packages and `SPEC/release.
 carry the same version:
 
 ```
-chaincraft (PyPI)    1.2.0
-chaincraft (crates)  1.2.0
-@chaincraft/core (npm)     1.2.0
-SPEC/release.yaml         1.2.0
+chaincraft (PyPI)    1.3.0
+chaincraft (crates)  1.3.0
+@chaincraft/core (npm)     1.3.0
+SPEC/release.yaml         1.3.0
 ```
 
-That is the current release. The git tag is `v1.2.0`. PyPI, crates.io and npm
-serve 1.2.0.
+That is the current release. The git tag is `v1.3.0`. PyPI, crates.io and npm
+serve 1.3.0.
 A later minor version still ships all three together. A language cannot ship a
 minor version alone, because a minor version means a new feature, and a new
 feature means all three have it.
