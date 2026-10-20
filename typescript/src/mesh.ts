@@ -14,7 +14,10 @@ import { isConnectAllowed, isResolvedIpAllowed } from './discovery.ts';
 import { Envelope } from './envelope.ts';
 import { ProtocolError } from './errors.ts';
 import { IMPL } from './features.ts';
-import { FrameReader, encodeFrame } from './framing.ts';
+import { FrameReader, MAX_UDP_BYTES, encodeFrame } from './framing.ts';
+import { helloCaps } from './hybrid.ts';
+import { UdpLink } from './adapters.ts';
+import { parseAddress } from './channel.ts';
 
 export const MAX_PEERS = 256;
 export const MAX_RECEIVED = 4096;
@@ -50,6 +53,8 @@ export class Mesh {
   readonly peers: Peer[] = [];
   readonly received: Array<{ id: string; type: string; data: JsonValue }> = [];
   listenAddr = '';
+  private udp: UdpLink | undefined;
+  private readonly udpPeers: string[] = [];
   onApp: AppHandler = () => undefined;
   onLink: LinkHandler = () => undefined;
   private readonly onEvent: (event: MeshEvent) => void;
@@ -77,7 +82,22 @@ export class Mesh {
     });
   }
 
+  async bindUdp(): Promise<string> {
+    if (this.udp === undefined) {
+      this.udp = await UdpLink.bind();
+      void this.udpLoop();
+    }
+    return this.udp.hostPort;
+  }
+
   async connect(addr: string): Promise<void> {
+    const parsed = parseAddress(addr);
+    if (parsed.ok && parsed.scheme === 'udp') {
+      await this.connectUdp(parsed.canonical.slice('udp://'.length));
+      return;
+    }
+    if (!parsed.ok || parsed.scheme !== 'tcp') throw new Error('address not allowed');
+    addr = parsed.canonical.slice('tcp://'.length);
     if (!isConnectAllowed(addr)) throw new Error('address not allowed');
     const [host, port] = splitAddr(addr);
     if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -108,6 +128,7 @@ export class Mesh {
       for (const peer of this.peers) {
         this.write(peer, env);
       }
+      this.sendUdp(env);
       this.onApp(typeName, data);
     }
     return env.id;
@@ -128,6 +149,8 @@ export class Mesh {
 
   close(): void {
     this.server?.close();
+    void this.udp?.close();
+    this.udp = undefined;
     for (const peer of this.peers) {
       peer.socket.destroy();
     }
@@ -147,7 +170,7 @@ export class Mesh {
     const remotePort = socket.remotePort ?? 0;
     const peer: Peer = { socket, addr: addr ?? `${remote}:${remotePort}` };
     this.peers.push(peer);
-    this.write(peer, control.hello(this.impl, { listen: this.listenAddr }));
+    this.write(peer, control.hello(this.impl, { listen: this.listenAddr, caps: helloCaps(this.udp !== undefined) }));
     const reader = new FrameReader(NODE_MAX_FRAME);
     socket.on('data', (chunk: Buffer) => {
       try {
@@ -198,6 +221,78 @@ export class Mesh {
           // drop a broken peer; close will remove it
         }
       }
+      this.sendUdp(env);
+    }
+    this.onApp(env.type, env.data);
+  }
+
+  private async connectUdp(hostPort: string): Promise<void> {
+    if (!isConnectAllowed(hostPort)) throw new Error('address not allowed');
+    await this.bindUdp();
+    if (!this.udpPeers.includes(hostPort)) {
+      if (this.peers.length + this.udpPeers.length >= MAX_PEERS) {
+        throw new Error('too many peers');
+      }
+      this.udpPeers.push(hostPort);
+    }
+    const env = control.hello(
+      this.impl,
+      this.listenAddr ? { caps: helloCaps(true), listen: this.listenAddr } : { caps: helloCaps(true) },
+    );
+    await this.udp?.send(hostPort, env.toBytes());
+  }
+
+  private sendUdp(env: Envelope, skip = ''): void {
+    if (this.udp === undefined) return;
+    const body = env.toBytes();
+    if (body.length > MAX_UDP_BYTES) return;
+    for (const hostPort of this.udpPeers) {
+      if (hostPort === skip) continue;
+      void this.udp.send(hostPort, body).catch(() => undefined);
+    }
+  }
+
+  private async udpLoop(): Promise<void> {
+    while (this.udp !== undefined) {
+      try {
+        const message = await this.udp.recv();
+        this.handleDatagram(message.from, message.body);
+      } catch (error) {
+        if (String(error).includes('udp timeout')) continue;
+        return;
+      }
+    }
+  }
+
+  private handleDatagram(src: string, body: Uint8Array): void {
+    if (body.length > MAX_UDP_BYTES) return;
+    const env = Envelope.parse(body);
+    if (!this.udpPeers.includes(src) && this.peers.length + this.udpPeers.length < MAX_PEERS) {
+      this.udpPeers.push(src);
+    }
+    if (env.type.startsWith('ctl.')) {
+      if (env.type === control.HELLO) {
+        const hello = control.parseHello(env);
+        this.onEvent({ event: 'hello', peer: hello.impl, addr: src });
+      }
+      return;
+    }
+    if (env.isControl()) {
+      this.onLink(src, env.type, env.data);
+      return;
+    }
+    if (!this.dedup.shouldProcess(env)) return;
+    this.record(env);
+    this.onEvent({ event: 'received', id: env.id, type: env.type, data: env.data });
+    if (this.dedup.shouldRelay(env)) {
+      for (const other of this.peers) {
+        try {
+          this.write(other, env);
+        } catch {
+          // a broken TCP peer is dropped by its close handler
+        }
+      }
+      this.sendUdp(env, src);
     }
     this.onApp(env.type, env.data);
   }

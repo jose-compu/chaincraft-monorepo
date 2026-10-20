@@ -1,7 +1,7 @@
 # chaincraft
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.2.0](https://crates.io/crates/chaincraft/1.2.0)** on crates.io.
+Release **[1.3.0](https://crates.io/crates/chaincraft/1.3.0)** on crates.io.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.
@@ -22,7 +22,7 @@ gossips `app.hello`.
 
 ```toml
 [dependencies]
-chaincraft = "1.2.0"
+chaincraft = "1.3.0"
 ```
 
 ```rust

@@ -6,7 +6,7 @@ import re
 from typing import Any, Dict, List
 
 from .canonical import CanonicalError, parse_json, payload_digest
-from .discovery import is_valid_address
+from .channel import parse_address
 
 __all__ = ["NodeSession"]
 
@@ -54,7 +54,7 @@ class NodeSession:
 
     def _connect(self, command: Dict[str, Any]) -> List[Dict[str, Any]]:
         addr = command.get("addr")
-        if not isinstance(addr, str) or not is_valid_address(addr):
+        if not isinstance(addr, str) or not parse_address(addr)["ok"]:
             return [self._error("invalid address")]
         if addr not in self.peers:
             self.peers.append(addr)

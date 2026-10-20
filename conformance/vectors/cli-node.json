@@ -199,6 +199,74 @@
           "peers": []
         }
       ]
+    },
+    {
+      "name": "channel uri",
+      "note": "connect accepts a parsed channel URI and rejects a bad one",
+      "impl": "py-chaincraft/1.0.0",
+      "listen": "127.0.0.1:21000",
+      "steps": [
+        {
+          "op": "start",
+          "events": [
+            {
+              "event": "ready",
+              "addr": "127.0.0.1:21000",
+              "impl": "py-chaincraft/1.0.0"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": []
+        },
+        {
+          "op": "line",
+          "line": "{\"addr\":\"webrtc:abcd\",\"cmd\":\"connect\"}",
+          "events": [
+            {
+              "event": "connected",
+              "addr": "webrtc:abcd"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": [
+            "webrtc:abcd"
+          ]
+        },
+        {
+          "op": "line",
+          "line": "{\"addr\":\"udp://127.0.0.1:1\",\"cmd\":\"connect\"}",
+          "events": [
+            {
+              "event": "connected",
+              "addr": "udp://127.0.0.1:1"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": [
+            "webrtc:abcd",
+            "udp://127.0.0.1:1"
+          ]
+        },
+        {
+          "op": "line",
+          "line": "{\"addr\":\"webrtc:bad id\",\"cmd\":\"connect\"}",
+          "events": [
+            {
+              "event": "error",
+              "message": "invalid address"
+            }
+          ],
+          "closed": false,
+          "ids": [],
+          "peers": [
+            "webrtc:abcd",
+            "udp://127.0.0.1:1"
+          ]
+        }
+      ]
     }
   ]
 }

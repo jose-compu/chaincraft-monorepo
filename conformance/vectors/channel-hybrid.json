@@ -1,0 +1,136 @@
+{
+  "feature": "channel.hybrid",
+  "spec": "SPEC/features/channel-hybrid.md",
+  "description": "One mesh relays gossip across schemes and drops an oversized hop.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "caps_tcp": [
+    "digest-sync",
+    "gossip"
+  ],
+  "caps_udp": [
+    "digest-sync",
+    "gossip",
+    "udp"
+  ],
+  "steps": [
+    {
+      "op": "join",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "ok": true
+    },
+    {
+      "op": "join",
+      "addr": "pipe:alice",
+      "ok": true
+    },
+    {
+      "op": "join",
+      "addr": "mailto:bob@example.com",
+      "ok": true
+    },
+    {
+      "op": "join",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "ok": false
+    },
+    {
+      "op": "join",
+      "addr": "webrtc:bad id",
+      "ok": false
+    },
+    {
+      "op": "gossip",
+      "src": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "type": "app.hello",
+      "data": "{\"message\":\"hi\"}",
+      "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755"
+    },
+    {
+      "op": "take",
+      "addr": "pipe:alice",
+      "inbox": [
+        {
+          "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755",
+          "type": "app.hello",
+          "from": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "mailto:bob@example.com",
+      "inbox": [
+        {
+          "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755",
+          "type": "app.hello",
+          "from": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "inbox": []
+    },
+    {
+      "op": "gossip",
+      "src": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "type": "app.hello",
+      "data": "{\"message\":\"hi\"}",
+      "id": "adbd982b8fe0bbd8477f09262028d3ac264001dc36e3c7579905e72c0b718755"
+    },
+    {
+      "op": "take",
+      "addr": "pipe:alice",
+      "inbox": []
+    },
+    {
+      "op": "gossip",
+      "src": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "type": "app.hello",
+      "data": "{\"message\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}",
+      "id": "7f65820b105ff00ea5c77ab268ccbafbab23eec74b34825736951c0257ebf766"
+    },
+    {
+      "op": "take",
+      "addr": "pipe:alice",
+      "inbox": [
+        {
+          "id": "7f65820b105ff00ea5c77ab268ccbafbab23eec74b34825736951c0257ebf766",
+          "type": "app.hello",
+          "from": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "mailto:bob@example.com",
+      "inbox": []
+    },
+    {
+      "op": "direct",
+      "src": "pipe:alice",
+      "dst": "mailto:bob@example.com",
+      "type": "link.note",
+      "data": "{\"note\":\"one\"}",
+      "id": "f267f3f6db9e447e68992969a302ac25e13879a28bfc17e4b4509db780db183e"
+    },
+    {
+      "op": "take",
+      "addr": "mailto:bob@example.com",
+      "inbox": [
+        {
+          "id": "f267f3f6db9e447e68992969a302ac25e13879a28bfc17e4b4509db780db183e",
+          "type": "link.note",
+          "from": "pipe:alice"
+        }
+      ]
+    },
+    {
+      "op": "take",
+      "addr": "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8",
+      "inbox": []
+    }
+  ]
+}

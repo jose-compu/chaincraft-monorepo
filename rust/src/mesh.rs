@@ -3,7 +3,7 @@
 //! Application protocols attach via `on_app`, not by editing this module.
 
 use std::io::{Read, Write};
-use std::net::{IpAddr, TcpListener, TcpStream, ToSocketAddrs};
+use std::net::{IpAddr, TcpListener, TcpStream, ToSocketAddrs, UdpSocket};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -11,12 +11,14 @@ use std::time::Duration;
 use serde_json::{json, Map, Value};
 
 use crate::canonical::JsonValue;
+use crate::channel::parse_address;
 use crate::control::{self, parse_hello};
 use crate::dedup::Deduplicator;
 use crate::discovery::{is_connect_allowed, is_resolved_ip_allowed};
 use crate::envelope::Envelope;
 use crate::features::IMPL;
-use crate::framing::{encode_frame, FrameReader};
+use crate::framing::{encode_frame, FrameReader, MAX_UDP_BYTES};
+use crate::hybrid::hello_caps;
 
 pub const MAX_PEERS: usize = 256;
 pub const MAX_RECEIVED: usize = 4096;
@@ -36,6 +38,8 @@ pub struct Mesh {
     listen_addr: String,
     dedup: Deduplicator,
     peers: Vec<Arc<Mutex<Peer>>>,
+    udp: Option<Arc<UdpSocket>>,
+    udp_peers: Vec<String>,
     received: Vec<String>,
     on_app: Option<AppHandler>,
     on_link: Option<LinkHandler>,
@@ -57,6 +61,8 @@ impl Mesh {
             listen_addr: listen_addr.clone(),
             dedup: Deduplicator::default(),
             peers: Vec::new(),
+            udp: None,
+            udp_peers: Vec::new(),
             received: Vec::new(),
             on_app: None,
             on_link: None,
@@ -95,9 +101,47 @@ impl Mesh {
         self.received.clone()
     }
 
+    pub fn bind_udp(mesh: &Arc<Mutex<Self>>) -> Result<String, String> {
+        let mut guard = mesh.lock().map_err(|e| e.to_string())?;
+        if guard.udp.is_none() {
+            let socket = UdpSocket::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
+            socket
+                .set_read_timeout(Some(Duration::from_secs(2)))
+                .map_err(|e| e.to_string())?;
+            let shared = Arc::new(socket);
+            guard.udp = Some(Arc::clone(&shared));
+            let reader = Arc::clone(mesh);
+            thread::spawn(move || udp_loop(reader, shared));
+        }
+        guard
+            .udp
+            .as_ref()
+            .unwrap()
+            .local_addr()
+            .map(|addr| addr.to_string())
+            .map_err(|e| e.to_string())
+    }
+
     pub fn connect(mesh: &Arc<Mutex<Self>>, addr: &str) -> Result<(), String> {
-        let stream = dial(addr)?;
-        add_peer(mesh, stream, addr.to_string());
+        let parsed = parse_address(addr);
+        if parsed.ok && parsed.scheme == "udp" {
+            let host_port = parsed
+                .canonical
+                .split_once("://")
+                .map(|(_, rest)| rest)
+                .unwrap_or("");
+            return connect_udp(mesh, host_port);
+        }
+        if !parsed.ok || parsed.scheme != "tcp" {
+            return Err("address not allowed".into());
+        }
+        let rest = parsed
+            .canonical
+            .split_once("://")
+            .map(|(_, item)| item)
+            .unwrap_or(addr);
+        let stream = dial(rest)?;
+        add_peer(mesh, stream, rest.to_string());
         Ok(())
     }
 
@@ -127,6 +171,7 @@ impl Mesh {
             for peer in peers {
                 write_env(&peer, &env)?;
             }
+            send_udp(mesh, &env, "")?;
         }
         if let Some(handler) = handler {
             handler(type_name, &env.data);
@@ -268,7 +313,13 @@ fn add_peer(mesh: &Arc<Mutex<Mesh>>, stream: TcpStream, addr: String) {
     }));
     let hello = {
         let guard = mesh.lock().unwrap();
-        control::hello(&guard.impl_name, None, Some(&guard.listen_addr), None)
+        let caps = hello_caps(guard.udp.is_some());
+        control::hello(
+            &guard.impl_name,
+            Some(&caps),
+            Some(&guard.listen_addr),
+            None,
+        )
     };
     match hello {
         Ok(env) => {
@@ -325,6 +376,122 @@ fn read_loop(mesh: Arc<Mutex<Mesh>>, peer: Arc<Mutex<Peer>>, stream: TcpStream) 
     }
 }
 
+fn connect_udp(mesh: &Arc<Mutex<Mesh>>, host_port: &str) -> Result<(), String> {
+    if !crate::discovery::is_connect_allowed(host_port) {
+        return Err("address not allowed".into());
+    }
+    Mesh::bind_udp(mesh)?;
+    let (socket, listen, impl_name) = {
+        let mut guard = mesh.lock().map_err(|e| e.to_string())?;
+        if !guard.udp_peers.iter().any(|item| item == host_port) {
+            if guard.peers.len() + guard.udp_peers.len() >= MAX_PEERS {
+                return Err("too many peers".into());
+            }
+            guard.udp_peers.push(host_port.to_string());
+        }
+        (
+            guard.udp.clone(),
+            guard.listen_addr.clone(),
+            guard.impl_name.clone(),
+        )
+    };
+    let caps = hello_caps(true);
+    let env =
+        control::hello(&impl_name, Some(&caps), Some(&listen), None).map_err(|e| e.to_string())?;
+    let body = env.to_bytes().map_err(|e| e.to_string())?;
+    socket
+        .ok_or_else(|| "udp".to_string())?
+        .send_to(&body, host_port)
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+fn send_udp(mesh: &Arc<Mutex<Mesh>>, env: &Envelope, skip: &str) -> Result<(), String> {
+    let (socket, peers) = {
+        let guard = mesh.lock().map_err(|e| e.to_string())?;
+        (guard.udp.clone(), guard.udp_peers.clone())
+    };
+    let Some(socket) = socket else {
+        return Ok(());
+    };
+    let body = env.to_bytes().map_err(|e| e.to_string())?;
+    if body.len() > MAX_UDP_BYTES {
+        return Ok(());
+    }
+    for host_port in peers {
+        if host_port == skip {
+            continue;
+        }
+        let _ = socket.send_to(&body, host_port);
+    }
+    Ok(())
+}
+
+fn udp_loop(mesh: Arc<Mutex<Mesh>>, socket: Arc<UdpSocket>) {
+    let mut buf = vec![0u8; MAX_UDP_BYTES];
+    loop {
+        match socket.recv_from(&mut buf) {
+            Ok((n, addr)) => {
+                if let Err(err) = handle_datagram(&mesh, &addr.to_string(), &buf[..n]) {
+                    emit(json!({"event":"error","message":err,"addr":addr.to_string()}));
+                }
+            }
+            Err(err)
+                if err.kind() == std::io::ErrorKind::WouldBlock
+                    || err.kind() == std::io::ErrorKind::TimedOut => {}
+            Err(_) => return,
+        }
+    }
+}
+
+fn handle_datagram(mesh: &Arc<Mutex<Mesh>>, src: &str, body: &[u8]) -> Result<(), String> {
+    if body.len() > MAX_UDP_BYTES {
+        return Ok(());
+    }
+    let env = Envelope::parse_bytes(body, None).map_err(|e| e.to_string())?;
+    {
+        let mut guard = mesh.lock().map_err(|e| e.to_string())?;
+        if !guard.udp_peers.iter().any(|item| item == src)
+            && guard.peers.len() + guard.udp_peers.len() < MAX_PEERS
+        {
+            guard.udp_peers.push(src.to_string());
+        }
+    }
+    if env.type_name.starts_with("ctl.") {
+        if env.type_name == control::HELLO {
+            let hello = parse_hello(&env).map_err(|e| e.to_string())?;
+            emit(json!({"event":"hello","peer":hello.impl_name,"addr":src}));
+        }
+        return Ok(());
+    }
+    if env.is_control() {
+        let handler = mesh.lock().map_err(|e| e.to_string())?.on_link.clone();
+        if let Some(handler) = handler {
+            handler(src, &env.type_name, &env.data);
+        }
+        return Ok(());
+    }
+    let (should_relay, others, handler) = {
+        let mut guard = mesh.lock().map_err(|e| e.to_string())?;
+        if !guard.dedup.should_process(&env) {
+            return Ok(());
+        }
+        record(&mut guard, env.id.clone());
+        let should_relay = guard.dedup.should_relay(&env);
+        (should_relay, guard.peers.clone(), guard.on_app.clone())
+    };
+    if should_relay {
+        for other in others {
+            let _ = write_env(&other, &env);
+        }
+        let _ = send_udp(mesh, &env, src);
+    }
+    if let Some(handler) = handler {
+        handler(&env.type_name, &env.data);
+    }
+    Ok(())
+}
+
 fn handle(mesh: &Arc<Mutex<Mesh>>, peer: &Arc<Mutex<Peer>>, body: &[u8]) -> Result<(), String> {
     let env = Envelope::parse_bytes(body, None).map_err(|e| e.to_string())?;
     if env.type_name.starts_with("ctl.") {
@@ -361,6 +528,7 @@ fn handle(mesh: &Arc<Mutex<Mesh>>, peer: &Arc<Mutex<Peer>>, body: &[u8]) -> Resu
             }
             let _ = write_env(&other, &env);
         }
+        let _ = send_udp(mesh, &env, "");
     }
     if let Some(handler) = handler {
         handler(&env.type_name, &env.data);

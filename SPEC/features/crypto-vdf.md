@@ -1,6 +1,6 @@
 # crypto.vdf
 
-**Release:** 1.2.0
+**Release:** 1.3.0
 
 Sloth VDF: sequential modular square roots, verified by modular squaring.
 

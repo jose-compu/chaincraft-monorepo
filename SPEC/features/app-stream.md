@@ -1,6 +1,6 @@
 # app.stream
 
-**Release:** 1.2.0
+**Release:** 1.3.0
 
 Leaderless append-only event log. Nodes that have accepted the same
 messages hold the same partitions, records, replica set, retention, and

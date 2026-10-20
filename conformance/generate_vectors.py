@@ -1936,6 +1936,31 @@ def cli_node_vectors() -> Dict[str, Any]:
                 {"op": "line", "line": canonical_json({"cmd": "ids"})},
             ],
         ),
+        run(
+            "channel uri",
+            "connect accepts a parsed channel URI and rejects a bad one",
+            [
+                {"op": "start"},
+                {
+                    "op": "line",
+                    "line": canonical_json(
+                        {"addr": "webrtc:abcd", "cmd": "connect"}
+                    ),
+                },
+                {
+                    "op": "line",
+                    "line": canonical_json(
+                        {"addr": "udp://127.0.0.1:1", "cmd": "connect"}
+                    ),
+                },
+                {
+                    "op": "line",
+                    "line": canonical_json(
+                        {"addr": "webrtc:bad id", "cmd": "connect"}
+                    ),
+                },
+            ],
+        ),
     ]
     return {
         **header(
@@ -3210,6 +3235,82 @@ def channel_peer_vectors() -> Dict[str, Any]:
     }
 
 
+def channel_hybrid_vectors() -> Dict[str, Any]:
+    from chaincraft.envelope import Envelope
+    from chaincraft.hybrid import LinkMesh, hello_caps
+
+    def sized(n: int) -> Dict[str, str]:
+        return {"message": "x" * n}
+
+    wide = sized(1)
+    while len(Envelope.build("app.hello", wide, ts=0).to_bytes()) <= 4096:
+        wide = sized(len(wide["message"]) + 200)
+    assert len(Envelope.build("app.hello", wide, ts=0).to_bytes()) <= 65507
+
+    mesh = LinkMesh()
+    steps: List[Dict[str, Any]] = []
+    webrtc = "webrtc:283e9542-cc0a-4301-8c37-70cd162fa2f8"
+    pipe = "pipe:alice"
+    mail = "mailto:bob@example.com"
+
+    def join(addr: str) -> None:
+        steps.append({"op": "join", "addr": addr, "ok": mesh.join(addr)})
+
+    def gossip(src: str, data: Dict[str, Any]) -> None:
+        steps.append(
+            {
+                "op": "gossip",
+                "src": src,
+                "type": "app.hello",
+                "data": json.dumps(data, separators=(",", ":"), ensure_ascii=False),
+                "id": mesh.gossip(src, "app.hello", data),
+            }
+        )
+
+    def direct(src: str, dst: str, data: Dict[str, Any]) -> None:
+        steps.append(
+            {
+                "op": "direct",
+                "src": src,
+                "dst": dst,
+                "type": "link.note",
+                "data": json.dumps(data, separators=(",", ":"), ensure_ascii=False),
+                "id": mesh.direct(src, dst, "link.note", data),
+            }
+        )
+
+    def take(addr: str) -> None:
+        steps.append({"op": "take", "addr": addr, "inbox": mesh.take(addr)})
+
+    join(webrtc)
+    join(pipe)
+    join(mail)
+    join(webrtc)
+    join("webrtc:bad id")
+    gossip(webrtc, {"message": "hi"})
+    take(pipe)
+    take(mail)
+    take(webrtc)
+    gossip(webrtc, {"message": "hi"})
+    take(pipe)
+    gossip(webrtc, wide)
+    take(pipe)
+    take(mail)
+    direct(pipe, mail, {"note": "one"})
+    take(mail)
+    take(webrtc)
+    return {
+        **header(
+            "channel.hybrid",
+            "SPEC/features/channel-hybrid.md",
+            "One mesh relays gossip across schemes and drops an oversized hop.",
+        ),
+        "caps_tcp": hello_caps(False),
+        "caps_udp": hello_caps(True),
+        "steps": steps,
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -3252,6 +3353,7 @@ def main() -> int:
     write("wire-channel.json", wire_channel_vectors())
     write("channel-adapters.json", adapter_vectors())
     write("channel-peer.json", channel_peer_vectors())
+    write("channel-hybrid.json", channel_hybrid_vectors())
     print("\nLevel 2 — publish-subscribe")
     write("app-pubsub.json", app_pubsub_vectors())
     print("\nLevel 2 — event stream")

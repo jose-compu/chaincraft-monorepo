@@ -481,6 +481,16 @@ features:
       rust:       { state: implemented, since: "2026-10-20" }
       typescript: { state: implemented, since: "2026-10-20" }
 
+  - id: channel.hybrid
+    level: 2
+    spec: SPEC/features/channel-hybrid.md
+    summary: One mesh relays gossip across channel schemes and may listen on UDP
+    vectors: conformance/vectors/channel-hybrid.json
+    status:
+      python:     { state: implemented, since: "2026-10-20" }
+      rust:       { state: implemented, since: "2026-10-20" }
+      typescript: { state: implemented, since: "2026-10-20" }
+
   - id: channel.forum
     level: 2
     spec: SPEC/features/channel-adapters.md

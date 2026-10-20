@@ -1,7 +1,7 @@
 # chaincraft
 
 Reference implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.2.0](https://pypi.org/project/chaincraft/1.2.0/)** on PyPI.
+Release **[1.3.0](https://pypi.org/project/chaincraft/1.3.0/)** on PyPI.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.

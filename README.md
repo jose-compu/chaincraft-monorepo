@@ -87,12 +87,12 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, and NAT traversal:
-41 of 41 features each (TypeScript 40 implemented plus the UDP exemption).
-The spec release is 1.2.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
-Git tag [`v1.2.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.2.0).
-[PyPI `chaincraft` 1.2.0](https://pypi.org/project/chaincraft/1.2.0/),
-[crates.io `chaincraft` 1.2.0](https://crates.io/crates/chaincraft) and
-[npm `@chaincraft/core` 1.2.0](https://www.npmjs.com/package/@chaincraft/core).
+42 of 42 features each (TypeScript 41 implemented plus the UDP framing exemption).
+The spec release is 1.3.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+Git tag [`v1.3.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.3.0).
+[PyPI `chaincraft` 1.3.0](https://pypi.org/project/chaincraft/1.3.0/),
+[crates.io `chaincraft` 1.3.0](https://crates.io/crates/chaincraft) and
+[npm `@chaincraft/core` 1.3.0](https://www.npmjs.com/package/@chaincraft/core).
 `@chaincraft/core/browser` fetches a PeerJS id and does not import the TCP mesh.
 The default broker is `https://dechess-org-peerjs.vercel.app`.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no
