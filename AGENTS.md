@@ -3,7 +3,7 @@
 Read this before changing anything. It applies to human and agent contributors equally.
 
 Coding agents: read `.cursor/skills/chaincraft-1/SKILL.md` first (same file at
-`.claude/skills/chaincraft-1/SKILL.md`). It is the 1.0.0 bootstrap for Python,
+`.claude/skills/chaincraft-1/SKILL.md`). It is the 1.3.0 bootstrap for Python,
 Rust, and TypeScript.
 
 This repository holds three implementations of Chaincraft — Python, Rust and TypeScript

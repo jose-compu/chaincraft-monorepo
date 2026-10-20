@@ -1,31 +1,33 @@
 ---
 name: chaincraft-1
 description: >-
-  Bootstraps Chaincraft 1.0.0 in Python, Rust, and TypeScript: install from
-  the v1.0.0 tag, run mesh nodes, implement receive / Protocol /
+  Bootstraps Chaincraft 1.3.0 in Python, Rust, and TypeScript: install from
+  the v1.3.0 tag, run mesh nodes, implement receive / Protocol /
   BaseSharedObject, assemble PoW PoS PBFT chains at feature parity. Use when
   starting work in this monorepo, writing a protocol or blockchain object,
   running chaincraft-node, or when the user mentions Chaincraft, @chaincraft/core,
   chaincraft.node, or parity.
 ---
 
-# Chaincraft 1.0.0 — agent bootstrap
+# Chaincraft 1.3.0 — agent bootstrap
 
 Read this, then root `AGENTS.md`. Spec is `SPEC/`. Do not copy one language into another.
 
-Spec release **1.0.0**. Wire protocol `v` stays **1**. Packages: PyPI/crates `chaincraft`, npm `@chaincraft/core` (unscoped npm `chaincraft` is another project). Until registries serve 1.0.0, install from the tag.
+Spec release **1.3.0**. Wire protocol `v` stays **1**. Packages: PyPI and crates.io `chaincraft` 1.3.0. npm `@chaincraft/core` on the registry can lag the tag; install TypeScript from the checkout. Unscoped npm `chaincraft` is another project.
 
 ## Install
 
 From the clone root. Python 3.9+, Rust 1.74+, Node 20+.
 
 ```bash
-git clone --branch v1.0.0 https://github.com/jose-compu/chaincraft-monorepo.git
+git clone --branch v1.3.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
 python3 -m pip install -e "./python[dev]"
 cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
 npm install --prefix typescript
 ```
+
+Published installs: `pip install chaincraft`, `cargo add chaincraft`. Prefer the tag checkout for `@chaincraft/core` until `npm view @chaincraft/core version` prints `1.3.0`.
 
 ## Envelope (same bytes in all three)
 
@@ -50,11 +52,11 @@ const env = Envelope.build("app.counter", { by: "alice", delta: 1 });
 const frame = encodeFrame(env.toBytes());
 ```
 
-`id` is `sha256(canonical_json(data))`. From a TypeScript checkout, import `./src/index.ts`.
+`id` is `sha256(canonical_json(data))`. From a TypeScript checkout, import `./src/index.ts`. The browser entry is `@chaincraft/core/browser`. It fetches a PeerJS id and does not import the TCP mesh.
 
 ## Mesh nodes
 
-Core CLI is connect / send / ids / quit. BitTorrent is a Mesh client, not the core node.
+Core CLI is connect / send / ids / quit. BitTorrent is a Mesh client, not the core node. Default listen is `0.0.0.0:9735`. TCP is the interop default.
 
 ```bash
 python3 -m chaincraft.node
@@ -69,7 +71,15 @@ npm run node --prefix typescript
 {"cmd":"quit"}
 ```
 
+`connect` accepts any address `parse_address` accepts. A bare `host:port` is TCP. `udp://host:port` dials the optional localhost UDP listener. `ctl.hello` lists `udp` only while that listener is open. A browser must not advertise `udp`. `wire.framing-udp` stays exempt on TypeScript.
+
 BT: `python3 -m chaincraft.bt_node`, `chaincraft-bt-node`, `npm run bt-node`.
+
+## Channels
+
+`channel.hybrid` (`LinkMesh`) relays one gossip envelope across joined tcp, udp, webrtc, pipe, mailto, forum, and loop members. A hop that cannot hold the envelope bytes is skipped. `link.*` and `ctl.*` go to one member. `mailto` and `webrtc` stay in-memory. This release does not open SMTP, an ICE data channel, or a live HTTP forum.
+
+A `webrtc` rest is a PeerJS id (`A-Za-z0-9_-`, 1–64). A 64-hex id still parses. Default broker: `https://dechess-org-peerjs.vercel.app`.
 
 ## Protocol object
 
@@ -98,6 +108,8 @@ Compose on the same mesh: `ProofOfWork` / `ProofOfStake` / `PBFT` + `BalanceLedg
 | `SPEC/wire-v1.md` | Level 0 wire |
 | `SPEC/semantics-v1.md` | Level 1 objects |
 | `SPEC/features.yaml` | Parity registry |
+| `SPEC/features/channel-hybrid.md` | One mesh, hop caps, UDP listener |
+| `SPEC/features/channel-peer.md` | PeerJS ids and the browser entry |
 | `python/` | Reference, `chaincraft` |
 | `rust/` | Crate `chaincraft` |
 | `typescript/` | `@chaincraft/core` |
