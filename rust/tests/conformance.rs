@@ -1957,6 +1957,61 @@ fn wire_paths() {
 }
 
 #[test]
+fn channel_peer_transcript() {
+    use chaincraft::peer::{self, EnvelopeRelay};
+
+    let doc = load("channel-peer.json");
+    assert_eq!(doc["origin"].as_str(), Some(peer::DEFAULT_PEER_ORIGIN));
+    let options = peer::peer_options(peer::DEFAULT_PEER_ORIGIN).unwrap();
+    assert_eq!(options.host, doc["options"]["host"].as_str().unwrap());
+    assert_eq!(
+        options.port as u64,
+        doc["options"]["port"].as_u64().unwrap()
+    );
+    assert_eq!(options.path, doc["options"]["path"].as_str().unwrap());
+    assert_eq!(options.secure, doc["options"]["secure"].as_bool().unwrap());
+    assert_eq!(options.key, doc["options"]["key"].as_str().unwrap());
+    for case in doc["ids"].as_array().unwrap() {
+        let input = case["input"].as_str().unwrap();
+        let got = peer::parse_peer_id_body(input);
+        let expect = case["id"].as_str().map(str::to_owned);
+        assert_eq!(got, expect, "{}", case["name"]);
+    }
+    let mut relay = EnvelopeRelay::new();
+    for step in doc["steps"].as_array().unwrap() {
+        match step["op"].as_str().unwrap() {
+            "join" => {
+                let addr = step["addr"].as_str().unwrap();
+                assert_eq!(relay.join(addr), step["ok"].as_bool().unwrap(), "{addr}");
+            }
+            "publish" => {
+                let src = step["src"].as_str().unwrap();
+                let data = parse_json(step["data"].as_str().unwrap()).unwrap();
+                let got = relay.publish(src, step["type"].as_str().unwrap(), data);
+                let expect = step["id"].as_str().map(str::to_owned);
+                assert_eq!(got, expect, "{src}");
+            }
+            "take" => {
+                let addr = step["addr"].as_str().unwrap();
+                let got: Vec<Value> = relay
+                    .take(addr)
+                    .into_iter()
+                    .map(|item| {
+                        serde_json::json!({
+                            "id": item.id,
+                            "type": item.type_name,
+                            "from": item.from,
+                        })
+                    })
+                    .collect();
+                assert_eq!(Value::Array(got), step["inbox"], "{addr}");
+            }
+            other => panic!("unknown op {other}"),
+        }
+    }
+}
+
+#[test]
 fn vector_files_declare_feature() {
     for name in [
         "canonical-json.json",
@@ -1987,6 +2042,7 @@ fn vector_files_declare_feature() {
         "discovery-nat.json",
         "wire-channel.json",
         "channel-adapters.json",
+        "channel-peer.json",
         "app-pubsub.json",
         "app-stream.json",
     ] {

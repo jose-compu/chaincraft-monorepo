@@ -11,16 +11,17 @@
 #   - every markdown file under SPEC/ is listed here
 #   - every listed file contains **Release:** <release>
 
-release: "1.1.0"
+release: "1.2.0"
 wire_protocol: 1
 status: current
-since: "2026-10-19"
+since: "2026-10-20"
 
 documents:
   - SPEC/features/app-pubsub.md
   - SPEC/features/app-stream.md
   - SPEC/features/bittorrent-swarm.md
   - SPEC/features/channel-adapters.md
+  - SPEC/features/channel-peer.md
   - SPEC/features/cli-node.md
   - SPEC/features/consensus-pbft.md
   - SPEC/features/consensus-pos.md
