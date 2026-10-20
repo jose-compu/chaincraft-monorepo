@@ -415,7 +415,7 @@ fn send_udp(mesh: &Arc<Mutex<Mesh>>, env: &Envelope, skip: &str) -> Result<(), S
         return Ok(());
     };
     let body = env.to_bytes().map_err(|e| e.to_string())?;
-    if body.len() > MAX_UDP_BYTES as usize {
+    if body.len() > MAX_UDP_BYTES {
         return Ok(());
     }
     for host_port in peers {
@@ -428,7 +428,7 @@ fn send_udp(mesh: &Arc<Mutex<Mesh>>, env: &Envelope, skip: &str) -> Result<(), S
 }
 
 fn udp_loop(mesh: Arc<Mutex<Mesh>>, socket: Arc<UdpSocket>) {
-    let mut buf = vec![0u8; MAX_UDP_BYTES as usize];
+    let mut buf = vec![0u8; MAX_UDP_BYTES];
     loop {
         match socket.recv_from(&mut buf) {
             Ok((n, addr)) => {
@@ -445,7 +445,7 @@ fn udp_loop(mesh: Arc<Mutex<Mesh>>, socket: Arc<UdpSocket>) {
 }
 
 fn handle_datagram(mesh: &Arc<Mutex<Mesh>>, src: &str, body: &[u8]) -> Result<(), String> {
-    if body.len() > MAX_UDP_BYTES as usize {
+    if body.len() > MAX_UDP_BYTES {
         return Ok(());
     }
     let env = Envelope::parse_bytes(body, None).map_err(|e| e.to_string())?;
