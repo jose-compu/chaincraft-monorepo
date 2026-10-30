@@ -12,10 +12,12 @@ use chaincraft::bittorrent::Swarm;
 use chaincraft::canonical::{canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue};
 use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
+use chaincraft::consensus_avalanche::Avalanche;
 use chaincraft::consensus_pbft::Pbft;
 use chaincraft::consensus_pos::ProofOfStake;
 use chaincraft::consensus_pow::ProofOfWork;
 use chaincraft::control;
+use chaincraft::crdt::CrdtKv;
 use chaincraft::crypto::{public_key_hex, sign, verify, Algorithm};
 use chaincraft::dedup::Deduplicator;
 use chaincraft::discovery::{self, AddressBook, LocalDiscovery};
@@ -1130,6 +1132,50 @@ fn consensus_pbft_replay() {
     }
 }
 
+#[test]
+fn consensus_avalanche_replay() {
+    let doc = load("consensus-avalanche.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let phase = case["steps"][0]["phase"].as_str().unwrap();
+        let mut obj = Avalanche::new(phase).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            assert!(obj.is_merkelized(), "{where_}");
+            let expected = JsonValue::object([
+                (
+                    "cnt".into(),
+                    JsonValue::Number(step["cnt"].as_i64().unwrap()),
+                ),
+                ("d".into(), to_json_value(&step["d"]).unwrap()),
+                (
+                    "final".into(),
+                    JsonValue::Bool(step["final"].as_bool().unwrap()),
+                ),
+                (
+                    "phase".into(),
+                    JsonValue::String(step["phase"].as_str().unwrap().to_owned()),
+                ),
+                (
+                    "pref".into(),
+                    JsonValue::String(step["pref"].as_str().unwrap().to_owned()),
+                ),
+                (
+                    "rounds".into(),
+                    JsonValue::Number(step["rounds"].as_i64().unwrap()),
+                ),
+            ]);
+            assert_eq!(obj.state_value(), expected, "{where_}");
+        }
+    }
+}
+
 fn json_i64_map(value: &Value) -> std::collections::BTreeMap<String, i64> {
     value
         .as_object()
@@ -1879,6 +1925,29 @@ fn app_pubsub_replay() {
 }
 
 #[test]
+fn protocol_crdt_kv_replay() {
+    let doc = load("protocol-crdt-kv.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = CrdtKv::new();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                assert!(obj.add_message(&message, None).is_none(), "{where_}");
+            }
+            assert!(!obj.is_merkelized(), "{where_}");
+            assert!(obj.get_state_digests().is_empty(), "{where_}");
+            let expected =
+                JsonValue::object([("keys".into(), to_json_value(&step["keys"]).unwrap())]);
+            assert_eq!(obj.state_value(), expected, "{where_}");
+        }
+    }
+}
+
+#[test]
 fn app_stream_replay() {
     let doc = load("app-stream.json");
     for case in doc["replay"].as_array().unwrap() {
@@ -2099,6 +2168,7 @@ fn vector_files_declare_feature() {
         "consensus-pow.json",
         "consensus-pos.json",
         "consensus-pbft.json",
+        "consensus-avalanche.json",
         "ledger-balance.json",
         "ledger-utxo.json",
         "mempool-basic.json",
@@ -2113,6 +2183,7 @@ fn vector_files_declare_feature() {
         "channel-hybrid.json",
         "app-pubsub.json",
         "app-stream.json",
+        "protocol-crdt-kv.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

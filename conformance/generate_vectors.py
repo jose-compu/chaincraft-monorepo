@@ -32,9 +32,11 @@ from chaincraft import (  # noqa: E402
     vdf,
     vrf,
 )
+from chaincraft.consensus_avalanche import Avalanche  # noqa: E402
 from chaincraft.consensus_pbft import PBFT  # noqa: E402
 from chaincraft.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
 from chaincraft.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
+from chaincraft.crdt import MAX_KEYS, CrdtKv  # noqa: E402
 from chaincraft.fees import charge, estimate, next_base_fee, select  # noqa: E402
 from chaincraft.ledger_balance import BalanceLedger  # noqa: E402
 from chaincraft.pubsub import MAX_MEMBERS, MAX_POSTS, MAX_ROOMS, MAX_TEXT, PubSub  # noqa: E402
@@ -1489,6 +1491,53 @@ def consensus_pbft_vectors() -> Dict[str, Any]:
         "replicas": list(PBFT().replicas),
         "quorum": PBFT().quorum,
         "value_digest": digest,
+        "replay": replay,
+    }
+
+
+def consensus_avalanche_vectors() -> Dict[str, Any]:
+    def init(color: str) -> Dict[str, Any]:
+        return {"color": color, "consensus": "avalanche", "op": "init"}
+
+    def round_of(*votes: str) -> Dict[str, Any]:
+        return {"consensus": "avalanche", "op": "round", "votes": list(votes)}
+
+    replay = [
+        _replay_object(
+            "slush adopts the sample",
+            lambda: Avalanche("slush"),
+            [init("blue"), round_of("red", "red"), round_of("blue", "red")],
+        ),
+        _replay_object(
+            "snowflake finalizes after beta",
+            lambda: Avalanche("snowflake"),
+            [round_of("red", "red"), round_of("red", "red")],
+        ),
+        _replay_object(
+            "snowflake reset on flip",
+            lambda: Avalanche("snowflake"),
+            [round_of("red", "red"), round_of("blue", "blue"), round_of("blue", "blue")],
+        ),
+        _replay_object(
+            "snowball confidence and tie-break",
+            lambda: Avalanche("snowball"),
+            [round_of("red", "red"), round_of("blue", "blue")],
+        ),
+        _replay_object(
+            "rejected round and second init",
+            lambda: Avalanche("slush"),
+            [init("red"), init("blue"), round_of("red")],
+        ),
+    ]
+    return {
+        **header(
+            "consensus.avalanche",
+            "SPEC/features/consensus-avalanche.md",
+            "Slush, Snowflake, and Snowball with vector-pinned votes.",
+        ),
+        "alpha": 2,
+        "beta": 2,
+        "k": 2,
         "replay": replay,
     }
 
@@ -3116,6 +3165,61 @@ def app_stream_vectors() -> Dict[str, Any]:
     }
 
 
+def protocol_crdt_kv_vectors() -> Dict[str, Any]:
+    def set_(key: str, writer: str, ts: int, value: str) -> Dict[str, Any]:
+        return {
+            "app": "crdt",
+            "key": key,
+            "op": "set",
+            "ts": ts,
+            "value": value,
+            "writer": writer,
+        }
+
+    def delete(key: str, writer: str, ts: int) -> Dict[str, Any]:
+        return {"app": "crdt", "key": key, "op": "del", "ts": ts, "writer": writer}
+
+    cap = [set_(f"k{i:02d}", "alice", 1, "v") for i in range(MAX_KEYS)]
+    cap.append(set_(f"k{MAX_KEYS:02d}", "alice", 1, "v"))
+    replay = [
+        _replay_object("set then overwrite", CrdtKv, [set_("x", "alice", 1, "one"), set_("x", "alice", 2, "two")]),
+        _replay_object(
+            "concurrent tie lowest writer",
+            CrdtKv,
+            [set_("x", "bob", 5, "from-bob"), set_("x", "alice", 5, "from-alice")],
+        ),
+        _replay_object(
+            "tombstone then revive",
+            CrdtKv,
+            [set_("x", "alice", 1, "hello"), delete("x", "alice", 2), set_("x", "bob", 3, "back")],
+        ),
+        _replay_object(
+            "idempotent replay",
+            CrdtKv,
+            [set_("x", "alice", 1, "hello"), set_("x", "alice", 1, "hello")],
+        ),
+        _replay_object(
+            "stale write and conflict rejected",
+            CrdtKv,
+            [
+                set_("x", "alice", 2, "new"),
+                set_("x", "alice", 1, "old"),
+                set_("x", "alice", 2, "other"),
+            ],
+        ),
+        _replay_object("key cap", CrdtKv, cap),
+    ]
+    return {
+        **header(
+            "protocol.crdt-kv",
+            "SPEC/features/protocol-crdt-kv.md",
+            "LWW key-value: higher ts wins, equal ts lowest writer, tombstones.",
+        ),
+        "max_keys": MAX_KEYS,
+        "replay": replay,
+    }
+
+
 def paths_vectors() -> Dict[str, Any]:
     types = [
         "ctl.hello",
@@ -3336,6 +3440,7 @@ def main() -> int:
     write("consensus-pow.json", consensus_pow_vectors())
     write("consensus-pos.json", consensus_pos_vectors())
     write("consensus-pbft.json", consensus_pbft_vectors())
+    write("consensus-avalanche.json", consensus_avalanche_vectors())
     print("\nLevel 2 — ledgers")
     write("ledger-balance.json", ledger_balance_vectors())
     write("ledger-utxo.json", ledger_utxo_vectors())
@@ -3358,6 +3463,8 @@ def main() -> int:
     write("app-pubsub.json", app_pubsub_vectors())
     print("\nLevel 2 — event stream")
     write("app-stream.json", app_stream_vectors())
+    print("\nLevel 2 — CRDT key-value")
+    write("protocol-crdt-kv.json", protocol_crdt_kv_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

@@ -1,0 +1,4314 @@
+{
+  "feature": "protocol.crdt-kv",
+  "spec": "SPEC/features/protocol-crdt-kv.md",
+  "description": "LWW key-value: higher ts wins, equal ts lowest writer, tombstones.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "max_keys": 32,
+  "replay": [
+    {
+      "name": "set then overwrite",
+      "steps": [
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":1,\"value\":\"one\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 1,
+              "value": "one",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":2,\"value\":\"two\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 2,
+              "value": "two",
+              "writer": "alice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "concurrent tie lowest writer",
+      "steps": [
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":5,\"value\":\"from-bob\",\"writer\":\"bob\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 5,
+              "value": "from-bob",
+              "writer": "bob"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":5,\"value\":\"from-alice\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 5,
+              "value": "from-alice",
+              "writer": "alice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tombstone then revive",
+      "steps": [
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":1,\"value\":\"hello\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 1,
+              "value": "hello",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"del\",\"ts\":2,\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": true,
+              "key": "x",
+              "ts": 2,
+              "value": "",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":3,\"value\":\"back\",\"writer\":\"bob\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 3,
+              "value": "back",
+              "writer": "bob"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "idempotent replay",
+      "steps": [
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":1,\"value\":\"hello\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 1,
+              "value": "hello",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":1,\"value\":\"hello\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 1,
+              "value": "hello",
+              "writer": "alice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stale write and conflict rejected",
+      "steps": [
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":2,\"value\":\"new\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 2,
+              "value": "new",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":1,\"value\":\"old\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 2,
+              "value": "new",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"x\",\"op\":\"set\",\"ts\":2,\"value\":\"other\",\"writer\":\"alice\"}",
+          "accepted": false,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "x",
+              "ts": 2,
+              "value": "new",
+              "writer": "alice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "key cap",
+      "steps": [
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k00\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k01\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k02\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k03\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k04\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k05\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k06\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k07\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k08\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k09\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k10\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k11\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k12\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k13\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k14\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k15\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k16\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k17\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k18\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k19\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k20\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k21\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k22\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k23\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k24\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k25\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k26\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k26",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k27\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k26",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k27",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k28\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k26",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k27",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k28",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k29\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k26",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k27",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k28",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k29",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k30\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k26",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k27",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k28",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k29",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k30",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k31\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": true,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k26",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k27",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k28",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k29",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k30",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k31",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        },
+        {
+          "message_json": "{\"app\":\"crdt\",\"key\":\"k32\",\"op\":\"set\",\"ts\":1,\"value\":\"v\",\"writer\":\"alice\"}",
+          "accepted": false,
+          "keys": [
+            {
+              "deleted": false,
+              "key": "k00",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k01",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k02",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k03",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k04",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k05",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k06",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k07",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k08",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k09",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k10",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k11",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k12",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k13",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k14",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k15",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k16",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k17",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k18",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k19",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k20",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k21",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k22",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k23",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k24",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k25",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k26",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k27",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k28",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k29",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k30",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            },
+            {
+              "deleted": false,
+              "key": "k31",
+              "ts": 1,
+              "value": "v",
+              "writer": "alice"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

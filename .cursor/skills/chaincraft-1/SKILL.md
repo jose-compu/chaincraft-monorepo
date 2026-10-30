@@ -1,33 +1,34 @@
 ---
 name: chaincraft-1
 description: >-
-  Bootstraps Chaincraft 1.3.0 in Python, Rust, and TypeScript: install from
-  the v1.3.0 tag, run mesh nodes, implement receive / Protocol /
-  BaseSharedObject, assemble PoW PoS PBFT chains at feature parity. Use when
-  starting work in this monorepo, writing a protocol or blockchain object,
+  Bootstraps Chaincraft 1.4.0 in Python, Rust, and TypeScript: install from
+  the v1.4.0 tag, run mesh nodes, implement receive / Protocol /
+  BaseSharedObject, assemble PoW PoS PBFT Avalanche chains and a LWW CRDT
+  at feature parity. Use when starting work in this monorepo, writing a
+  protocol or blockchain object,
   running chaincraft-node, or when the user mentions Chaincraft, @chaincraft/core,
   chaincraft.node, or parity.
 ---
 
-# Chaincraft 1.3.0 — agent bootstrap
+# Chaincraft 1.4.0 — agent bootstrap
 
 Read this, then root `AGENTS.md`. Spec is `SPEC/`. Do not copy one language into another.
 
-Spec release **1.3.0**. Wire protocol `v` stays **1**. Packages: PyPI and crates.io `chaincraft` 1.3.0. npm `@chaincraft/core` on the registry can lag the tag; install TypeScript from the checkout. Unscoped npm `chaincraft` is another project.
+Spec release **1.4.0**. Wire protocol `v` stays **1**. Packages: PyPI and crates.io `chaincraft` 1.4.0, npm `@chaincraft/core` 1.4.0. Unscoped npm `chaincraft` is another project.
 
 ## Install
 
 From the clone root. Python 3.9+, Rust 1.74+, Node 20+.
 
 ```bash
-git clone --branch v1.3.0 https://github.com/jose-compu/chaincraft-monorepo.git
+git clone --branch v1.4.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
 python3 -m pip install -e "./python[dev]"
 cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
 npm install --prefix typescript
 ```
 
-Published installs: `pip install chaincraft`, `cargo add chaincraft`. Prefer the tag checkout for `@chaincraft/core` until `npm view @chaincraft/core version` prints `1.3.0`.
+Published installs: `pip install chaincraft`, `cargo add chaincraft`, `npm install @chaincraft/core`.
 
 ## Envelope (same bytes in all three)
 
@@ -99,7 +100,7 @@ Rust — `impl Protocol for Room` (`ApplicationObject` is the full contract). Ty
 
 ## Blockchain path
 
-Compose on the same mesh: `ProofOfWork` / `ProofOfStake` / `PBFT` + `BalanceLedger` or `UtxoLedger` + mempool + fees. Specs under `SPEC/features/consensus-*.md`, `ledger-*.md`, `mempool-basic.md`, `fees-policy.md`.
+Compose on the same mesh: `ProofOfWork` / `ProofOfStake` / `PBFT` / `Avalanche` + `BalanceLedger` or `UtxoLedger` + mempool + fees. `CrdtKv` is a last-write-wins store. Specs under `SPEC/features/consensus-*.md`, `protocol-crdt-kv.md`, `ledger-*.md`, `mempool-basic.md`, `fees-policy.md`.
 
 ## Layout
 
@@ -110,6 +111,8 @@ Compose on the same mesh: `ProofOfWork` / `ProofOfStake` / `PBFT` + `BalanceLedg
 | `SPEC/features.yaml` | Parity registry |
 | `SPEC/features/channel-hybrid.md` | One mesh, hop caps, UDP listener |
 | `SPEC/features/channel-peer.md` | PeerJS ids and the browser entry |
+| `SPEC/features/consensus-avalanche.md` | Slush, Snowflake, Snowball |
+| `SPEC/features/protocol-crdt-kv.md` | Last-write-wins key-value |
 | `python/` | Reference, `chaincraft` |
 | `rust/` | Crate `chaincraft` |
 | `typescript/` | `@chaincraft/core` |

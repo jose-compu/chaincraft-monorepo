@@ -330,6 +330,16 @@ features:
       rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
+  - id: consensus.avalanche
+    level: 2
+    spec: SPEC/features/consensus-avalanche.md
+    summary: Pedagogical Slush, Snowflake, and Snowball with vector-pinned votes
+    vectors: conformance/vectors/consensus-avalanche.json
+    status:
+      python:     { state: implemented, since: "2026-10-30" }
+      rust:       { state: implemented, since: "2026-10-30" }
+      typescript: { state: implemented, since: "2026-10-30" }
+
   - id: ledger.balance
     level: 2
     spec: SPEC/features/ledger-balance.md
@@ -530,3 +540,13 @@ features:
       python:     { state: implemented, since: "2026-09-23" }
       rust:       { state: implemented, since: "2026-09-23" }
       typescript: { state: implemented, since: "2026-09-23" }
+
+  - id: protocol.crdt-kv
+    level: 2
+    spec: SPEC/features/protocol-crdt-kv.md
+    summary: Last-write-wins key-value CRDT with injected timestamps
+    vectors: conformance/vectors/protocol-crdt-kv.json
+    status:
+      python:     { state: implemented, since: "2026-10-30" }
+      rust:       { state: implemented, since: "2026-10-30" }
+      typescript: { state: implemented, since: "2026-10-30" }

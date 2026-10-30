@@ -15,10 +15,12 @@ import { fileURLToPath } from 'node:url';
 import {
   AddressBook,
   CanonicalError,
+  Avalanche,
   PBFT,
   ProofOfStake,
   ProofOfWork,
   BalanceLedger,
+  CrdtKv,
   PubSub,
   Stream,
   UtxoLedger,
@@ -515,6 +517,20 @@ eachCase('app-pubsub.json', 'replay', (c) => {
   }
 });
 
+eachCase('protocol-crdt-kv.json', 'replay', (c) => {
+  const obj = new CrdtKv();
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `${c['name']} step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) assert.equal(obj.addMessage(message), undefined, where);
+    assert.equal(obj.isMerkelized(), false, where);
+    assert.deepEqual(obj.getStateDigests(), [], where);
+    assert.deepEqual(obj.state(), { keys: step['keys'] }, where);
+  }
+});
+
 eachCase('app-stream.json', 'replay', (c) => {
   const obj = new Stream();
   for (const [index, step] of c['steps'].entries()) {
@@ -744,6 +760,26 @@ eachCase('bittorrent-swarm.json', 'replay', (c) => {
   }
 });
 
+eachCase('consensus-avalanche.json', 'replay', (c) => {
+  const obj = new Avalanche(c['steps'][0]['phase']);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `${c['name']} step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.equal(obj.isMerkelized(), true, where);
+    assert.deepEqual(obj.state(), {
+      cnt: step['cnt'],
+      d: step['d'],
+      final: step['final'],
+      phase: step['phase'],
+      pref: step['pref'],
+      rounds: step['rounds'],
+    }, where);
+  }
+});
+
 eachCase('consensus-pbft.json', 'replay', (c) => {
   const obj = new PBFT();
   for (const [index, step] of c['steps'].entries()) {
@@ -929,6 +965,7 @@ test('every vector file declares its feature', () => {
     'consensus-pow.json',
     'consensus-pos.json',
     'consensus-pbft.json',
+    'consensus-avalanche.json',
     'ledger-balance.json',
     'ledger-utxo.json',
     'mempool-basic.json',
@@ -943,6 +980,7 @@ test('every vector file declares its feature', () => {
     'channel-hybrid.json',
     'app-pubsub.json',
     'app-stream.json',
+    'protocol-crdt-kv.json',
   ];
   for (const name of files) {
     const doc = load(name);

@@ -73,10 +73,17 @@ export {
 
 export { type ApplyResult, ObjectRegistry } from './pipeline.ts';
 
+export {
+  Avalanche,
+  DEFAULT_ALPHA as AVALANCHE_DEFAULT_ALPHA,
+  DEFAULT_BETA as AVALANCHE_DEFAULT_BETA,
+  DEFAULT_K as AVALANCHE_DEFAULT_K,
+} from './consensusAvalanche.ts';
 export { PBFT, DEFAULT_REPLICAS as PBFT_DEFAULT_REPLICAS } from './consensusPbft.ts';
 export { ProofOfStake, DEFAULT_SEED, DEFAULT_VALIDATORS, proposerFor } from './consensusPos.ts';
 export { ProofOfWork, DEFAULT_DIFFICULTY, blockId, meetsWork } from './consensusPow.ts';
 export { BalanceLedger, DEFAULT_ALLOCATIONS as BALANCE_DEFAULT_ALLOCATIONS } from './ledgerBalance.ts';
+export { CrdtKv, MAX_KEYS as CRDT_MAX_KEYS, MAX_VALUE as CRDT_MAX_VALUE } from './crdt.ts';
 export { PubSub, MAX_MEMBERS, MAX_POSTS, MAX_ROOMS, MAX_TEXT } from './pubsub.ts';
 export {
   Stream,

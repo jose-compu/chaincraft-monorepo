@@ -6,11 +6,11 @@ store. Consensus, ledgers, and sync are a feature class in the same library.
 
 Open-source toolkit for peer-to-peer protocols like blockchains. Three
 implementations — Python, Rust, TypeScript — are held at **100% feature
-parity**. Spec release **1.1.0** (`SPEC/release.yaml`). Wire protocol **v1**.
-Tagged [`v1.1.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.1.0).
-Published: [crates.io `chaincraft` 1.1.0](https://crates.io/crates/chaincraft),
-[npm `@chaincraft/core` 1.1.0](https://www.npmjs.com/package/@chaincraft/core).
-PyPI serves `chaincraft` 1.1.0.
+parity**. Spec release **1.4.0** (`SPEC/release.yaml`). Wire protocol **v1**.
+Tagged [`v1.4.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.4.0).
+Published: [crates.io `chaincraft` 1.4.0](https://crates.io/crates/chaincraft),
+[npm `@chaincraft/core` 1.4.0](https://www.npmjs.com/package/@chaincraft/core).
+PyPI serves `chaincraft` 1.4.0.
 
 This document defines what that commitment means, why it is achievable, and the
 machinery that enforces it. The enforcement is automated: parity is a CI gate, not a
@@ -371,6 +371,18 @@ the envelope. `link.*` goes to one member. The TCP mesh can bind a localhost
 UDP listener and advertise the `udp` cap. `cli.node` `connect` accepts a
 channel URI. `mailto` and `webrtc` stay in-memory. Issues #2 and #45.
 
+### Stage 20 — Avalanche and CRDT 1.4.0
+
+`consensus.avalanche`. Pedagogical Slush, Snowflake, and Snowball. One
+object, a `phase` discriminator. Sample outcomes are messages. There is
+no PRNG. Issue #5.
+
+`protocol.crdt-kv`. Last-write-wins key-value. The caller injects integer
+`ts`. Equal timestamps take the lowest writer. Tombstones restore on a
+later set. Issue #11.
+
+UDP mesh (#2) and NAT (#1) shipped in 1.3.0.
+
 ---
 
 ## 6. Versioning
@@ -379,14 +391,14 @@ Full parity implies **lockstep releases**. All three packages and `SPEC/release.
 carry the same version:
 
 ```
-chaincraft (PyPI)    1.3.0
-chaincraft (crates)  1.3.0
-@chaincraft/core (npm)     1.3.0
-SPEC/release.yaml         1.3.0
+chaincraft (PyPI)    1.4.0
+chaincraft (crates)  1.4.0
+@chaincraft/core (npm)     1.4.0
+SPEC/release.yaml         1.4.0
 ```
 
-That is the current release. The git tag is `v1.3.0`. PyPI, crates.io and npm
-serve 1.3.0.
+That is the current release. The git tag is `v1.4.0`. PyPI, crates.io and npm
+serve 1.4.0.
 A later minor version still ships all three together. A language cannot ship a
 minor version alone, because a minor version means a new feature, and a new
 feature means all three have it.
