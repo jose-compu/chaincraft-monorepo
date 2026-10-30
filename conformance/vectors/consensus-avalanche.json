@@ -1,0 +1,206 @@
+{
+  "feature": "consensus.avalanche",
+  "spec": "SPEC/features/consensus-avalanche.md",
+  "description": "Slush, Snowflake, and Snowball with vector-pinned votes.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "alpha": 2,
+  "beta": 2,
+  "k": 2,
+  "replay": [
+    {
+      "name": "slush adopts the sample",
+      "steps": [
+        {
+          "message_json": "{\"color\":\"blue\",\"consensus\":\"avalanche\",\"op\":\"init\"}",
+          "accepted": true,
+          "cnt": 0,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "slush",
+          "pref": "blue",
+          "rounds": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"red\",\"red\"]}",
+          "accepted": true,
+          "cnt": 0,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "slush",
+          "pref": "red",
+          "rounds": 1
+        },
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"blue\",\"red\"]}",
+          "accepted": true,
+          "cnt": 0,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "slush",
+          "pref": "red",
+          "rounds": 2
+        }
+      ]
+    },
+    {
+      "name": "snowflake finalizes after beta",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"red\",\"red\"]}",
+          "accepted": true,
+          "cnt": 1,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "snowflake",
+          "pref": "red",
+          "rounds": 1
+        },
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"red\",\"red\"]}",
+          "accepted": true,
+          "cnt": 2,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": true,
+          "phase": "snowflake",
+          "pref": "red",
+          "rounds": 2
+        }
+      ]
+    },
+    {
+      "name": "snowflake reset on flip",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"red\",\"red\"]}",
+          "accepted": true,
+          "cnt": 1,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "snowflake",
+          "pref": "red",
+          "rounds": 1
+        },
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"blue\",\"blue\"]}",
+          "accepted": true,
+          "cnt": 1,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "snowflake",
+          "pref": "blue",
+          "rounds": 2
+        },
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"blue\",\"blue\"]}",
+          "accepted": true,
+          "cnt": 2,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": true,
+          "phase": "snowflake",
+          "pref": "blue",
+          "rounds": 3
+        }
+      ]
+    },
+    {
+      "name": "snowball confidence and tie-break",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"red\",\"red\"]}",
+          "accepted": true,
+          "cnt": 0,
+          "d": {
+            "blue": 0,
+            "red": 1
+          },
+          "final": false,
+          "phase": "snowball",
+          "pref": "red",
+          "rounds": 1
+        },
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"blue\",\"blue\"]}",
+          "accepted": true,
+          "cnt": 0,
+          "d": {
+            "blue": 1,
+            "red": 1
+          },
+          "final": false,
+          "phase": "snowball",
+          "pref": "blue",
+          "rounds": 2
+        }
+      ]
+    },
+    {
+      "name": "rejected round and second init",
+      "steps": [
+        {
+          "message_json": "{\"color\":\"red\",\"consensus\":\"avalanche\",\"op\":\"init\"}",
+          "accepted": true,
+          "cnt": 0,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "slush",
+          "pref": "red",
+          "rounds": 0
+        },
+        {
+          "message_json": "{\"color\":\"blue\",\"consensus\":\"avalanche\",\"op\":\"init\"}",
+          "accepted": false,
+          "cnt": 0,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "slush",
+          "pref": "red",
+          "rounds": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"avalanche\",\"op\":\"round\",\"votes\":[\"red\"]}",
+          "accepted": false,
+          "cnt": 0,
+          "d": {
+            "blue": 0,
+            "red": 0
+          },
+          "final": false,
+          "phase": "slush",
+          "pref": "red",
+          "rounds": 0
+        }
+      ]
+    }
+  ]
+}

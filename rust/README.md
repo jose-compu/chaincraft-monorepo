@@ -1,7 +1,9 @@
 # chaincraft
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.3.0](https://crates.io/crates/chaincraft/1.3.0)** on crates.io.
+Release **[1.4.0](https://crates.io/crates/chaincraft/1.4.0)** on crates.io.
+1.4.0 adds pedagogical Avalanche (Slush, Snowflake, Snowball) and a
+last-write-wins CRDT.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.
@@ -22,7 +24,7 @@ gossips `app.hello`.
 
 ```toml
 [dependencies]
-chaincraft = "1.3.0"
+chaincraft = "1.4.0"
 ```
 
 ```rust
@@ -75,7 +77,7 @@ Python.
 Further local nodes take unused ports and connect. Remote hosts dial this
 machine's unicast IPv4 or DNS name on 9735. `connect` allows loopback,
 RFC1918, public unicast IPv4, `localhost`, `.local`, and ordinary DNS names.
-Each mesh keeps at most 256 peers.
+One mesh process keeps at most 256 live peers.
 
 Specification and the Python and TypeScript implementations live in the
 [monorepo](https://github.com/jose-compu/chaincraft-monorepo).

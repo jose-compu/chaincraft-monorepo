@@ -1,9 +1,9 @@
 //! Feature manifest — the IDs this implementation claims to provide.
 
-pub const VERSION: &str = "1.3.0";
+pub const VERSION: &str = "1.4.0";
 pub const WIRE_VERSION: i64 = 1;
 pub const LANGUAGE: &str = "rust";
-pub const IMPL: &str = "rust-chaincraft/1.3.0";
+pub const IMPL: &str = "rust-chaincraft/1.4.0";
 
 pub const FEATURES: &[&str] = &[
     "wire.canonical-json",
@@ -31,6 +31,7 @@ pub const FEATURES: &[&str] = &[
     "consensus.pow",
     "consensus.pos",
     "consensus.pbft",
+    "consensus.avalanche",
     "ledger.balance",
     "ledger.utxo",
     "mempool.basic",
@@ -48,6 +49,7 @@ pub const FEATURES: &[&str] = &[
     "channel.pipe",
     "app.pubsub",
     "app.stream",
+    "protocol.crdt-kv",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.

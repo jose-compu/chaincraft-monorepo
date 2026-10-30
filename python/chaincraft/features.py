@@ -46,6 +46,7 @@ FEATURES = frozenset(
         "consensus.pow",
         "consensus.pos",
         "consensus.pbft",
+        "consensus.avalanche",
         "ledger.balance",
         "ledger.utxo",
         "mempool.basic",
@@ -63,6 +64,7 @@ FEATURES = frozenset(
         "channel.pipe",
         "app.pubsub",
         "app.stream",
+        "protocol.crdt-kv",
     }
 )
 

@@ -8,7 +8,7 @@
  * Add an ID here only when the feature is implemented and its vectors pass.
  */
 
-export const VERSION = '1.3.0';
+export const VERSION = '1.4.0';
 export const WIRE_VERSION = 1;
 export const IMPL = `ts-chaincraft/${VERSION}`;
 export const LANGUAGE = 'typescript';
@@ -43,6 +43,7 @@ export const FEATURES: readonly string[] = [
   'consensus.pow',
   'consensus.pos',
   'consensus.pbft',
+  'consensus.avalanche',
   'ledger.balance',
   'ledger.utxo',
   'mempool.basic',
@@ -60,6 +61,7 @@ export const FEATURES: readonly string[] = [
   'channel.pipe',
   'app.pubsub',
   'app.stream',
+  'protocol.crdt-kv',
 ];
 
 export interface Manifest {

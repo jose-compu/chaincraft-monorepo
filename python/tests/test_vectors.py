@@ -568,6 +568,29 @@ def test_consensus_pbft_replay(case):
         }, where
 
 
+@cases("consensus-avalanche.json", "replay")
+def test_consensus_avalanche_replay(case):
+    from chaincraft.consensus_avalanche import Avalanche
+
+    obj = Avalanche(case["steps"][0]["phase"])
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"{case['name']} step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.is_merkelized() is True, where
+        assert obj.state() == {
+            "cnt": step["cnt"],
+            "d": step["d"],
+            "final": step["final"],
+            "phase": step["phase"],
+            "pref": step["pref"],
+            "rounds": step["rounds"],
+        }, where
+
+
 # --- Level 2 ledgers --------------------------------------------------------
 
 
@@ -953,6 +976,23 @@ def test_app_pubsub_replay(case):
         assert obj.state() == {"rooms": step["rooms"]}, where
 
 
+@cases("protocol-crdt-kv.json", "replay")
+def test_protocol_crdt_kv_replay(case):
+    from chaincraft.crdt import CrdtKv
+
+    obj = CrdtKv()
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"{case['name']} step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            assert obj.add_message(message) is None, where
+        assert obj.is_merkelized() is False, where
+        assert obj.get_state_digests() == [], where
+        assert obj.state() == {"keys": step["keys"]}, where
+
+
 # --- Level 2 event stream ---------------------------------------------------
 
 
@@ -1026,7 +1066,9 @@ def test_channel_hybrid_transcript():
             ), step["src"]
         elif step["op"] == "direct":
             assert (
-                mesh.direct(step["src"], step["dst"], step["type"], json.loads(step["data"]))
+                mesh.direct(
+                    step["src"], step["dst"], step["type"], json.loads(step["data"])
+                )
                 == step["id"]
             ), step["dst"]
         elif step["op"] == "take":

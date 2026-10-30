@@ -3,7 +3,9 @@
 TypeScript implementation of the Chaincraft wire protocol, object semantics, and
 Level 2 stack (consensus, ledgers, BitTorrent, channels). Same observable
 behaviour as the Python `chaincraft` package and the Rust `chaincraft` crate.
-Release **[1.3.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
+Release **[1.4.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
+1.4.0 adds pedagogical Avalanche (Slush, Snowflake, Snowball) and a
+last-write-wins CRDT.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.
@@ -150,7 +152,7 @@ loopback Hello World still uses `127.0.0.1:9735`.
 
 `connect` allows loopback, RFC1918, public unicast IPv4, `localhost`, `.local`,
 and ordinary DNS names. Unspecified (`0.0.0.0`), link-local, multicast, and
-reserved addresses are refused. Each mesh keeps at most 256 peers.
+reserved addresses are refused. One mesh process keeps at most 256 live peers.
 
 ## Library
 
