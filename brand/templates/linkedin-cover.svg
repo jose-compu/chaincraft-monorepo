@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1584" height="396" viewBox="0 0 1584 396">
+  <defs>
+    <style>
+      {{FONT_CSS}}
+      .pixel { font-family: "Press Start 2P", cursive; }
+      .sans { font-family: "IBM Plex Sans", sans-serif; }
+      .mono { font-family: "IBM Plex Mono", monospace; }
+    </style>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#6ecf4a" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1584" height="396" fill="#0d0f12"/>
+  <rect width="1584" height="396" fill="url(#grid)"/>
+
+  <image href="{{MARK}}" x="36" y="48" width="300" height="300" preserveAspectRatio="xMidYMid meet"/>
+  <image href="{{WORDMARK}}" x="360" y="120" width="520" height="99" preserveAspectRatio="xMinYMid meet"/>
+  <text x="360" y="250" class="sans" fill="#a7b0b8" font-size="24" font-weight="400">{{HEADLINE}}</text>
+  <text x="360" y="286" class="mono" fill="#7ee05a" font-size="18">{{DETAIL}}</text>
+
+  <rect x="1280" y="160" width="248" height="40" fill="#4a9e32" stroke="#6ecf4a" stroke-width="2"/>
+  <text x="1294" y="186" class="pixel" fill="#0d0f12" font-size="12">{{VERSION}}</text>
+  <text x="1280" y="230" class="sans" fill="#a7b0b8" font-size="16">{{URL}}</text>
+
+  <rect x="0" y="388" width="1584" height="8" fill="#6ecf4a"/>
+</svg>

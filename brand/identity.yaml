@@ -1,0 +1,55 @@
+# Chaincraft identity — source of truth for graphics.
+# Matches chaincraft.network (docs branch). Edit here, then templates.
+# Per-release PNG banners are local: python3 brand/render.py banner …
+
+source: https://chaincraft.network
+site_css: docs/styles.css
+
+fonts:
+  pixel:
+    family: "Press Start 2P"
+    file: fonts/PressStart2P-Regular.ttf
+    role: display, buttons, version badge
+  sans:
+    family: "IBM Plex Sans"
+    files:
+      400: fonts/IBMPlexSans-Regular.ttf
+      500: fonts/IBMPlexSans-Medium.ttf
+      600: fonts/IBMPlexSans-SemiBold.ttf
+    role: body, headlines
+  mono:
+    family: "IBM Plex Mono"
+    files:
+      400: fonts/IBMPlexMono-Regular.ttf
+      500: fonts/IBMPlexMono-Medium.ttf
+    role: code, language line
+
+colors:
+  bg: "#0d0f12"
+  bg_elevated: "#14181e"
+  bg_card: "#1b2128"
+  stone: "#8b939e"
+  grass: "#6ecf4a"
+  grass_dim: "#4a9e32"
+  dirt: "#8b6914"
+  accent: "#7ee05a"
+  text: "#e8ecef"
+  text_muted: "#a7b0b8"
+  border: "#2a323c"
+  code_bg: "#0a0c0e"
+  grid: "#6ecf4a"
+  grid_opacity: 0.035
+  grid_size: 28
+
+logos:
+  mark: assets/chaincraft-logo.png
+  wordmark: assets/chaincraft-logo-text.png
+  lockup: assets/chaincraft-logo-full.png
+
+sizes:
+  identity_card: [1920, 1080]
+  linkedin_landscape: [1200, 627]
+  linkedin_cover: [1584, 396]
+
+# Render scale 2 for publication. LinkedIn crop is 1200×627.
+url: chaincraft.network

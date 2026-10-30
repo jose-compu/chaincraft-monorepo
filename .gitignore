@@ -24,3 +24,6 @@ typescript/dist/
 .DS_Store
 .idea/
 *.swp
+
+# Brand — identity and templates are committed; per-release PNGs are local
+brand/out/
