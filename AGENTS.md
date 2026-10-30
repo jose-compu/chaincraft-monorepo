@@ -28,6 +28,7 @@ python/          Reference implementation
 rust/            Rust implementation
 typescript/      TypeScript implementation
 tools/           parity_check.py and other repo-level tooling
+brand/           Identity card, logos, fonts, LinkedIn templates. Renders in brand/out/ are local.
 ```
 
 ---
@@ -259,3 +260,36 @@ A change is complete when:
 - [ ] Gap issues opened for languages not yet ported
 - [ ] GitHub issue open, and the pull request links it
 - [ ] GitHub title and body were written to a text file, reviewed, and sent from that file. Regular GitHub users stay attributed. AI and tool attribution is removed from the change, its commits, its pull request, and its issues
+
+---
+
+## 11. Brand identity
+
+Official mark, wordmark, lockup, type, and colour come from
+[chaincraft.network](https://chaincraft.network). The committed source is
+`brand/`.
+
+| Path | Commit? | Role |
+|---|---|---|
+| `brand/identity.yaml` | yes | Tokens (colour, type, sizes, logo files) |
+| `brand/assets/` | yes | Official PNGs: mark, wordmark, lockup |
+| `brand/fonts/` | yes | Press Start 2P, IBM Plex Sans, IBM Plex Mono (OFL) |
+| `brand/templates/` | yes | Identity card and LinkedIn SVG templates |
+| `brand/render.py` | yes | Rasteriser (`rsvg-convert`) |
+| `brand/out/` | **no** | Local high-res PNG for a given release |
+
+Do not invent a second logo or a second palette. Do not recolour the voxel
+lockup. Display type is Press Start 2P; body is IBM Plex Sans; code is IBM
+Plex Mono.
+
+Identity or template changes are a repo change (own pull request). A release
+banner is rendered locally and not committed:
+
+```bash
+python3 brand/render.py card
+python3 brand/render.py banner --version 1.4.0 --headline "Avalanche and CRDT KV"
+python3 brand/render.py banner --kind linkedin-cover --version 1.4.0 --headline "Avalanche and CRDT KV"
+```
+
+Default scale is 2 (LinkedIn landscape 2400×1254). LinkedIn share image is
+1200×627. Cover is 1584×396. Requires `rsvg-convert` (librsvg).

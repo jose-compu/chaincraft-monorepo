@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      {{FONT_CSS}}
+      .pixel { font-family: "Press Start 2P", cursive; }
+      .sans { font-family: "IBM Plex Sans", sans-serif; }
+      .mono { font-family: "IBM Plex Mono", monospace; }
+    </style>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#6ecf4a" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#0d0f12"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <rect x="0" y="0" width="1920" height="96" fill="#14181e"/>
+  <rect x="0" y="96" width="1920" height="2" fill="#2a323c"/>
+  <image href="{{WORDMARK}}" x="48" y="28" width="280" height="53" preserveAspectRatio="xMinYMid meet"/>
+  <text x="1872" y="42" text-anchor="end" class="pixel" fill="#6ecf4a" font-size="14">IDENTITY CARD</text>
+  <text x="1872" y="72" text-anchor="end" class="sans" fill="#a7b0b8" font-size="16" font-weight="500">chaincraft.network  /  fixed tokens  /  extract, do not restyle</text>
+
+  <!-- Logo row -->
+  <g transform="translate(48,136)">
+    <rect width="576" height="420" rx="6" fill="#1b2128" stroke="#2a323c" stroke-width="2"/>
+    <image href="{{MARK}}" x="88" y="36" width="400" height="320" preserveAspectRatio="xMidYMid meet"/>
+    <text x="288" y="392" text-anchor="middle" class="pixel" fill="#8b939e" font-size="10">MARK</text>
+
+    <g transform="translate(600,0)">
+      <rect width="576" height="420" rx="6" fill="#1b2128" stroke="#2a323c" stroke-width="2"/>
+      <image href="{{WORDMARK}}" x="48" y="160" width="480" height="92" preserveAspectRatio="xMidYMid meet"/>
+      <text x="288" y="392" text-anchor="middle" class="pixel" fill="#8b939e" font-size="10">WORDMARK</text>
+    </g>
+
+    <g transform="translate(1200,0)">
+      <rect width="576" height="420" rx="6" fill="#1b2128" stroke="#2a323c" stroke-width="2"/>
+      <image href="{{LOCKUP}}" x="88" y="24" width="400" height="340" preserveAspectRatio="xMidYMid meet"/>
+      <text x="288" y="392" text-anchor="middle" class="pixel" fill="#8b939e" font-size="10">LOCKUP</text>
+    </g>
+  </g>
+
+  <!-- Colors -->
+  <text x="48" y="592" class="pixel" fill="#6ecf4a" font-size="11">COLOUR</text>
+  <g transform="translate(48,612)">
+    <g><rect width="210" height="72" fill="#0d0f12" stroke="#2a323c"/><text x="12" y="32" class="mono" fill="#e8ecef" font-size="14">bg</text><text x="12" y="54" class="mono" fill="#a7b0b8" font-size="13">#0d0f12</text></g>
+    <g transform="translate(222,0)"><rect width="210" height="72" fill="#14181e"/><text x="12" y="32" class="mono" fill="#e8ecef" font-size="14">elevated</text><text x="12" y="54" class="mono" fill="#a7b0b8" font-size="13">#14181e</text></g>
+    <g transform="translate(444,0)"><rect width="210" height="72" fill="#1b2128"/><text x="12" y="32" class="mono" fill="#e8ecef" font-size="14">card</text><text x="12" y="54" class="mono" fill="#a7b0b8" font-size="13">#1b2128</text></g>
+    <g transform="translate(666,0)"><rect width="210" height="72" fill="#6ecf4a"/><text x="12" y="32" class="mono" fill="#0d0f12" font-size="14">grass</text><text x="12" y="54" class="mono" fill="#0d0f12" font-size="13">#6ecf4a</text></g>
+    <g transform="translate(888,0)"><rect width="210" height="72" fill="#7ee05a"/><text x="12" y="32" class="mono" fill="#0d0f12" font-size="14">accent</text><text x="12" y="54" class="mono" fill="#0d0f12" font-size="13">#7ee05a</text></g>
+    <g transform="translate(1110,0)"><rect width="210" height="72" fill="#8b6914"/><text x="12" y="32" class="mono" fill="#e8ecef" font-size="14">dirt</text><text x="12" y="54" class="mono" fill="#e8ecef" font-size="13">#8b6914</text></g>
+    <g transform="translate(1332,0)"><rect width="210" height="72" fill="#8b939e"/><text x="12" y="32" class="mono" fill="#0d0f12" font-size="14">stone</text><text x="12" y="54" class="mono" fill="#0d0f12" font-size="13">#8b939e</text></g>
+    <g transform="translate(1554,0)"><rect width="270" height="72" fill="#e8ecef"/><text x="12" y="32" class="mono" fill="#0d0f12" font-size="14">text</text><text x="12" y="54" class="mono" fill="#0d0f12" font-size="13">#e8ecef  muted #a7b0b8</text></g>
+  </g>
+
+  <!-- Type -->
+  <text x="48" y="732" class="pixel" fill="#6ecf4a" font-size="11">TYPE</text>
+  <text x="48" y="776" class="pixel" fill="#e8ecef" font-size="16">Press Start 2P  -  display</text>
+  <text x="48" y="816" class="sans" fill="#e8ecef" font-size="28" font-weight="600">IBM Plex Sans 600  -  headlines</text>
+  <text x="48" y="852" class="sans" fill="#a7b0b8" font-size="20" font-weight="400">IBM Plex Sans 400  -  body copy, never a second display face</text>
+  <text x="48" y="892" class="mono" fill="#7ee05a" font-size="18">IBM Plex Mono  -  pip install chaincraft</text>
+
+  <!-- Sizes -->
+  <g transform="translate(1100,720)">
+    <text x="0" y="12" class="pixel" fill="#6ecf4a" font-size="11">PUBLICATION SIZES</text>
+    <text x="0" y="48" class="sans" fill="#e8ecef" font-size="18" font-weight="500">LinkedIn landscape  1200 x 627   /   2x 2400 x 1254</text>
+    <text x="0" y="80" class="sans" fill="#e8ecef" font-size="18" font-weight="500">LinkedIn cover      1584 x 396   /   2x 3168 x 792</text>
+    <text x="0" y="112" class="sans" fill="#e8ecef" font-size="18" font-weight="500">Identity card       1920 x 1080  /   2x 3840 x 2160</text>
+    <text x="0" y="156" class="sans" fill="#a7b0b8" font-size="16">Python  /  Rust  /  TypeScript. Voxel mark stays pixelated.</text>
+    <text x="0" y="184" class="sans" fill="#a7b0b8" font-size="16">Do not recolour the grass / stone lockup.</text>
+  </g>
+
+  <rect x="0" y="1072" width="1920" height="8" fill="#6ecf4a"/>
+</svg>

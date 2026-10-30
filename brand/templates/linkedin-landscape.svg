@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="627" viewBox="0 0 1200 627">
+  <defs>
+    <style>
+      {{FONT_CSS}}
+      .pixel { font-family: "Press Start 2P", cursive; }
+      .sans { font-family: "IBM Plex Sans", sans-serif; }
+      .mono { font-family: "IBM Plex Mono", monospace; }
+    </style>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#6ecf4a" stroke-opacity="0.09" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="627" fill="#0d0f12"/>
+  <rect width="1200" height="627" fill="url(#grid)"/>
+  <rect x="0" y="0" width="16" height="627" fill="#6ecf4a"/>
+  <rect x="16" y="0" width="8" height="627" fill="#4a9e32"/>
+
+  <!-- voxel accent blocks -->
+  <rect x="40" y="28" width="28" height="28" fill="#6ecf4a"/>
+  <rect x="68" y="28" width="28" height="28" fill="#8b6914"/>
+  <rect x="96" y="28" width="28" height="28" fill="#8b939e"/>
+  <rect x="1048" y="28" width="28" height="28" fill="#8b939e"/>
+  <rect x="1076" y="28" width="28" height="28" fill="#8b6914"/>
+  <rect x="1104" y="28" width="28" height="28" fill="#6ecf4a"/>
+  <rect x="1132" y="28" width="28" height="28" fill="#7ee05a"/>
+
+  <image href="{{MARK}}" x="36" y="72" width="430" height="430" preserveAspectRatio="xMidYMid meet"/>
+
+  <!-- pixel shadow then card -->
+  <rect x="506" y="118" width="662" height="430" fill="#000000"/>
+  <rect x="498" y="110" width="662" height="430" fill="#1b2128" stroke="#6ecf4a" stroke-width="3"/>
+
+  <image href="{{WORDMARK}}" x="530" y="132" width="400" height="76" preserveAspectRatio="xMinYMid meet"/>
+
+  <text x="530" y="256" class="pixel" fill="#6ecf4a" font-size="28">RELEASE {{VERSION}}</text>
+
+  <text x="530" y="340" class="sans" fill="#e8ecef" font-size="48" font-weight="600">{{HEADLINE}}</text>
+
+  <text x="530" y="400" class="mono" fill="#a7b0b8" font-size="28">Python  /  Rust  /  TypeScript</text>
+
+  <text x="530" y="500" class="sans" fill="#7ee05a" font-size="24" font-weight="600">{{URL}}</text>
+
+  <rect x="0" y="611" width="1200" height="16" fill="#6ecf4a"/>
+</svg>
