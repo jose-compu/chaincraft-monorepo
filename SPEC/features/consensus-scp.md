@@ -51,7 +51,7 @@ Phases follow Stellar SCP:
 - **Confirm**: Confirm a ballot once prepared by quorum.
 - **Externalize**: Externalize the confirmed value (final).
 
-A statement is only accepted if the sending node has a quorum slice intersection that supports it (quorum threshold met).
+A statement is only accepted if `is_valid` passes structural checks **and** `_is_quorum_valid` (local node in quorum **and** at least one slice has strict majority intersection). This is a pedagogical simplification of the full SCP quorum intersection algorithm.
 
 ## `is_valid` and `add_message`
 
