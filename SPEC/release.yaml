@@ -25,6 +25,7 @@ documents:
   - SPEC/features/channel-peer.md
   - SPEC/features/cli-node.md
   - SPEC/features/consensus-avalanche.md
+  - SPEC/features/consensus-scp.md
   - SPEC/features/consensus-pbft.md
   - SPEC/features/consensus-pos.md
   - SPEC/features/consensus-pow.md

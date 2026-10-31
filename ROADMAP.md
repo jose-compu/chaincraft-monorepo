@@ -280,11 +280,12 @@ The entries landed in dependency order:
 1. `crypto.*` — primitives, VDF, VRF ✅ (`crypto.ecdsa`, `crypto.vdf`, `crypto.vrf`)
 2. `object.*` — shared object model, mementos ✅
 3. `discovery.*` — peer discovery, gossip policy ✅ (`discovery.peer`, `discovery.local`, `discovery.nat`)
-4. `consensus.*` — PoW, PoS, PBFT examples ✅ (`consensus.pow`, `consensus.pos`, `consensus.pbft`)
-5. `ledger.*` — balance and UTXO models ✅ (`ledger.balance`, `ledger.utxo`)
-6. `mempool.*`, `fees.*` ✅ (`mempool.basic`, `fees.policy`)
-7. `storage.*` — persistence semantics ✅ (`storage.persistent`)
-8. `cli.*` — command surface ✅ (`cli.node`)
+4. `consensus.*` — PoW, PoS, PBFT, Avalanche examples ✅ (`consensus.pow`, `consensus.pos`, `consensus.pbft`, `consensus.avalanche`)
+5. `consensus.scp` — Stellar SCP / FBA with per-node quorum slices (in-progress #22)
+6. `ledger.*` — balance and UTXO models ✅ (`ledger.balance`, `ledger.utxo`)
+7. `mempool.*`, `fees.*` ✅ (`mempool.basic`, `fees.policy`)
+8. `storage.*` — persistence semantics ✅ (`storage.persistent`)
+9. `cli.*` — command surface ✅ (`cli.node`)
 
 Backfill entries used milestone dates instead of the 14-day clock. Features added
 after the backfill use the clock.
@@ -371,7 +372,7 @@ the envelope. `link.*` goes to one member. The TCP mesh can bind a localhost
 UDP listener and advertise the `udp` cap. `cli.node` `connect` accepts a
 channel URI. `mailto` and `webrtc` stay in-memory. Issues #2 and #45.
 
-### Stage 20 — Avalanche and CRDT 1.4.0
+### Stage 20 — Avalanche, CRDT and SCP 1.4.0 / 1.5.0
 
 `consensus.avalanche`. Pedagogical Slush, Snowflake, and Snowball. One
 object, a `phase` discriminator. Sample outcomes are messages. There is
@@ -380,6 +381,8 @@ no PRNG. Issue #5.
 `protocol.crdt-kv`. Last-write-wins key-value. The caller injects integer
 `ts`. Equal timestamps take the lowest writer. Tombstones restore on a
 later set. Issue #11.
+
+`consensus.scp` (this issue #22): Pedagogical Stellar SCP implementing FBA via configurable per-node quorum slices. Messages for nominate, prepare, confirm, externalize phases with ballot counters and values. Quorum threshold derived from slices. Vectors test agreement, split-vote blocks, and higher-ballot aborts.
 
 UDP mesh (#2) and NAT (#1) shipped in 1.3.0.
 
