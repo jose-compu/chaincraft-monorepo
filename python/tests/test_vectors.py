@@ -591,6 +591,31 @@ def test_consensus_avalanche_replay(case):
         }, where
 
 
+@cases("consensus-scp.json", "replay")
+def test_consensus_scp_replay(case):
+    from chaincraft.consensus_scp import SCP
+
+    # Use first step to init params (slices from test data)
+    first = case["steps"][0]
+    obj = SCP(node=first["node"], slices=first.get("slices", [[first["node"]]]))
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"{case.get('name', 'scp')} step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.is_merkelized() is True, where
+        expected = {
+            "node": step["node"],
+            "slices": step.get("slices", obj.slices),
+            "phase": step["phase"],
+            "ballot": step["ballot"],
+            "accepted": {p: step["ballot"] for p in step.get("accepted_phases", [])},
+        }
+        assert obj.state() == expected, where
+
+
 # --- Level 2 ledgers --------------------------------------------------------
 
 

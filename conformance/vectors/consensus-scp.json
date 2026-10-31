@@ -1,0 +1,46 @@
+{
+  "feature": "consensus.scp",
+  "spec": "SPEC/features/consensus-scp.md",
+  "description": "Pedagogical Stellar SCP with quorum slices and FBA phases.",
+  "generator": "manual for initial spec",
+  "wire_version": 1,
+  "replay": [
+    {
+      "name": "basic nominate with valid quorum slice majority",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"scp\",\"phase\":\"nominate\",\"ballot\":{\"counter\":1,\"value\":\"val1\"},\"node\":\"n1\",\"quorum\":[\"n0\",\"n1\",\"n2\"]}",
+          "accepted": true,
+          "node": "n0",
+          "slices": [["n0","n1","n2"]],
+          "phase": "nominate",
+          "ballot": {"counter": 1, "value": "val1"},
+          "accepted_phases": ["nominate"]
+        },
+        {
+          "message_json": "{\"consensus\":\"scp\",\"phase\":\"prepare\",\"ballot\":{\"counter\":2,\"value\":\"val1\"},\"node\":\"n2\",\"quorum\":[\"n3\"]}",
+          "accepted": false,
+          "node": "n0",
+          "slices": [["n0","n1","n2"]],
+          "phase": "nominate",
+          "ballot": {"counter": 1, "value": "val1"},
+          "accepted_phases": ["nominate"]
+        }
+      ]
+    },
+    {
+      "name": "higher ballot aborts and advances phase",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"scp\",\"phase\":\"nominate\",\"ballot\":{\"counter\":5,\"value\":\"val2\"},\"node\":\"n0\",\"quorum\":[\"n0\",\"n1\"]}",
+          "accepted": true,
+          "node": "n0",
+          "slices": [["n0","n1","n2"]],
+          "phase": "nominate",
+          "ballot": {"counter": 5, "value": "val2"},
+          "accepted_phases": ["nominate"]
+        }
+      ]
+    }
+  ]
+}

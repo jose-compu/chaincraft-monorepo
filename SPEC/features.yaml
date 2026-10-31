@@ -344,9 +344,9 @@ features:
     level: 2
     spec: SPEC/features/consensus-scp.md
     summary: Pedagogical Stellar SCP (FBA with quorum slices, nominate/prepare/confirm/externalize)
-    vectors: null
+    vectors: conformance/vectors/consensus-scp.json
     status:
-      python:     { state: in-progress, issue: 22 }
+      python:     { state: implemented, since: "2026-10-31" }
       rust:       { state: planned }
       typescript: { state: planned }
 
