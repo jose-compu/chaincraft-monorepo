@@ -340,6 +340,16 @@ features:
       rust:       { state: implemented, since: "2026-10-30" }
       typescript: { state: implemented, since: "2026-10-30" }
 
+  - id: consensus.scp
+    level: 2
+    spec: SPEC/features/consensus-scp.md
+    summary: Pedagogical Stellar SCP (FBA with quorum slices, nominate/prepare/confirm/externalize)
+    vectors: conformance/vectors/consensus-scp.json
+    status:
+      python:     { state: implemented, since: "2026-10-31" }
+      rust:       { state: planned }
+      typescript: { state: planned }
+
   - id: ledger.balance
     level: 2
     spec: SPEC/features/ledger-balance.md
