@@ -3,9 +3,9 @@
 TypeScript implementation of the Chaincraft wire protocol, object semantics, and
 Level 2 stack (consensus, ledgers, BitTorrent, channels). Same observable
 behaviour as the Python `chaincraft` package and the Rust `chaincraft` crate.
-Release **[1.4.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
-1.4.0 adds pedagogical Avalanche (Slush, Snowflake, Snowball) and a
-last-write-wins CRDT.
+Release **[1.5.0](https://www.npmjs.com/package/@chaincraft/core)** on npm.
+1.5.0 adds `storage.index` on `MessageStore` (`register`, `query`). 45 of 45
+registry features (44 implemented plus the UDP framing exemption).
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.

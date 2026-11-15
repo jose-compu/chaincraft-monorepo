@@ -11,10 +11,10 @@
 #   - every markdown file under SPEC/ is listed here
 #   - every listed file contains **Release:** <release>
 
-release: "1.4.0"
+release: "1.5.0"
 wire_protocol: 1
 status: current
-since: "2026-10-30"
+since: "2026-11-15"
 
 documents:
   - SPEC/features/app-pubsub.md
@@ -39,6 +39,7 @@ documents:
   - SPEC/features/ledger-utxo.md
   - SPEC/features/mempool-basic.md
   - SPEC/features/protocol-crdt-kv.md
+  - SPEC/features/storage-index.md
   - SPEC/features/storage-persistent.md
   - SPEC/features/wire-channel.md
   - SPEC/features/wire-paths.md

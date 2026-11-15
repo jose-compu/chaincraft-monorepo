@@ -1,8 +1,8 @@
 ---
 name: chaincraft-1
 description: >-
-  Bootstraps Chaincraft 1.4.0 in Python, Rust, and TypeScript: install from
-  the v1.4.0 tag, run mesh nodes, implement receive / Protocol /
+  Bootstraps Chaincraft 1.5.0 in Python, Rust, and TypeScript: install from
+  the v1.5.0 tag, run mesh nodes, implement receive / Protocol /
   BaseSharedObject, assemble PoW PoS PBFT Avalanche chains and a LWW CRDT
   at feature parity. Use when starting work in this monorepo, writing a
   protocol or blockchain object,
@@ -10,18 +10,18 @@ description: >-
   chaincraft.node, or parity.
 ---
 
-# Chaincraft 1.4.0 — agent bootstrap
+# Chaincraft 1.5.0 — agent bootstrap
 
 Read this, then root `AGENTS.md`. Spec is `SPEC/`. Do not copy one language into another.
 
-Spec release **1.4.0**. Wire protocol `v` stays **1**. Packages: PyPI and crates.io `chaincraft` 1.4.0, npm `@chaincraft/core` 1.4.0. Unscoped npm `chaincraft` is another project.
+Spec release **1.5.0**. Wire protocol `v` stays **1**. Packages: PyPI and crates.io `chaincraft` 1.5.0, npm `@chaincraft/core` 1.5.0. Unscoped npm `chaincraft` is another project.
 
 ## Install
 
 From the clone root. Python 3.9+, Rust 1.74+, Node 20+.
 
 ```bash
-git clone --branch v1.4.0 https://github.com/jose-compu/chaincraft-monorepo.git
+git clone --branch v1.5.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
 python3 -m pip install -e "./python[dev]"
 cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml

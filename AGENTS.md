@@ -3,7 +3,7 @@
 Read this before changing anything. It applies to human and agent contributors equally.
 
 Coding agents: read `.cursor/skills/chaincraft-1/SKILL.md` first (same file at
-`.claude/skills/chaincraft-1/SKILL.md`). It is the 1.4.0 bootstrap for Python,
+`.claude/skills/chaincraft-1/SKILL.md`). It is the 1.5.0 bootstrap for Python,
 Rust, and TypeScript.
 
 This repository holds three implementations of Chaincraft — Python, Rust and TypeScript
@@ -287,8 +287,8 @@ banner is rendered locally and not committed:
 
 ```bash
 python3 brand/render.py card
-python3 brand/render.py banner --version 1.4.0 --headline "Avalanche and CRDT KV"
-python3 brand/render.py banner --kind linkedin-cover --version 1.4.0 --headline "Avalanche and CRDT KV"
+python3 brand/render.py banner --version 1.5.0 --headline "Avalanche and CRDT KV"
+python3 brand/render.py banner --kind linkedin-cover --version 1.5.0 --headline "Avalanche and CRDT KV"
 ```
 
 Default scale is 2 (LinkedIn landscape 2400×1254). LinkedIn share image is
