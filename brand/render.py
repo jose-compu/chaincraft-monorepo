@@ -14,6 +14,7 @@ import base64
 import html
 import subprocess
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -21,6 +22,8 @@ TEMPLATES = ROOT / "templates"
 ASSETS = ROOT / "assets"
 FONTS = ROOT / "fonts"
 OUT = ROOT / "out"
+
+TAGLINE = "Open-source framework for peer-to-peer protocols"
 
 SIZES = {
     "identity-card": (1920, 1080),
@@ -53,7 +56,11 @@ def png_data_uri(path: Path) -> str:
     return f"data:image/png;base64,{payload}"
 
 
-def fill(template: str, fields: dict[str, str]) -> str:
+def fill(
+    template: str,
+    fields: dict[str, str],
+    raw_fields: dict[str, str] | None = None,
+) -> str:
     text = (TEMPLATES / template).read_text(encoding="utf-8")
     mapping = {
         "{{FONT_CSS}}": font_css(),
@@ -64,7 +71,26 @@ def fill(template: str, fields: dict[str, str]) -> str:
     }
     for key, value in mapping.items():
         text = text.replace(key, value)
+    for key, value in (raw_fields or {}).items():
+        text = text.replace("{{" + key + "}}", value)
     return text
+
+
+def wrap_description(text: str, width: int, max_lines: int = 2) -> list[str]:
+    text = text.strip()
+    if not text:
+        return []
+    return textwrap.wrap(text, width=width, max_lines=max_lines)
+
+
+def description_block(lines: list[str], x: int, y0: int, font_size: int, line_gap: int) -> str:
+    if not lines:
+        return ""
+    return "\n  ".join(
+        f'<text x="{x}" y="{y0 + i * line_gap}" class="sans" fill="#8b939e" '
+        f'font-size="{font_size}" font-weight="400">{html.escape(line)}</text>'
+        for i, line in enumerate(lines)
+    )
 
 
 def rasterise(name: str, svg: str, scale: int) -> Path:
@@ -100,15 +126,26 @@ def banner(
     url: str,
     kind: str,
     scale: int,
+    description: str = "",
 ) -> Path:
+    if kind == "linkedin-landscape":
+        desc_lines = wrap_description(description, width=48)
+        desc_block = description_block(desc_lines, x=530, y0=428, font_size=20, line_gap=26)
+    else:
+        desc_lines = wrap_description(description, width=72)
+        desc_block = description_block(desc_lines, x=360, y0=312, font_size=16, line_gap=22)
+
     fields = {
         "VERSION": version,
         "HEADLINE": headline,
         "DETAIL": detail,
         "URL": url,
+        "TAGLINE": TAGLINE,
     }
+    raw = {"DESCRIPTION_BLOCK": desc_block}
+
     template = f"{kind}.svg"
-    svg = fill(template, fields)
+    svg = fill(template, fields, raw)
     stem = f"{kind}-{version.replace('.', '')}"
     width, _height = SIZES[kind]
     OUT.mkdir(parents=True, exist_ok=True)
@@ -133,6 +170,11 @@ def main() -> int:
     b.add_argument("--version", required=True)
     b.add_argument("--headline", required=True)
     b.add_argument("--detail", default="Python · Rust · TypeScript")
+    b.add_argument(
+        "--description",
+        default="",
+        help="Optional release note (up to two wrapped lines, light gray, below languages)",
+    )
     b.add_argument("--url", default="chaincraft.network")
     b.add_argument(
         "--kind",
@@ -151,6 +193,7 @@ def main() -> int:
             args.url,
             args.kind,
             args.scale,
+            args.description,
         )
     print(path)
     return 0
