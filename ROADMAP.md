@@ -383,6 +383,33 @@ later set. Issue #11.
 
 UDP mesh (#2) and NAT (#1) shipped in 1.3.0.
 
+### Stage 21 — Optional message index
+
+Not implemented. Issue #4. The legacy package indexed chosen fields with
+SQLite (`chaincraft/index_helper.py`). `storage.persistent` does not. It
+stores an id and an opaque body, and `get` is by that id.
+
+`storage.index` is a local, optional index on validated messages. The
+developer registers, per message type, which payload fields to index. A
+path must resolve to a scalar: string, integer, or boolean. An array of
+scalars indexes each element. Objects and floats are not indexed. Query
+is equality. Matching ids come back in store insertion order.
+
+The index follows the message log. `put` updates it. An overwrite replaces
+the indexed values and does not move insertion order. Eviction and
+`remove` drop that id. `dump` stays the id-and-body snapshot. `load`
+rebuilds every index by walking `entries`, so the index is not a second
+copy of the log and is not gossiped. Envelope `v` stays 1. No declaration
+means today's store.
+
+This is not a SQL engine and not a document database. Those would not
+produce one deterministic result in Python, Rust, and TypeScript. A node
+that wants SQL can project `dump` outside the protocol.
+
+Shared objects stay on `receive`. The index does not store object
+snapshots. It answers which validated messages carried a field value, and
+the caller loads those bodies from the store.
+
 ---
 
 ## 6. Versioning

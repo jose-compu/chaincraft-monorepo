@@ -10,6 +10,10 @@ and concurrent writers are out of scope. A conforming implementation MAY
 hold the store in memory; `dump` is the image that would be written, and
 `load` is the image that would be read on restart.
 
+Lookup is by payload `id` only. Choosing fields inside a message and
+searching them is `storage.index` (roadmap stage 21, issue #4). That
+feature is not part of this store.
+
 ## Parameters
 
 | Name | Default | Rule |
