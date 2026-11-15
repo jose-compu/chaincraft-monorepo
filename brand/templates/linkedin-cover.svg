@@ -17,7 +17,7 @@
   <image href="{{MARK}}" x="36" y="48" width="300" height="300" preserveAspectRatio="xMidYMid meet"/>
   <image href="{{WORDMARK}}" x="360" y="120" width="520" height="99" preserveAspectRatio="xMinYMid meet"/>
   {{TAGLINE_BLOCK}}
-  <text x="360" y="{{HEADLINE_Y}}" class="sans" fill="#a7b0b8" font-size="24" font-weight="400">{{HEADLINE}}</text>
+  {{HEADLINE_BLOCK}}
   <text x="360" y="{{DETAIL_Y}}" class="mono" fill="#7ee05a" font-size="18">{{DETAIL}}</text>
 
   {{DESCRIPTION_BLOCK}}
