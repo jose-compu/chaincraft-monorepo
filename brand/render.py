@@ -25,6 +25,31 @@ OUT = ROOT / "out"
 
 TAGLINE = "Open-source framework for peer-to-peer protocols"
 
+
+def banner_display_url(url: str) -> str:
+    """Canonical site URL for banner copy (always includes a scheme)."""
+    site = url.strip() or "chaincraft.network"
+    if "://" not in site:
+        site = f"https://{site.removeprefix('/')}"
+    return site
+
+
+def banner_url_font_size(kind: str, display_url: str) -> int:
+    """Pick a size that keeps the full URL inside each banner's text area."""
+    length = len(display_url)
+    if kind == "linkedin-landscape":
+        if length <= 28:
+            return 24
+        if length <= 36:
+            return 22
+        return 20
+    if length <= 28:
+        return 15
+    if length <= 34:
+        return 14
+    return 13
+
+
 SIZES = {
     "identity-card": (1920, 1080),
     "linkedin-landscape": (1200, 627),
@@ -76,21 +101,158 @@ def fill(
     return text
 
 
-def wrap_description(text: str, width: int, max_lines: int = 2) -> list[str]:
+def wrap_full(text: str, width: int) -> list[str]:
     text = text.strip()
     if not text:
         return []
-    return textwrap.wrap(text, width=width, max_lines=max_lines)
+    return textwrap.wrap(text, width=width, break_long_words=False, break_on_hyphens=False)
 
 
-def description_block(lines: list[str], x: int, y0: int, font_size: int, line_gap: int) -> str:
+def fit_description(
+    text: str,
+    *,
+    min_width: int,
+    max_width: int,
+    line_budget: tuple[int, ...],
+) -> tuple[list[str], int]:
+    """Return wrapped lines and character width; never uses textwrap max_lines (no ellipsis)."""
+    text = text.strip()
+    if not text:
+        return [], max_width
+    for budget in line_budget:
+        for width in range(max_width, min_width - 1, -1):
+            lines = wrap_full(text, width)
+            if len(lines) <= budget:
+                return lines, width
+    lines = wrap_full(text, min_width)
+    return lines[: line_budget[-1]], min_width
+
+
+def text_block(
+    lines: list[str],
+    x: int,
+    y0: int,
+    font_size: int,
+    line_gap: int,
+    *,
+    css_class: str = "sans",
+    fill: str = "#a7b0b8",
+    weight: str = "400",
+) -> str:
     if not lines:
         return ""
     return "\n  ".join(
-        f'<text x="{x}" y="{y0 + i * line_gap}" class="sans" fill="#8b939e" '
-        f'font-size="{font_size}" font-weight="400">{html.escape(line)}</text>'
+        f'<text x="{x}" y="{y0 + i * line_gap}" class="{css_class}" fill="{fill}" '
+        f'font-size="{font_size}" font-weight="{weight}">{html.escape(line)}</text>'
         for i, line in enumerate(lines)
     )
+
+
+def landscape_layout(description: str) -> dict[str, object]:
+    """Vertical rhythm inside the right panel (y is text baseline)."""
+    url_y = 532
+    tagline_lines = wrap_full(TAGLINE, width=36)
+    tagline_size = 24
+    tagline_gap = 30
+    tagline_y0 = 238
+    release_y = tagline_y0 + len(tagline_lines) * tagline_gap + 24
+    headline_y = release_y + 72
+    detail_y = headline_y + 68
+
+    desc_lines: list[str] = []
+    desc_size = 19
+    desc_gap = 24
+    desc_y0 = detail_y + 36
+    if description.strip():
+        for desc_size, desc_gap, budgets in (
+            (18, 24, (2, 3)),
+            (17, 22, (2, 3)),
+            (16, 20, (3,)),
+        ):
+            desc_lines, _ = fit_description(
+                description,
+                min_width=30,
+                max_width=54,
+                line_budget=budgets,
+            )
+            if not desc_lines:
+                break
+            desc_end = desc_y0 + (len(desc_lines) - 1) * desc_gap
+            if desc_end <= url_y - 26:
+                break
+
+    raw: dict[str, str] = {
+        "TAGLINE_BLOCK": text_block(
+            tagline_lines,
+            530,
+            tagline_y0,
+            tagline_size,
+            tagline_gap,
+            fill="#a7b0b8",
+        ),
+        "DESCRIPTION_BLOCK": text_block(
+            desc_lines,
+            530,
+            desc_y0,
+            desc_size,
+            desc_gap,
+            fill="#8b939e",
+        ),
+    }
+    fields = {
+        "RELEASE_Y": release_y,
+        "HEADLINE_Y": headline_y,
+        "DETAIL_Y": detail_y,
+        "URL_Y": url_y,
+    }
+    return {"fields": fields, "raw": raw}
+
+
+def cover_layout(description: str) -> dict[str, str | int]:
+    tagline_lines = wrap_full(TAGLINE, width=48)
+    tagline_size = 15
+    tagline_gap = 20
+    tagline_y0 = 232
+    headline_y = tagline_y0 + len(tagline_lines) * tagline_gap + 18
+    detail_y = headline_y + 30
+
+    desc_lines: list[str] = []
+    desc_size = 15
+    desc_gap = 19
+    if description.strip():
+        desc_lines, _ = fit_description(
+            description,
+            min_width=40,
+            max_width=68,
+            line_budget=(2, 3),
+        )
+        if len(desc_lines) >= 3:
+            desc_size = 14
+            desc_gap = 18
+
+    raw: dict[str, str] = {
+        "TAGLINE_BLOCK": text_block(
+            tagline_lines,
+            360,
+            tagline_y0,
+            tagline_size,
+            tagline_gap,
+            fill="#a7b0b8",
+        ),
+        "DESCRIPTION_BLOCK": text_block(
+            desc_lines,
+            360,
+            detail_y + 22,
+            desc_size,
+            desc_gap,
+            fill="#8b939e",
+        ),
+    }
+    fields: dict[str, str | int] = {
+        "HEADLINE_Y": headline_y,
+        "DETAIL_Y": detail_y,
+    }
+    return {"fields": fields, "raw": raw}
 
 
 def rasterise(name: str, svg: str, scale: int) -> Path:
@@ -129,20 +291,20 @@ def banner(
     description: str = "",
 ) -> Path:
     if kind == "linkedin-landscape":
-        desc_lines = wrap_description(description, width=48)
-        desc_block = description_block(desc_lines, x=530, y0=428, font_size=20, line_gap=26)
+        layout = landscape_layout(description)
     else:
-        desc_lines = wrap_description(description, width=72)
-        desc_block = description_block(desc_lines, x=360, y0=312, font_size=16, line_gap=22)
+        layout = cover_layout(description)
 
+    display_url = banner_display_url(url)
     fields = {
         "VERSION": version,
         "HEADLINE": headline,
         "DETAIL": detail,
-        "URL": url,
-        "TAGLINE": TAGLINE,
+        "URL": display_url,
+        "URL_SIZE": str(banner_url_font_size(kind, display_url)),
+        **{k: str(v) for k, v in layout["fields"].items()},
     }
-    raw = {"DESCRIPTION_BLOCK": desc_block}
+    raw = layout["raw"]
 
     template = f"{kind}.svg"
     svg = fill(template, fields, raw)
@@ -173,7 +335,7 @@ def main() -> int:
     b.add_argument(
         "--description",
         default="",
-        help="Optional release note (up to two wrapped lines, light gray, below languages)",
+        help="Optional release note (wrapped, light gray, below languages; full text, no ellipsis)",
     )
     b.add_argument("--url", default="chaincraft.network")
     b.add_argument(
