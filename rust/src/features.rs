@@ -1,9 +1,9 @@
 //! Feature manifest — the IDs this implementation claims to provide.
 
-pub const VERSION: &str = "1.4.0";
+pub const VERSION: &str = "1.5.0";
 pub const WIRE_VERSION: i64 = 1;
 pub const LANGUAGE: &str = "rust";
-pub const IMPL: &str = "rust-chaincraft/1.4.0";
+pub const IMPL: &str = "rust-chaincraft/1.5.0";
 
 pub const FEATURES: &[&str] = &[
     "wire.canonical-json",
@@ -37,6 +37,7 @@ pub const FEATURES: &[&str] = &[
     "mempool.basic",
     "fees.policy",
     "storage.persistent",
+    "storage.index",
     "cli.node",
     "bittorrent.swarm",
     "wire.channel",

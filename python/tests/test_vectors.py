@@ -704,6 +704,31 @@ def test_fees_policy_base_fee(case):
 # --- Level 2 storage and CLI ------------------------------------------------
 
 
+@cases("storage-index.json", "sequence")
+def test_storage_index_sequence(case):
+    from chaincraft.storage import MessageStore
+
+    store = MessageStore(case["capacity"])
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "register":
+            assert store.register(step["type"], step["field"]) is step["ok"], where
+        elif op == "put":
+            assert store.put(step["id"], step["body"]) is step["added"], where
+        elif op == "query":
+            assert store.query(step["type"], step["field"], step["value"]) == step["hits"], where
+        elif op == "remove":
+            assert store.remove(step["id"]) is step["removed"], where
+        elif op == "load":
+            assert store.load(step["snapshot"]) is step["ok"], where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        assert store.ids() == step["ids"], where
+        assert len(store) == step["size"], where
+        assert store.dump() == step["dump"], where
+
+
 @cases("storage-persistent.json", "sequence")
 def test_storage_persistent_sequence(case):
     from chaincraft.storage import MessageStore

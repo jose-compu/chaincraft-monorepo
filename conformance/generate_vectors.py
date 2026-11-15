@@ -1930,6 +1930,204 @@ def storage_persistent_vectors() -> Dict[str, Any]:
     }
 
 
+def storage_index_vectors() -> Dict[str, Any]:
+    msg_type = "app.idx"
+    field = "tag"
+
+    def body(data: Dict[str, Any]) -> str:
+        return Envelope.build(msg_type, data, ts=TS).to_json()
+
+    a = payload_digest({"tag": "alpha"})
+    b = payload_digest({"tag": "beta"})
+    c = payload_digest({"tag": "gamma"})
+    d = payload_digest({"tag": "delta", "n": 1})
+    e = payload_digest({"tag": "mix", "tags": ["x", "y", "x"]})
+    f = payload_digest({"tag": True})
+    g = payload_digest({"tag": 1})
+    h = payload_digest({"tag": "skip", "extra": {"nested": 1}})
+
+    def run(name: str, note: str, capacity: int, ops) -> Dict[str, Any]:
+        store = MessageStore(capacity)
+        steps = []
+        for op in ops:
+            kind = op["op"]
+            if kind == "register":
+                ok = store.register(op["type"], op["field"])
+                step = {
+                    "op": "register",
+                    "type": op["type"],
+                    "field": op["field"],
+                    "ok": ok,
+                }
+            elif kind == "put":
+                added = store.put(op["id"], op["body"])
+                step = {"op": "put", "id": op["id"], "body": op["body"], "added": added}
+            elif kind == "query":
+                hits = store.query(op["type"], op["field"], op["value"])
+                step = {
+                    "op": "query",
+                    "type": op["type"],
+                    "field": op["field"],
+                    "value": op["value"],
+                    "hits": hits,
+                }
+            elif kind == "remove":
+                step = {"op": "remove", "id": op["id"], "removed": store.remove(op["id"])}
+            elif kind == "load":
+                step = {"op": "load", "snapshot": op["snapshot"], "ok": store.load(op["snapshot"])}
+            else:
+                raise ValueError(kind)
+            step["ids"] = store.ids()
+            step["size"] = len(store)
+            step["dump"] = store.dump()
+            steps.append(step)
+        return {"name": name, "note": note, "capacity": capacity, "steps": steps}
+
+    bool_body = body({"tag": True})
+    int_body = body({"tag": 1})
+    float_skip = (
+        f'{{"data":{{"tag":1.5}},"id":"{"0" * 64}","ts":{TS},"type":"{msg_type}","v":1}}'
+    )
+    obj_skip = body({"tag": "v", "bad": {"k": 1}})
+    nested_arr = body({"tag": ["a", ["b"]]})
+    dup_arr = body({"tag": ["p", "p", "q"]})
+
+    snapshot = {
+        "entries": [
+            {"body": body({"tag": "loaded"}), "id": a},
+            {"body": body({"tag": "two"}), "id": b},
+        ],
+        "v": 1,
+    }
+    bad_snapshot = {"entries": [{"body": "x", "id": a}, {"body": "y", "id": a}], "v": 1}
+
+    sequence = [
+        run(
+            "register put query hit and miss",
+            "equality on registered field",
+            8,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": a, "body": body({"tag": "alpha"})},
+                {"op": "put", "id": b, "body": body({"tag": "beta"})},
+                {
+                    "op": "query",
+                    "type": msg_type,
+                    "field": field,
+                    "value": "alpha",
+                },
+                {
+                    "op": "query",
+                    "type": msg_type,
+                    "field": field,
+                    "value": "missing",
+                },
+            ],
+        ),
+        run(
+            "array elements and duplicate array values",
+            "one id per put for duplicate index keys",
+            8,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": e, "body": dup_arr},
+                {"op": "query", "type": msg_type, "field": field, "value": "p"},
+                {"op": "query", "type": msg_type, "field": field, "value": "q"},
+            ],
+        ),
+        run(
+            "skip object float and nested array",
+            "non-scalars are not indexed",
+            8,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": h, "body": obj_skip},
+                {"op": "put", "id": d, "body": float_skip},
+                {"op": "put", "id": c, "body": nested_arr},
+                {"op": "query", "type": msg_type, "field": field, "value": "v"},
+            ],
+        ),
+        run(
+            "true does not match 1",
+            "boolean and integer are distinct index keys",
+            8,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": f, "body": bool_body},
+                {"op": "put", "id": g, "body": int_body},
+                {"op": "query", "type": msg_type, "field": field, "value": True},
+                {"op": "query", "type": msg_type, "field": field, "value": 1},
+            ],
+        ),
+        run(
+            "overwrite keeps insertion order",
+            "replace body and index without moving id",
+            8,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": a, "body": body({"tag": "one"})},
+                {"op": "put", "id": b, "body": body({"tag": "two"})},
+                {"op": "put", "id": a, "body": body({"tag": "ONE"})},
+                {"op": "query", "type": msg_type, "field": field, "value": "one"},
+                {"op": "query", "type": msg_type, "field": field, "value": "ONE"},
+            ],
+        ),
+        run(
+            "fifo eviction drops index",
+            "evicted id no longer appears in query",
+            2,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": a, "body": body({"tag": "first"})},
+                {"op": "put", "id": b, "body": body({"tag": "second"})},
+                {"op": "put", "id": c, "body": body({"tag": "third"})},
+                {"op": "query", "type": msg_type, "field": field, "value": "first"},
+            ],
+        ),
+        run(
+            "remove drops index",
+            "remove clears postings for that id",
+            8,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": a, "body": body({"tag": "gone"})},
+                {"op": "remove", "id": a},
+                {"op": "query", "type": msg_type, "field": field, "value": "gone"},
+            ],
+        ),
+        run(
+            "load rebuilds index; bad load leaves index",
+            "successful load reindexes; failed load is a no-op",
+            4,
+            [
+                {"op": "register", "type": msg_type, "field": field},
+                {"op": "put", "id": c, "body": body({"tag": "before"})},
+                {"op": "load", "snapshot": snapshot},
+                {"op": "query", "type": msg_type, "field": field, "value": "loaded"},
+                {"op": "load", "snapshot": bad_snapshot},
+                {"op": "query", "type": msg_type, "field": field, "value": "loaded"},
+            ],
+        ),
+        run(
+            "query without registration is empty",
+            "unregistered pair returns no hits",
+            8,
+            [
+                {"op": "put", "id": a, "body": body({"tag": "orphan"})},
+                {"op": "query", "type": msg_type, "field": field, "value": "orphan"},
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "storage.index",
+            "SPEC/features/storage-index.md",
+            "Optional field index: register, put, query, eviction, load.",
+        ),
+        "sequence": sequence,
+    }
+
+
 def cli_node_vectors() -> Dict[str, Any]:
     impl = "py-chaincraft/1.0.0"
     listen = "127.0.0.1:21000"
@@ -3449,6 +3647,7 @@ def main() -> int:
     write("fees-policy.json", fees_policy_vectors())
     print("\nLevel 2 — storage and CLI")
     write("storage-persistent.json", storage_persistent_vectors())
+    write("storage-index.json", storage_index_vectors())
     write("cli-node.json", cli_node_vectors())
     print("\nLevel 2 — BitTorrent swarm")
     write("bittorrent-swarm.json", bittorrent_swarm_vectors())

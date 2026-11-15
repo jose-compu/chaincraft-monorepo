@@ -640,6 +640,30 @@ eachCase('fees-policy.json', 'base_fee', (c) => {
   assert.equal(fees.nextBaseFee(c['base'], c['parent_count'], c['target']), c['next']);
 });
 
+eachCase('storage-index.json', 'sequence', (c) => {
+  const store = new MessageStore(c['capacity']);
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    const op = step['op'];
+    if (op === 'register') {
+      assert.equal(store.register(step['type'], step['field']), step['ok'], where);
+    } else if (op === 'put') {
+      assert.equal(store.put(step['id'], step['body']), step['added'], where);
+    } else if (op === 'query') {
+      assert.deepEqual(store.query(step['type'], step['field'], step['value']), step['hits'], where);
+    } else if (op === 'remove') {
+      assert.equal(store.remove(step['id']), step['removed'], where);
+    } else if (op === 'load') {
+      assert.equal(store.load(step['snapshot']), step['ok'], where);
+    } else {
+      assert.fail(`unknown op ${op}`);
+    }
+    assert.deepEqual(store.ids(), step['ids'], where);
+    assert.equal(store.size, step['size'], where);
+    assert.deepEqual(store.dump(), step['dump'], where);
+  }
+});
+
 eachCase('storage-persistent.json', 'sequence', (c) => {
   const store = new MessageStore(c['capacity']);
   for (const [index, step] of c['steps'].entries()) {
@@ -971,6 +995,7 @@ test('every vector file declares its feature', () => {
     'mempool-basic.json',
     'fees-policy.json',
     'storage-persistent.json',
+    'storage-index.json',
     'cli-node.json',
     'bittorrent-swarm.json',
     'discovery-nat.json',

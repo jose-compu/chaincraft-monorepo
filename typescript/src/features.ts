@@ -8,7 +8,7 @@
  * Add an ID here only when the feature is implemented and its vectors pass.
  */
 
-export const VERSION = '1.4.0';
+export const VERSION = '1.5.0';
 export const WIRE_VERSION = 1;
 export const IMPL = `ts-chaincraft/${VERSION}`;
 export const LANGUAGE = 'typescript';
@@ -49,6 +49,7 @@ export const FEATURES: readonly string[] = [
   'mempool.basic',
   'fees.policy',
   'storage.persistent',
+  'storage.index',
   'cli.node',
   'bittorrent.swarm',
   'wire.channel',

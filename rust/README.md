@@ -1,8 +1,9 @@
 # chaincraft
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.4.0](https://crates.io/crates/chaincraft/1.4.0)** on crates.io.
-1.4.0 adds pedagogical Avalanche (Slush, Snowflake, Snowball) and a
+Release **[1.5.0](https://crates.io/crates/chaincraft/1.5.0)** on crates.io.
+1.5.0 adds `storage.index` on `MessageStore` (`register`, `query`). 45 of 45
+registry features. Earlier: Avalanche and a
 last-write-wins CRDT.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
@@ -24,7 +25,7 @@ gossips `app.hello`.
 
 ```toml
 [dependencies]
-chaincraft = "1.4.0"
+chaincraft = "1.5.0"
 ```
 
 ```rust

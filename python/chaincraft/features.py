@@ -52,6 +52,7 @@ FEATURES = frozenset(
         "mempool.basic",
         "fees.policy",
         "storage.persistent",
+        "storage.index",
         "cli.node",
         "bittorrent.swarm",
         "wire.channel",

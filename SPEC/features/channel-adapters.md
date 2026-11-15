@@ -1,6 +1,6 @@
 # channel adapters
 
-**Release:** 1.4.0
+**Release:** 1.5.0
 
 Live delivery for the schemes in `wire.channel`, other than `tcp` and `loop`.
 `ctl.hello.listen` stays one `host:port` string. These adapters do not add a

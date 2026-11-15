@@ -1,0 +1,963 @@
+{
+  "feature": "storage.index",
+  "spec": "SPEC/features/storage-index.md",
+  "description": "Optional field index: register, put, query, eviction, load.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "sequence": [
+    {
+      "name": "register put query hit and miss",
+      "note": "equality on registered field",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+          "body": "{\"data\":{\"tag\":\"alpha\"},\"id\":\"376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"alpha\"},\"id\":\"376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee",
+          "body": "{\"data\":{\"tag\":\"beta\"},\"id\":\"f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"alpha\"},\"id\":\"376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"beta\"},\"id\":\"f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "alpha",
+          "hits": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"alpha\"},\"id\":\"376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"beta\"},\"id\":\"f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "missing",
+          "hits": [],
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"alpha\"},\"id\":\"376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"beta\"},\"id\":\"f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "array elements and duplicate array values",
+      "note": "one id per put for duplicate index keys",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f",
+          "body": "{\"data\":{\"tag\":[\"p\",\"p\",\"q\"]},\"id\":\"c27738d13fa8201fe75e981f473f0aed31b7605296d0e1a7ecebc2c741e2e5d4\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":[\"p\",\"p\",\"q\"]},\"id\":\"c27738d13fa8201fe75e981f473f0aed31b7605296d0e1a7ecebc2c741e2e5d4\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "p",
+          "hits": [
+            "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+          ],
+          "ids": [
+            "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":[\"p\",\"p\",\"q\"]},\"id\":\"c27738d13fa8201fe75e981f473f0aed31b7605296d0e1a7ecebc2c741e2e5d4\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "q",
+          "hits": [
+            "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+          ],
+          "ids": [
+            "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":[\"p\",\"p\",\"q\"]},\"id\":\"c27738d13fa8201fe75e981f473f0aed31b7605296d0e1a7ecebc2c741e2e5d4\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "027b88baf163c91e6c4b559660d41a8732e067605d9a7b1b1fd558e3bb32d43f"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "skip object float and nested array",
+      "note": "non-scalars are not indexed",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d",
+          "body": "{\"data\":{\"bad\":{\"k\":1},\"tag\":\"v\"},\"id\":\"3890c72ea90e7d710d311d40bad31de73484702cd23a98e759bb613e3fbc6d5f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"bad\":{\"k\":1},\"tag\":\"v\"},\"id\":\"3890c72ea90e7d710d311d40bad31de73484702cd23a98e759bb613e3fbc6d5f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "cb84bc75a905721c001d6fa9864e13044953cea72ae5c2eccaa78a49bebdc3a9",
+          "body": "{\"data\":{\"tag\":1.5},\"id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d",
+            "cb84bc75a905721c001d6fa9864e13044953cea72ae5c2eccaa78a49bebdc3a9"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"bad\":{\"k\":1},\"tag\":\"v\"},\"id\":\"3890c72ea90e7d710d311d40bad31de73484702cd23a98e759bb613e3fbc6d5f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d"
+              },
+              {
+                "body": "{\"data\":{\"tag\":1.5},\"id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "cb84bc75a905721c001d6fa9864e13044953cea72ae5c2eccaa78a49bebdc3a9"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a",
+          "body": "{\"data\":{\"tag\":[\"a\",[\"b\"]]},\"id\":\"3aeaf679286d5090f53725d061d00b36f60746057401772d7adb61ed66053dfe\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d",
+            "cb84bc75a905721c001d6fa9864e13044953cea72ae5c2eccaa78a49bebdc3a9",
+            "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+          ],
+          "size": 3,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"bad\":{\"k\":1},\"tag\":\"v\"},\"id\":\"3890c72ea90e7d710d311d40bad31de73484702cd23a98e759bb613e3fbc6d5f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d"
+              },
+              {
+                "body": "{\"data\":{\"tag\":1.5},\"id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "cb84bc75a905721c001d6fa9864e13044953cea72ae5c2eccaa78a49bebdc3a9"
+              },
+              {
+                "body": "{\"data\":{\"tag\":[\"a\",[\"b\"]]},\"id\":\"3aeaf679286d5090f53725d061d00b36f60746057401772d7adb61ed66053dfe\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "v",
+          "hits": [
+            "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d"
+          ],
+          "ids": [
+            "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d",
+            "cb84bc75a905721c001d6fa9864e13044953cea72ae5c2eccaa78a49bebdc3a9",
+            "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+          ],
+          "size": 3,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"bad\":{\"k\":1},\"tag\":\"v\"},\"id\":\"3890c72ea90e7d710d311d40bad31de73484702cd23a98e759bb613e3fbc6d5f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "d5462ad6eb5267790571fab6280a63180c65125189c61b652935a1317388466d"
+              },
+              {
+                "body": "{\"data\":{\"tag\":1.5},\"id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "cb84bc75a905721c001d6fa9864e13044953cea72ae5c2eccaa78a49bebdc3a9"
+              },
+              {
+                "body": "{\"data\":{\"tag\":[\"a\",[\"b\"]]},\"id\":\"3aeaf679286d5090f53725d061d00b36f60746057401772d7adb61ed66053dfe\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "true does not match 1",
+      "note": "boolean and integer are distinct index keys",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada",
+          "body": "{\"data\":{\"tag\":true},\"id\":\"299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":true},\"id\":\"299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a",
+          "body": "{\"data\":{\"tag\":1},\"id\":\"1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada",
+            "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":true},\"id\":\"299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada"
+              },
+              {
+                "body": "{\"data\":{\"tag\":1},\"id\":\"1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": true,
+          "hits": [
+            "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada"
+          ],
+          "ids": [
+            "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada",
+            "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":true},\"id\":\"299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada"
+              },
+              {
+                "body": "{\"data\":{\"tag\":1},\"id\":\"1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": 1,
+          "hits": [
+            "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a"
+          ],
+          "ids": [
+            "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada",
+            "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":true},\"id\":\"299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "299c8303d202cc44ad6868850acd657ff8bc4c67be7f179b08d102d545537ada"
+              },
+              {
+                "body": "{\"data\":{\"tag\":1},\"id\":\"1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "1b4415b6c8db8e46ee3072595aea4d44a38fd6c2282e70d9a5cab3ec5c61ed6a"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "overwrite keeps insertion order",
+      "note": "replace body and index without moving id",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+          "body": "{\"data\":{\"tag\":\"one\"},\"id\":\"77e5ff291582b6d32ac276591170020b3343da4d912c36c8f2162e4a4997f33a\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"one\"},\"id\":\"77e5ff291582b6d32ac276591170020b3343da4d912c36c8f2162e4a4997f33a\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee",
+          "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"one\"},\"id\":\"77e5ff291582b6d32ac276591170020b3343da4d912c36c8f2162e4a4997f33a\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+          "body": "{\"data\":{\"tag\":\"ONE\"},\"id\":\"cad77fa3b6019dd6695043d851f4e664aac9b5060304f3118c716c2469726931\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": false,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"ONE\"},\"id\":\"cad77fa3b6019dd6695043d851f4e664aac9b5060304f3118c716c2469726931\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "one",
+          "hits": [],
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"ONE\"},\"id\":\"cad77fa3b6019dd6695043d851f4e664aac9b5060304f3118c716c2469726931\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "ONE",
+          "hits": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"ONE\"},\"id\":\"cad77fa3b6019dd6695043d851f4e664aac9b5060304f3118c716c2469726931\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "fifo eviction drops index",
+      "note": "evicted id no longer appears in query",
+      "capacity": 2,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+          "body": "{\"data\":{\"tag\":\"first\"},\"id\":\"a15c4de1a5dac73b4b31f23daeb0759775669db71eb5b9098875806b020a7660\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"first\"},\"id\":\"a15c4de1a5dac73b4b31f23daeb0759775669db71eb5b9098875806b020a7660\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee",
+          "body": "{\"data\":{\"tag\":\"second\"},\"id\":\"6df0648f9501ea497367a3fe9818f9dd60d138493488562e468dc3b49fa944a0\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"first\"},\"id\":\"a15c4de1a5dac73b4b31f23daeb0759775669db71eb5b9098875806b020a7660\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"second\"},\"id\":\"6df0648f9501ea497367a3fe9818f9dd60d138493488562e468dc3b49fa944a0\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a",
+          "body": "{\"data\":{\"tag\":\"third\"},\"id\":\"d34649377f7fe2c166e84927a9a3f2d96a92280b71d0695e2b651e2e43d14fb9\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee",
+            "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"second\"},\"id\":\"6df0648f9501ea497367a3fe9818f9dd60d138493488562e468dc3b49fa944a0\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"third\"},\"id\":\"d34649377f7fe2c166e84927a9a3f2d96a92280b71d0695e2b651e2e43d14fb9\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "first",
+          "hits": [],
+          "ids": [
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee",
+            "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"second\"},\"id\":\"6df0648f9501ea497367a3fe9818f9dd60d138493488562e468dc3b49fa944a0\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"third\"},\"id\":\"d34649377f7fe2c166e84927a9a3f2d96a92280b71d0695e2b651e2e43d14fb9\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "remove drops index",
+      "note": "remove clears postings for that id",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+          "body": "{\"data\":{\"tag\":\"gone\"},\"id\":\"f7b6f00821a426c2883393369b209009fc9d15b8b2057e2c35c96699a1fbdf92\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"gone\"},\"id\":\"f7b6f00821a426c2883393369b209009fc9d15b8b2057e2c35c96699a1fbdf92\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "remove",
+          "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+          "removed": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "gone",
+          "hits": [],
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "load rebuilds index; bad load leaves index",
+      "note": "successful load reindexes; failed load is a no-op",
+      "capacity": 4,
+      "steps": [
+        {
+          "op": "register",
+          "type": "app.idx",
+          "field": "tag",
+          "ok": true,
+          "ids": [],
+          "size": 0,
+          "dump": {
+            "entries": [],
+            "v": 1
+          }
+        },
+        {
+          "op": "put",
+          "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a",
+          "body": "{\"data\":{\"tag\":\"before\"},\"id\":\"49e79a7fbc16f0b26c1c1f0f759fa84e876996e1ba60c26cde27703069a40db1\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"before\"},\"id\":\"49e79a7fbc16f0b26c1c1f0f759fa84e876996e1ba60c26cde27703069a40db1\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "fae157d53e07f6d34e2f22f287395c1c84a0daca562cbadfb143a8eff737440a"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "load",
+          "snapshot": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"loaded\"},\"id\":\"fcac78440ac93e5e59fcc722d7bc1ac9d87f8b126dd3a9716b8a01e6bf8f352f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          },
+          "ok": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"loaded\"},\"id\":\"fcac78440ac93e5e59fcc722d7bc1ac9d87f8b126dd3a9716b8a01e6bf8f352f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "loaded",
+          "hits": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"loaded\"},\"id\":\"fcac78440ac93e5e59fcc722d7bc1ac9d87f8b126dd3a9716b8a01e6bf8f352f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "load",
+          "snapshot": {
+            "entries": [
+              {
+                "body": "x",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "y",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              }
+            ],
+            "v": 1
+          },
+          "ok": false,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"loaded\"},\"id\":\"fcac78440ac93e5e59fcc722d7bc1ac9d87f8b126dd3a9716b8a01e6bf8f352f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "loaded",
+          "hits": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+            "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+          ],
+          "size": 2,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"loaded\"},\"id\":\"fcac78440ac93e5e59fcc722d7bc1ac9d87f8b126dd3a9716b8a01e6bf8f352f\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              },
+              {
+                "body": "{\"data\":{\"tag\":\"two\"},\"id\":\"e8539d794fe772f26e97449ea6eb8072a45d440fa8bb2c9afcb3c6c226aefd43\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "f7508efc626c1da22951c799d80ab1ec867cbc91d94fff6f0ad691b4d37037ee"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "query without registration is empty",
+      "note": "unregistered pair returns no hits",
+      "capacity": 8,
+      "steps": [
+        {
+          "op": "put",
+          "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13",
+          "body": "{\"data\":{\"tag\":\"orphan\"},\"id\":\"79866ea0951dcdf0e0a1ed483054eeb1f4cd45b0ae5f5bebc144f380630b41a0\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+          "added": true,
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"orphan\"},\"id\":\"79866ea0951dcdf0e0a1ed483054eeb1f4cd45b0ae5f5bebc144f380630b41a0\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              }
+            ],
+            "v": 1
+          }
+        },
+        {
+          "op": "query",
+          "type": "app.idx",
+          "field": "tag",
+          "value": "orphan",
+          "hits": [],
+          "ids": [
+            "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+          ],
+          "size": 1,
+          "dump": {
+            "entries": [
+              {
+                "body": "{\"data\":{\"tag\":\"orphan\"},\"id\":\"79866ea0951dcdf0e0a1ed483054eeb1f4cd45b0ae5f5bebc144f380630b41a0\",\"ts\":1757430000000,\"type\":\"app.idx\",\"v\":1}",
+                "id": "376d5e77b6e96d5312fbf0b05bc53d11c49a9cbb83a69881b59555f6a9fd2e13"
+              }
+            ],
+            "v": 1
+          }
+        }
+      ]
+    }
+  ]
+}

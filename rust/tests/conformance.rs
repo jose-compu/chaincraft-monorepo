@@ -1391,6 +1391,80 @@ fn fees_policy_base_fee() {
 }
 
 #[test]
+fn storage_index_sequence() {
+    let doc = load("storage-index.json");
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut store = MessageStore::new(case["capacity"].as_u64().unwrap() as usize).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            match step["op"].as_str().unwrap() {
+                "register" => {
+                    assert_eq!(
+                        store.register(
+                            step["type"].as_str().unwrap(),
+                            step["field"].as_str().unwrap()
+                        ),
+                        step["ok"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "put" => {
+                    assert_eq!(
+                        store.put(step["id"].as_str().unwrap(), step["body"].as_str().unwrap()),
+                        step["added"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "query" => {
+                    let hits = store.query(
+                        step["type"].as_str().unwrap(),
+                        step["field"].as_str().unwrap(),
+                        &as_core_json(&step["value"]),
+                    );
+                    assert_eq!(hits, json_strings(&step["hits"]), "{where_}");
+                }
+                "remove" => {
+                    assert_eq!(
+                        store.remove(step["id"].as_str().unwrap()),
+                        step["removed"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                "load" => {
+                    assert_eq!(
+                        store.load(&as_core_json(&step["snapshot"])),
+                        step["ok"].as_bool().unwrap(),
+                        "{where_}"
+                    );
+                }
+                other => panic!("unknown op {other}"),
+            }
+            assert_eq!(store.ids(), json_strings(&step["ids"]), "{where_} ids");
+            assert_eq!(
+                store.len(),
+                step["size"].as_u64().unwrap() as usize,
+                "{where_} size"
+            );
+            let (entries, version) = store.dump();
+            assert_eq!(version, step["dump"]["v"].as_i64().unwrap(), "{where_} v");
+            let expected: Vec<(String, String)> = step["dump"]["entries"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|item| {
+                    (
+                        item["body"].as_str().unwrap().to_owned(),
+                        item["id"].as_str().unwrap().to_owned(),
+                    )
+                })
+                .collect();
+            assert_eq!(entries, expected, "{where_} dump");
+        }
+    }
+}
+
+#[test]
 fn storage_persistent_sequence() {
     let doc = load("storage-persistent.json");
     for case in doc["sequence"].as_array().unwrap() {
@@ -2174,6 +2248,7 @@ fn vector_files_declare_feature() {
         "mempool-basic.json",
         "fees-policy.json",
         "storage-persistent.json",
+        "storage-index.json",
         "cli-node.json",
         "bittorrent-swarm.json",
         "discovery-nat.json",

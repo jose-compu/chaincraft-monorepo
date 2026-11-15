@@ -1,9 +1,9 @@
 # chaincraft
 
 Reference implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.4.0](https://pypi.org/project/chaincraft/1.4.0/)** on PyPI.
-1.4.0 adds pedagogical Avalanche (Slush, Snowflake, Snowball) and a
-last-write-wins CRDT.
+Release **[1.5.0](https://pypi.org/project/chaincraft/1.5.0/)** on PyPI.
+1.5.0 adds `storage.index`: optional local equality index on registered
+message fields. 45 of 45 registry features are implemented in Python.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.

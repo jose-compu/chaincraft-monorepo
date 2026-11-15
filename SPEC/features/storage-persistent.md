@@ -1,6 +1,6 @@
 # storage.persistent
 
-**Release:** 1.4.0
+**Release:** 1.5.0
 
 Prototype content-addressed message store. It specifies the *semantics*
 of persistence: keys, insertion order, capacity, dump and load.
@@ -9,6 +9,10 @@ This is not a filesystem and not a database engine. Opening files, fsync
 and concurrent writers are out of scope. A conforming implementation MAY
 hold the store in memory; `dump` is the image that would be written, and
 `load` is the image that would be read on restart.
+
+Lookup is by payload `id` only. Choosing fields inside a message and
+searching them is `storage.index` (roadmap stage 21, issue #4). That
+feature is not part of this store.
 
 ## Parameters
 
