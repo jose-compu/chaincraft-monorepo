@@ -4,7 +4,7 @@ Interactive version: open [`index.html`](index.html) in this folder, or the publ
 
 Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.4.0 over **TCP sockets**: default bind `0.0.0.0:9735`, local dial `127.0.0.1:9735`, two nodes in one program, then a three-language mesh on loopback or across hosts. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
 
-Published: [`chaincraft` 1.4.0 on PyPI](https://pypi.org/project/chaincraft/1.4.0/), [`chaincraft` 1.3.0 on crates.io](https://crates.io/crates/chaincraft) (1.4.0 publish pending), [`@chaincraft/core` 1.3.0 on npm](https://www.npmjs.com/package/@chaincraft/core) (1.4.0 publish pending).
+Published: [`chaincraft` 1.4.0 on PyPI](https://pypi.org/project/chaincraft/1.4.0/), [`chaincraft` 1.4.0 on crates.io](https://crates.io/crates/chaincraft/1.4.0), [`@chaincraft/core` 1.4.0 on npm](https://www.npmjs.com/package/@chaincraft/core/v/1.4.0).
 
 ## Install
 
