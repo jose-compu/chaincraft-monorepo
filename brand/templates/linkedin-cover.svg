@@ -16,8 +16,11 @@
 
   <image href="{{MARK}}" x="36" y="48" width="300" height="300" preserveAspectRatio="xMidYMid meet"/>
   <image href="{{WORDMARK}}" x="360" y="120" width="520" height="99" preserveAspectRatio="xMinYMid meet"/>
-  <text x="360" y="250" class="sans" fill="#a7b0b8" font-size="24" font-weight="400">{{HEADLINE}}</text>
-  <text x="360" y="286" class="mono" fill="#7ee05a" font-size="18">{{DETAIL}}</text>
+  <text x="360" y="228" class="sans" fill="#8b939e" font-size="12" font-weight="400">{{TAGLINE}}</text>
+  <text x="360" y="258" class="sans" fill="#a7b0b8" font-size="24" font-weight="400">{{HEADLINE}}</text>
+  <text x="360" y="288" class="mono" fill="#7ee05a" font-size="18">{{DETAIL}}</text>
+
+  {{DESCRIPTION_BLOCK}}
 
   <rect x="1280" y="160" width="248" height="40" fill="#4a9e32" stroke="#6ecf4a" stroke-width="2"/>
   <text x="1294" y="186" class="pixel" fill="#0d0f12" font-size="12">{{VERSION}}</text>

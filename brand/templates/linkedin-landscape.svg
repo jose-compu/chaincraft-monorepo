@@ -33,13 +33,17 @@
 
   <image href="{{WORDMARK}}" x="530" y="132" width="400" height="76" preserveAspectRatio="xMinYMid meet"/>
 
-  <text x="530" y="256" class="pixel" fill="#6ecf4a" font-size="28">RELEASE {{VERSION}}</text>
+  <text x="530" y="218" class="sans" fill="#8b939e" font-size="13" font-weight="400">{{TAGLINE}}</text>
+
+  <text x="530" y="268" class="pixel" fill="#6ecf4a" font-size="28">RELEASE {{VERSION}}</text>
 
   <text x="530" y="340" class="sans" fill="#e8ecef" font-size="48" font-weight="600">{{HEADLINE}}</text>
 
-  <text x="530" y="400" class="mono" fill="#a7b0b8" font-size="28">Python  /  Rust  /  TypeScript</text>
+  <text x="530" y="400" class="mono" fill="#a7b0b8" font-size="28">{{DETAIL}}</text>
 
-  <text x="530" y="500" class="sans" fill="#7ee05a" font-size="24" font-weight="600">{{URL}}</text>
+  {{DESCRIPTION_BLOCK}}
+
+  <text x="530" y="518" class="sans" fill="#7ee05a" font-size="24" font-weight="600">{{URL}}</text>
 
   <rect x="0" y="611" width="1200" height="16" fill="#6ecf4a"/>
 </svg>
