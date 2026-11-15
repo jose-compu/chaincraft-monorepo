@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Chaincraft 1.2.0 — open-source toolkit for peer-to-peer protocols like blockchains, in Python, Rust, and TypeScript, held at feature parity.">
-  <title>Chaincraft 1.2.0 — Open-source toolkit for peer-to-peer protocols</title>
+  <meta name="description" content="Chaincraft 1.4.0 — open-source toolkit for peer-to-peer protocols like blockchains, in Python, Rust, and TypeScript, held at feature parity.">
+  <title>Chaincraft 1.4.0 — Open-source toolkit for peer-to-peer protocols</title>
   <link rel="stylesheet" href="styles.css?v=7">
   <link rel="icon" href="chaincraft-logo.png" type="image/png">
 </head>
@@ -20,7 +20,7 @@
       <a href="#parity">Parity</a>
       <a href="#hello">Hello</a>
       <a href="#install">Install</a>
-      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.2.0" target="_blank" rel="noopener">v1.2.0</a>
+      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.4.0" target="_blank" rel="noopener">v1.4.0</a>
       <a href="https://github.com/jose-compu/chaincraft-monorepo" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </header>
@@ -32,13 +32,14 @@
       <p class="tagline">
         Peer-to-peer protocols like blockchains, chat rooms, BitTorrent swarms,
         and content-addressed stores. Assemble proof-of-work, proof-of-stake,
-        or PBFT with a balance or UTXO ledger on one mesh — Python, Rust, and
-        TypeScript at feature parity.
+        PBFT, or Avalanche-style sampling with a balance or UTXO ledger, or a
+        last-write-wins CRDT on one mesh — Python, Rust, and TypeScript at
+        feature parity.
       </p>
       <div class="hero-cta">
-        <a class="btn" href="#install">Install 1.2.0</a>
+        <a class="btn" href="#install">Install 1.4.0</a>
         <a class="btn btn-secondary" href="#hello">Hello World</a>
-        <a class="btn btn-secondary" href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.2.0" target="_blank" rel="noopener">GitHub release</a>
+        <a class="btn btn-secondary" href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.4.0" target="_blank" rel="noopener">GitHub release</a>
       </div>
     </header>
 
@@ -78,7 +79,7 @@
     </section>
 
     <section id="stack" class="alt-bg" aria-labelledby="stack-heading">
-      <h2 id="stack-heading">Protocol stack (1.2.0)</h2>
+      <h2 id="stack-heading">Protocol stack (1.4.0)</h2>
       <p class="section-lead">
         Wire, objects, then a blockchain stack: consensus, ledger, mempool,
         fees. Invalid messages are rejected the same way in every language.
@@ -105,12 +106,12 @@
           <tr>
             <td>2</td>
             <td>Protocols</td>
-            <td>Publish-subscribe, chat rooms, an append-only stream, a BitTorrent swarm (Mesh client). No shared head.</td>
+            <td>Publish-subscribe, chat rooms, an append-only stream, a last-write-wins CRDT KV, a BitTorrent swarm (Mesh client). No shared head.</td>
           </tr>
           <tr>
             <td>2</td>
             <td>Consensus</td>
-            <td><code>pow</code>, <code>pos</code>, <code>pbft</code> — only when peers must agree</td>
+            <td><code>pow</code>, <code>pos</code>, <code>pbft</code>, <code>avalanche</code> — only when peers must agree</td>
           </tr>
           <tr>
             <td>2</td>
@@ -129,11 +130,13 @@
           </tr>
         </tbody>
       </table>
-      <p><strong>Consensus in 1.2.0</strong> (same decisions in all three languages):</p>
+      <p><strong>Consensus and CRDT in 1.4.0</strong> (same decisions in all three languages):</p>
       <div class="pill-grid">
         <span class="pill pill-pow">pow: leading-zero work, longest tip, multi-block reorgs</span>
         <span class="pill pill-bft">bft: pbft pre-prepare / prepare / commit</span>
         <span class="pill pill-gossip">pos: deterministic weighted proposer</span>
+        <span class="pill pill-gossip">avalanche: Slush, Snowflake, and Snowball (pedagogical, no PRNG)</span>
+        <span class="pill pill-gossip">crdt-kv: LWW map; equal timestamps, lowest writer wins</span>
       </div>
       <pre class="code-block"><code class="language-python">from chaincraft import Envelope, encode_frame
 
@@ -221,7 +224,7 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
     <section id="parity" class="alt-bg" aria-labelledby="parity-heading">
       <h2 id="parity-heading">Parity</h2>
       <p class="section-lead">
-        40 of 40 features. Python, Rust, and TypeScript accept and reject the
+        44 of 44 features. Python, Rust, and TypeScript accept and reject the
         same inputs and emit the same bytes. The registry is
         <code>SPEC/features.yaml</code>. CI fails when a language drifts.
       </p>
@@ -230,24 +233,24 @@ print(env.id)  # sha256 of the canonical payload</code></pre>
           <tr>
             <th>Core</th>
             <th>Package</th>
-            <th>1.2.0</th>
+            <th>1.4.0</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Python</td>
-            <td><a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> (PyPI)</a></td>
-            <td>Published. Reference. Vectors are generated from it. Node: <code>python3 -m chaincraft.node</code>.</td>
+            <td><a href="https://pypi.org/project/chaincraft/1.4.0/"><code>chaincraft</code> 1.4.0 (PyPI)</a></td>
+            <td>Published on PyPI. Reference. Vectors are generated from it. Node: <code>python3 -m chaincraft.node</code>.</td>
           </tr>
           <tr>
             <td>Rust</td>
-            <td><a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.2.0 (crates.io)</a></td>
-            <td>Published. Same wire, same fork choice, same error classes. Bins: <code>chaincraft-node</code>, <code>chaincraft-bt-node</code>.</td>
+            <td><a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> (crates.io)</a></td>
+            <td>Registry still lists 1.3.0; tag v1.4.0 publish failed (missing crates token). Same wire and error classes when installed from git. Bins: <code>chaincraft-node</code>, <code>chaincraft-bt-node</code>.</td>
           </tr>
           <tr>
             <td>TypeScript</td>
-            <td><a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.2.0 (npm)</a></td>
-            <td>Published. 39 implemented. Raw UDP is exempt: browsers have no UDP socket, and UDP is optional at Level 0. The unscoped npm name <code>chaincraft</code> belongs to another project.</td>
+            <td><a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> (npm)</a></td>
+            <td>Registry still lists 1.3.0; tag v1.4.0 publish failed (npm trusted publisher). 44 implemented. Raw UDP is exempt. The unscoped npm name <code>chaincraft</code> belongs to another project.</td>
           </tr>
         </tbody>
       </table>
@@ -288,7 +291,7 @@ python3 conformance/runner/run_interop.py</code></pre>
 
       <div class="hello-steps">
         <article class="hello-step">
-          <h3>Install 1.2.0</h3>
+          <h3>Install 1.4.0</h3>
           <p>
             From the package registries. Python 3.9+, a Rust toolchain, and
             Node 20+.
@@ -337,7 +340,7 @@ const peer = new Peer(id, peerOptions());</code></pre>
             It prints <code>ready</code> with the bound address.
           </p>
           <pre class="code-block"><code class="language-bash">python3 -m chaincraft.node</code></pre>
-          <pre class="code-block"><code class="language-json">{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.2.0"}</code></pre>
+          <pre class="code-block"><code class="language-json">{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.4.0"}</code></pre>
           <p>
             Same bind after the registry installs:
             <code>chaincraft-node</code> and
@@ -450,7 +453,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chaincraft = "1.2.0"</code></pre>
+chaincraft = "1.4.0"</code></pre>
           <pre class="code-block"><code class="language-rust">use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -561,10 +564,10 @@ python3 -m chaincraft.node 0.0.0.0:9736
     <section id="install" class="alt-bg" aria-labelledby="install-heading">
       <h2 id="install-heading">Install</h2>
       <p class="section-lead">
-        1.2.0 —
-        <a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> on PyPI</a>,
-        <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> on crates.io</a>,
-        <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> on npm</a>.
+        Spec release 1.4.0 —
+        <a href="https://pypi.org/project/chaincraft/1.4.0/"><code>chaincraft</code> 1.4.0 on PyPI</a>,
+        <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.3.0 on crates.io</a> (1.4.0 pending),
+        <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.3.0 on npm</a> (1.4.0 pending).
       </p>
       <pre class="code-block"><code class="language-bash">pip install chaincraft
 cargo add chaincraft
@@ -579,7 +582,7 @@ npm install @chaincraft/core</code></pre>
       <pre class="code-block"><code class="language-javascript">import { Mesh } from "@chaincraft/core";</code></pre>
       <p>
         Release:
-        <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.2.0">v1.2.0</a>.
+        <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.4.0">v1.4.0</a>.
         Nodes from source are in
         <a href="#hello">Hello World</a>.
       </p>
@@ -599,7 +602,7 @@ npm install @chaincraft/core</code></pre>
             BitTorrent is a separate Mesh client.
           </p>
           <ul class="card-links">
-            <li><a href="#install">Install 1.2.0</a></li>
+            <li><a href="#install">Install 1.4.0</a></li>
             <li><a href="#hello">Hello World</a></li>
             <li><a href="hello-world.md">Walkthrough</a></li>
             <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/cli-node.md">cli.node spec</a></li>
@@ -632,6 +635,8 @@ npm install @chaincraft/core</code></pre>
             <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/consensus-pow.md">Proof of work</a></li>
             <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/consensus-pos.md">Proof of stake</a></li>
             <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/consensus-pbft.md">PBFT</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/consensus-avalanche.md">Avalanche</a></li>
+            <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/protocol-crdt-kv.md">LWW CRDT KV</a></li>
             <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/features/ledger-balance.md">Balance ledger</a></li>
             <li><a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/ROADMAP.md">Roadmap</a></li>
           </ul>
@@ -642,18 +647,18 @@ npm install @chaincraft/core</code></pre>
 
   <footer class="site-footer">
     <img src="chaincraft-logo.png" alt="" width="48" height="48">
-      <p>Chaincraft 1.2.0 — MIT licensed · Open-source toolkit for peer-to-peer protocols like blockchains</p>
+      <p>Chaincraft 1.4.0 — MIT licensed · Open-source toolkit for peer-to-peer protocols like blockchains</p>
     <p>
       <a href="https://github.com/jose-compu/chaincraft-monorepo">GitHub</a> ·
-      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.2.0">v1.2.0</a> ·
+      <a href="https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.4.0">v1.4.0</a> ·
       <a href="https://github.com/jose-compu/chaincraft-monorepo/blob/main/SPEC/wire-v1.md">Wire spec</a> ·
       <a href="hello-world.md">Hello World</a>
     </p>
     <p>
       Packages:
-      <a href="https://pypi.org/project/chaincraft/"><code>chaincraft</code> (PyPI)</a> ·
-      <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> 1.2.0 (crates.io)</a> ·
-      <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> 1.2.0 (npm)</a>
+      <a href="https://pypi.org/project/chaincraft/1.4.0/"><code>chaincraft</code> 1.4.0 (PyPI)</a> ·
+      <a href="https://crates.io/crates/chaincraft"><code>chaincraft</code> (crates.io)</a> ·
+      <a href="https://www.npmjs.com/package/@chaincraft/core"><code>@chaincraft/core</code> (npm)</a>
     </p>
   </footer>
 
