@@ -28,9 +28,9 @@ fn is_type(value: &str) -> bool {
 fn is_field(value: &str) -> bool {
     let bytes = value.as_bytes();
     (1..=64).contains(&bytes.len())
-        && bytes.iter().all(|b| {
-            b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-')
-        })
+        && bytes
+            .iter()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'))
 }
 
 type RegKey = (String, String);
@@ -130,7 +130,10 @@ impl MessageStore {
         let Some(enc) = decode_query_value(value) else {
             return Vec::new();
         };
-        if !self.registrations.contains(&(type_.to_owned(), field.to_owned())) {
+        if !self
+            .registrations
+            .contains(&(type_.to_owned(), field.to_owned()))
+        {
             return Vec::new();
         }
         let key = (type_.to_owned(), field.to_owned(), enc);

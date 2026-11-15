@@ -1401,7 +1401,10 @@ fn storage_index_sequence() {
             match step["op"].as_str().unwrap() {
                 "register" => {
                     assert_eq!(
-                        store.register(step["type"].as_str().unwrap(), step["field"].as_str().unwrap()),
+                        store.register(
+                            step["type"].as_str().unwrap(),
+                            step["field"].as_str().unwrap()
+                        ),
                         step["ok"].as_bool().unwrap(),
                         "{where_}"
                     );
