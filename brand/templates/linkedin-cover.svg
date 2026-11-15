@@ -24,7 +24,7 @@
 
   <rect x="1280" y="160" width="248" height="40" fill="#4a9e32" stroke="#6ecf4a" stroke-width="2"/>
   <text x="1294" y="186" class="pixel" fill="#0d0f12" font-size="12">{{VERSION}}</text>
-  <text x="1280" y="230" class="sans" fill="#a7b0b8" font-size="16">{{URL}}</text>
+  <text x="1280" y="230" class="sans" fill="#a7b0b8" font-size="{{URL_SIZE}}">{{URL}}</text>
 
   <rect x="0" y="388" width="1584" height="8" fill="#6ecf4a"/>
 </svg>

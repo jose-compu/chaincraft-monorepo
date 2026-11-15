@@ -43,7 +43,7 @@
 
   {{DESCRIPTION_BLOCK}}
 
-  <text x="530" y="{{URL_Y}}" class="sans" fill="#7ee05a" font-size="24" font-weight="600">{{URL}}</text>
+  <text x="530" y="{{URL_Y}}" class="sans" fill="#7ee05a" font-size="{{URL_SIZE}}" font-weight="600">{{URL}}</text>
 
   <rect x="0" y="611" width="1200" height="16" fill="#6ecf4a"/>
 </svg>

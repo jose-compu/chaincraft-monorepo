@@ -25,6 +25,31 @@ OUT = ROOT / "out"
 
 TAGLINE = "Open-source framework for peer-to-peer protocols"
 
+
+def banner_display_url(url: str) -> str:
+    """Canonical site URL for banner copy (always includes a scheme)."""
+    site = url.strip() or "chaincraft.network"
+    if "://" not in site:
+        site = f"https://{site.removeprefix('/')}"
+    return site
+
+
+def banner_url_font_size(kind: str, display_url: str) -> int:
+    """Pick a size that keeps the full URL inside each banner's text area."""
+    length = len(display_url)
+    if kind == "linkedin-landscape":
+        if length <= 28:
+            return 24
+        if length <= 36:
+            return 22
+        return 20
+    if length <= 28:
+        return 15
+    if length <= 34:
+        return 14
+    return 13
+
+
 SIZES = {
     "identity-card": (1920, 1080),
     "linkedin-landscape": (1200, 627),
@@ -270,11 +295,13 @@ def banner(
     else:
         layout = cover_layout(description)
 
+    display_url = banner_display_url(url)
     fields = {
         "VERSION": version,
         "HEADLINE": headline,
         "DETAIL": detail,
-        "URL": url,
+        "URL": display_url,
+        "URL_SIZE": str(banner_url_font_size(kind, display_url)),
         **{k: str(v) for k, v in layout["fields"].items()},
     }
     raw = layout["raw"]
