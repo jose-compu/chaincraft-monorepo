@@ -15,7 +15,9 @@ import html
 import subprocess
 import sys
 import textwrap
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"
@@ -25,9 +27,53 @@ OUT = ROOT / "out"
 
 TAGLINE = "Open-source framework for peer-to-peer protocols"
 
+Family = Literal["sans", "mono", "pixel"]
+
+METRICS: dict[Family, dict[str, float]] = {
+    "sans": {"ascent": 0.78, "descent": 0.22, "width": 0.50},
+    "mono": {"ascent": 0.75, "descent": 0.25, "width": 0.56},
+    "pixel": {"ascent": 1.0, "descent": 0.05, "width": 0.62},
+}
+
+SIZES = {
+    "identity-card": (1920, 1080),
+    "linkedin-landscape": (1200, 627),
+    "linkedin-cover": (1584, 396),
+}
+
+LANDSCAPE_PANEL = (530, 1148, 118, 536)
+COVER_PANEL_LEFT = (360, 1260, 115, 382)
+COVER_PANEL_URL = (1280, 1568, 115, 382)
+
+
+class LayoutError(ValueError):
+    """Banner text would overlap or sit outside the panel."""
+
+
+@dataclass
+class TextBox:
+    x: int
+    baseline: float
+    font_size: int
+    line_height: float
+    lines: list[str]
+    family: Family
+    weight: str = "400"
+
+    def top(self) -> float:
+        return self.baseline - self.font_size * METRICS[self.family]["ascent"]
+
+    def bottom(self) -> float:
+        last = self.baseline + (len(self.lines) - 1) * self.line_height
+        return last + self.font_size * METRICS[self.family]["descent"]
+
+    def right(self) -> float:
+        m = METRICS[self.family]
+        widest = max((len(line) for line in self.lines), default=0)
+        return self.x + widest * self.font_size * m["width"]
+
 
 def banner_display_url(url: str) -> str:
-    """Canonical site URL for banner copy (always includes a scheme)."""
     site = url.strip() or "chaincraft.network"
     if "://" not in site:
         site = f"https://{site.removeprefix('/')}"
@@ -35,7 +81,6 @@ def banner_display_url(url: str) -> str:
 
 
 def banner_url_font_size(kind: str, display_url: str) -> int:
-    """Pick a size that keeps the full URL inside each banner's text area."""
     length = len(display_url)
     if kind == "linkedin-landscape":
         if length <= 28:
@@ -50,11 +95,16 @@ def banner_url_font_size(kind: str, display_url: str) -> int:
     return 13
 
 
-SIZES = {
-    "identity-card": (1920, 1080),
-    "linkedin-landscape": (1200, 627),
-    "linkedin-cover": (1584, 396),
-}
+def text_width_px(text: str, font_size: int, family: Family) -> float:
+    return len(text) * font_size * METRICS[family]["width"]
+
+
+def first_baseline_below(y_bottom: float, gap: float, font_size: int, family: Family) -> float:
+    return y_bottom + gap + font_size * METRICS[family]["ascent"]
+
+
+def line_step(font_size: int, family: Family) -> float:
+    return font_size * (1.15 if family == "sans" else 1.2)
 
 
 def font_css() -> str:
@@ -108,32 +158,50 @@ def wrap_full(text: str, width: int) -> list[str]:
     return textwrap.wrap(text, width=width, break_long_words=False, break_on_hyphens=False)
 
 
-def fit_description(
+def wrap_to_width_px(
     text: str,
-    *,
-    min_width: int,
-    max_width: int,
-    line_budget: tuple[int, ...],
-) -> tuple[list[str], int]:
-    """Return wrapped lines and character width; never uses textwrap max_lines (no ellipsis)."""
+    font_size: int,
+    family: Family,
+    max_px: float,
+    max_lines: int,
+) -> list[str]:
+    for width in range(80, 8, -1):
+        lines = wrap_full(text, width)
+        if len(lines) > max_lines:
+            continue
+        if all(text_width_px(line, font_size, family) <= max_px for line in lines):
+            return lines
+    return wrap_full(text, 12)[:max_lines]
+
+
+def fit_description_two_lines(text: str, panel_width: float, font_size: int) -> list[str]:
+    """Exactly up to two lines at >= font_size; never truncates with ellipsis."""
     text = text.strip()
     if not text:
-        return [], max_width
-    for budget in line_budget:
-        for width in range(max_width, min_width - 1, -1):
-            lines = wrap_full(text, width)
-            if len(lines) <= budget:
-                return lines, width
-    lines = wrap_full(text, min_width)
-    return lines[: line_budget[-1]], min_width
+        return []
+    for width in range(72, 24, -1):
+        lines = wrap_full(text, width)
+        if len(lines) <= 2 and all(
+            text_width_px(line, font_size, "sans") <= panel_width for line in lines
+        ):
+            return lines
+    lines = wrap_full(text, 24)
+    return lines[:2]
+
+
+def pick_single_line_tagline_size(panel_width: float) -> int:
+    for size in (19, 18, 17, 16, 15):
+        if text_width_px(TAGLINE, size, "sans") <= panel_width:
+            return size
+    return 15
 
 
 def text_block(
     lines: list[str],
     x: int,
-    y0: int,
+    y0: float,
     font_size: int,
-    line_gap: int,
+    line_gap: float,
     *,
     css_class: str = "sans",
     fill: str = "#a7b0b8",
@@ -142,117 +210,227 @@ def text_block(
     if not lines:
         return ""
     return "\n  ".join(
-        f'<text x="{x}" y="{y0 + i * line_gap}" class="{css_class}" fill="{fill}" '
+        f'<text x="{x}" y="{y0 + i * line_gap:.2f}" class="{css_class}" fill="{fill}" '
         f'font-size="{font_size}" font-weight="{weight}">{html.escape(line)}</text>'
         for i, line in enumerate(lines)
     )
 
 
-def landscape_layout(description: str) -> dict[str, object]:
-    """Vertical rhythm inside the right panel (y is text baseline)."""
-    url_y = 532
-    tagline_lines = wrap_full(TAGLINE, width=36)
-    tagline_size = 24
-    tagline_gap = 30
-    tagline_y0 = 238
-    release_y = tagline_y0 + len(tagline_lines) * tagline_gap + 24
-    headline_y = release_y + 72
-    detail_y = headline_y + 68
+def x_ranges_overlap(a: TextBox, b: TextBox) -> bool:
+    return a.x < b.right() and b.x < a.right()
 
-    desc_lines: list[str] = []
-    desc_size = 19
-    desc_gap = 24
-    desc_y0 = detail_y + 36
-    if description.strip():
-        for desc_size, desc_gap, budgets in (
-            (18, 24, (2, 3)),
-            (17, 22, (2, 3)),
-            (16, 20, (3,)),
-        ):
-            desc_lines, _ = fit_description(
-                description,
-                min_width=30,
-                max_width=54,
-                line_budget=budgets,
+
+def validate_layout(boxes: list[TextBox], panel: tuple[float, float, float, float], *, min_gap: float) -> None:
+    left, right, top, bottom = panel
+    for box in boxes:
+        if box.top() < top - 0.5:
+            raise LayoutError(f"{box.lines[0]!r} above panel top")
+        if box.bottom() > bottom + 0.5:
+            raise LayoutError(f"{box.lines[-1]!r} below panel bottom")
+        if box.x < left - 1 or box.right() > right + 1:
+            raise LayoutError(f"text wider than panel: {box.lines[0]!r}")
+    ordered = sorted(boxes, key=lambda b: b.top())
+    for upper, lower in zip(ordered, ordered[1:]):
+        if not x_ranges_overlap(upper, lower):
+            continue
+        gap = lower.top() - upper.bottom()
+        if gap < min_gap - 0.5:
+            raise LayoutError(
+                f"overlap between {upper.lines[0]!r} and {lower.lines[0]!r} (gap {gap:.1f}px)"
             )
-            if not desc_lines:
+
+
+def compose_landscape_layout(
+    headline: str,
+    detail: str,
+    description: str,
+    display_url: str,
+) -> tuple[dict[str, str | int], dict[str, str], list[TextBox]]:
+    left, right, top, bottom = LANDSCAPE_PANEL
+    panel_w = right - left
+    x = int(left)
+    wordmark_bottom = 132 + 76
+    desc_lines = fit_description_two_lines(description, panel_w, 20)
+    desc_size = 20
+    desc_gap = 26
+    url_size = banner_url_font_size("linkedin-landscape", display_url)
+
+    boxes: list[TextBox] = []
+    tagline_baseline = release_baseline = headline_baseline = detail_baseline = desc_baseline = url_baseline = 0.0
+    headline_size = 44
+    headline_lines: list[str] = []
+    tagline_size = pick_single_line_tagline_size(panel_w)
+    tagline_gap = line_step(tagline_size, "sans")
+
+    for tight in (False, True):
+        gap_tagline = 10 if not tight else 8
+        gap_release = 20 if not tight else 14
+        gap_headline = 18 if not tight else 12
+        gap_detail = 20 if not tight else 14
+        gap_desc = 18 if not tight else 14
+        gap_url = 20
+        sizes = (44, 40, 38, 36, 34, 32) if not tight else (36, 34, 32, 30)
+        for headline_size in sizes:
+            headline_lines = wrap_to_width_px(headline, headline_size, "sans", panel_w, 2)
+            headline_gap = line_step(headline_size, "sans")
+
+            tagline_baseline = first_baseline_below(wordmark_bottom, gap_tagline, tagline_size, "sans")
+            tagline_box = TextBox(x, tagline_baseline, tagline_size, tagline_gap, [TAGLINE], "sans")
+
+            release_size = 28
+            release_baseline = first_baseline_below(tagline_box.bottom(), gap_release, release_size, "pixel")
+            release_box = TextBox(
+                x, release_baseline, release_size, line_step(release_size, "pixel"), ["RELEASE"], "pixel"
+            )
+
+            headline_baseline = first_baseline_below(release_box.bottom(), gap_headline, headline_size, "sans")
+            headline_box = TextBox(
+                x, headline_baseline, headline_size, headline_gap, headline_lines, "sans", "600"
+            )
+
+            detail_size = 28
+            detail_baseline = first_baseline_below(headline_box.bottom(), gap_detail, detail_size, "mono")
+            detail_box = TextBox(x, detail_baseline, detail_size, line_step(detail_size, "mono"), [detail], "mono")
+
+            desc_box = None
+            if desc_lines:
+                desc_baseline = first_baseline_below(detail_box.bottom(), gap_desc, desc_size, "sans")
+                desc_box = TextBox(x, desc_baseline, desc_size, desc_gap, desc_lines, "sans")
+
+            anchor = desc_box.bottom() if desc_box else detail_box.bottom()
+            url_baseline = first_baseline_below(anchor, gap_url, url_size, "sans")
+            url_box = TextBox(
+                x, url_baseline, url_size, line_step(url_size, "sans"), [display_url], "sans", "600"
+            )
+
+            boxes = [tagline_box, release_box, headline_box, detail_box, url_box]
+            if desc_box:
+                boxes.insert(4, desc_box)
+            try:
+                validate_layout(boxes, LANDSCAPE_PANEL, min_gap=18)
+            except LayoutError:
+                continue
+            if url_box.bottom() <= bottom + 0.5:
                 break
-            desc_end = desc_y0 + (len(desc_lines) - 1) * desc_gap
-            if desc_end <= url_y - 26:
-                break
+        else:
+            continue
+        break
+    else:
+        raise LayoutError("banner content does not fit in landscape panel")
 
-    raw: dict[str, str] = {
-        "TAGLINE_BLOCK": text_block(
-            tagline_lines,
-            530,
-            tagline_y0,
-            tagline_size,
-            tagline_gap,
-            fill="#a7b0b8",
-        ),
-        "DESCRIPTION_BLOCK": text_block(
-            desc_lines,
-            530,
-            desc_y0,
-            desc_size,
-            desc_gap,
-            fill="#8b939e",
-        ),
-    }
-    fields = {
-        "RELEASE_Y": release_y,
-        "HEADLINE_Y": headline_y,
-        "DETAIL_Y": detail_y,
-        "URL_Y": url_y,
-    }
-    return {"fields": fields, "raw": raw}
+    validate_layout(boxes, LANDSCAPE_PANEL, min_gap=18)
 
-
-def cover_layout(description: str) -> dict[str, str | int]:
-    tagline_lines = wrap_full(TAGLINE, width=48)
-    tagline_size = 15
-    tagline_gap = 20
-    tagline_y0 = 232
-    headline_y = tagline_y0 + len(tagline_lines) * tagline_gap + 18
-    detail_y = headline_y + 30
-
-    desc_lines: list[str] = []
-    desc_size = 15
-    desc_gap = 19
-    if description.strip():
-        desc_lines, _ = fit_description(
-            description,
-            min_width=40,
-            max_width=68,
-            line_budget=(2, 3),
-        )
-        if len(desc_lines) >= 3:
-            desc_size = 14
-            desc_gap = 18
-
-    raw: dict[str, str] = {
-        "TAGLINE_BLOCK": text_block(
-            tagline_lines,
-            360,
-            tagline_y0,
-            tagline_size,
-            tagline_gap,
-            fill="#a7b0b8",
-        ),
-        "DESCRIPTION_BLOCK": text_block(
-            desc_lines,
-            360,
-            detail_y + 22,
-            desc_size,
-            desc_gap,
-            fill="#8b939e",
-        ),
-    }
     fields: dict[str, str | int] = {
-        "HEADLINE_Y": headline_y,
-        "DETAIL_Y": detail_y,
+        "RELEASE_Y": round(release_baseline),
+        "HEADLINE_SIZE": headline_size,
+        "DETAIL_Y": round(detail_baseline),
+        "URL_Y": round(url_baseline),
+        "URL_SIZE": url_size,
     }
-    return {"fields": fields, "raw": raw}
+    raw = {
+        "TAGLINE_BLOCK": text_block([TAGLINE], x, tagline_baseline, tagline_size, tagline_gap, fill="#a7b0b8"),
+        "HEADLINE_BLOCK": text_block(
+            headline_lines,
+            x,
+            headline_baseline,
+            headline_size,
+            headline_gap,
+            fill="#e8ecef",
+            weight="600",
+        ),
+        "DESCRIPTION_BLOCK": text_block(
+            desc_lines,
+            x,
+            desc_baseline if desc_lines else 0,
+            desc_size,
+            desc_gap,
+            fill="#8b939e",
+        )
+        if desc_lines
+        else "",
+    }
+    return fields, raw, boxes
+
+
+def compose_cover_layout(
+    headline: str,
+    detail: str,
+    description: str,
+    display_url: str,
+) -> tuple[dict[str, str | int], dict[str, str], list[TextBox]]:
+    left, right, top, bottom = COVER_PANEL_LEFT
+    panel_w = right - left
+    x = int(left)
+    wordmark_bottom = 120 + 99
+
+    tagline_size = pick_single_line_tagline_size(panel_w)
+    tagline_baseline = first_baseline_below(wordmark_bottom, 8, tagline_size, "sans")
+    tagline_box = TextBox(x, tagline_baseline, tagline_size, line_step(tagline_size, "sans"), [TAGLINE], "sans")
+
+    headline_size = 24
+    headline_lines = wrap_to_width_px(headline, headline_size, "sans", panel_w, 2)
+    headline_baseline = first_baseline_below(tagline_box.bottom(), 12, headline_size, "sans")
+    headline_box = TextBox(
+        x,
+        headline_baseline,
+        headline_size,
+        line_step(headline_size, "sans"),
+        headline_lines,
+        "sans",
+    )
+
+    detail_size = 18
+    detail_baseline = first_baseline_below(headline_box.bottom(), 10, detail_size, "mono")
+    detail_box = TextBox(x, detail_baseline, detail_size, line_step(detail_size, "mono"), [detail], "mono")
+
+    desc_size = 16
+    desc_lines = fit_description_two_lines(description, panel_w, desc_size)
+    desc_gap = 22
+    desc_baseline = first_baseline_below(detail_box.bottom(), 10, desc_size, "sans")
+    desc_box = (
+        TextBox(x, desc_baseline, desc_size, desc_gap, desc_lines, "sans") if desc_lines else None
+    )
+
+    url_x = 1280
+    url_size = banner_url_font_size("linkedin-cover", display_url)
+    url_baseline = 230.0
+    url_box = TextBox(url_x, url_baseline, url_size, line_step(url_size, "sans"), [display_url], "sans")
+
+    left_boxes = [tagline_box, headline_box, detail_box]
+    if desc_box:
+        left_boxes.append(desc_box)
+    boxes = left_boxes + [url_box]
+
+    validate_layout(left_boxes, COVER_PANEL_LEFT, min_gap=8)
+    validate_layout([url_box], COVER_PANEL_URL, min_gap=8)
+
+    fields: dict[str, str | int] = {
+        "HEADLINE_Y": round(headline_baseline),
+        "DETAIL_Y": round(detail_baseline),
+        "URL_SIZE": url_size,
+    }
+    raw = {
+        "TAGLINE_BLOCK": text_block([TAGLINE], x, tagline_baseline, tagline_size, line_step(tagline_size, "sans"), fill="#a7b0b8"),
+        "HEADLINE_BLOCK": text_block(
+            headline_lines,
+            x,
+            headline_baseline,
+            headline_size,
+            line_step(headline_size, "sans"),
+            fill="#a7b0b8",
+        ),
+        "DESCRIPTION_BLOCK": text_block(
+            desc_lines,
+            x,
+            desc_baseline if desc_lines else 0,
+            desc_size,
+            desc_gap,
+            fill="#8b939e",
+        )
+        if desc_lines
+        else "",
+    }
+    return fields, raw, boxes
 
 
 def rasterise(name: str, svg: str, scale: int) -> Path:
@@ -290,21 +468,19 @@ def banner(
     scale: int,
     description: str = "",
 ) -> Path:
-    if kind == "linkedin-landscape":
-        layout = landscape_layout(description)
-    else:
-        layout = cover_layout(description)
-
     display_url = banner_display_url(url)
+    if kind == "linkedin-landscape":
+        layout_fields, raw, _boxes = compose_landscape_layout(headline, detail, description, display_url)
+    else:
+        layout_fields, raw, _boxes = compose_cover_layout(headline, detail, description, display_url)
+
     fields = {
         "VERSION": version,
         "HEADLINE": headline,
         "DETAIL": detail,
         "URL": display_url,
-        "URL_SIZE": str(banner_url_font_size(kind, display_url)),
-        **{k: str(v) for k, v in layout["fields"].items()},
+        **{k: str(v) for k, v in layout_fields.items()},
     }
-    raw = layout["raw"]
 
     template = f"{kind}.svg"
     svg = fill(template, fields, raw)

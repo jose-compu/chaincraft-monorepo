@@ -37,7 +37,7 @@
 
   <text x="530" y="{{RELEASE_Y}}" class="pixel" fill="#6ecf4a" font-size="28">RELEASE {{VERSION}}</text>
 
-  <text x="530" y="{{HEADLINE_Y}}" class="sans" fill="#e8ecef" font-size="46" font-weight="600">{{HEADLINE}}</text>
+  {{HEADLINE_BLOCK}}
 
   <text x="530" y="{{DETAIL_Y}}" class="mono" fill="#a7b0b8" font-size="28">{{DETAIL}}</text>
 
