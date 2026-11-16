@@ -10,7 +10,7 @@ BitTorrent swarm, or a content-addressed store. A node applies the messages it
 has. A gap after a disconnect is allowed.
 
 Consensus is a feature class in the same library, not the default. Proof of
-work, proof of stake, PBFT, and the Avalanche family, with a balance or UTXO
+work, proof of stake, proof of authority, PBFT, and the Avalanche family, with a balance or UTXO
 ledger, are there when the protocol must agree on a head. Those objects keep a
 snapshot and may sync it with one peer. The others do not.
 
@@ -90,12 +90,13 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, NAT traversal, Avalanche,
 and a last-write-wins CRDT:
-45 of 45 features each (TypeScript 44 implemented plus the UDP framing exemption).
-The spec release is 1.5.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
-Git tag [`v1.5.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.5.0).
-[PyPI `chaincraft` 1.5.0](https://pypi.org/project/chaincraft/1.5.0/),
-[crates.io `chaincraft` 1.5.0](https://crates.io/crates/chaincraft) and
-[npm `@chaincraft/core` 1.5.0](https://www.npmjs.com/package/@chaincraft/core).
+46 of 46 features each (TypeScript 45 implemented plus the UDP framing exemption).
+The spec release is 1.6.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+Git tag [`v1.6.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.6.0).
+[PyPI `chaincraft` 1.6.0](https://pypi.org/project/chaincraft/1.6.0/),
+[crates.io `chaincraft` 1.6.0](https://crates.io/crates/chaincraft) and
+[npm `@chaincraft/core` 1.6.0](https://www.npmjs.com/package/@chaincraft/core).
+1.6.0 adds `consensus.poa` (Proof of Authority with rotation by block height).
 `@chaincraft/core/browser` fetches a PeerJS id and does not import the TCP mesh.
 The default broker is `https://dechess-org-peerjs.vercel.app`.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no

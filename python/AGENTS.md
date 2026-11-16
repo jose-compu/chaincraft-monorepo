@@ -27,6 +27,7 @@ chaincraft/
   vrf.py         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.py   Address book and local-discovery policy
   consensus_pow.py   Prototype PoW object
+  consensus_poa.py   Prototype PoA object
   consensus_pos.py   Prototype PoS object
   consensus_pbft.py  Prototype PBFT object
   ledger_balance.py  Prototype account ledger

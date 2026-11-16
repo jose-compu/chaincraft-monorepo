@@ -9,6 +9,7 @@ pub mod channel;
 pub mod cli;
 pub mod consensus_avalanche;
 pub mod consensus_pbft;
+pub mod consensus_poa;
 pub mod consensus_pos;
 pub mod consensus_pow;
 pub mod control;

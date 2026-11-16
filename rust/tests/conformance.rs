@@ -14,6 +14,7 @@ use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
 use chaincraft::consensus_avalanche::Avalanche;
 use chaincraft::consensus_pbft::Pbft;
+use chaincraft::consensus_poa::ProofOfAuthority;
 use chaincraft::consensus_pos::ProofOfStake;
 use chaincraft::consensus_pow::ProofOfWork;
 use chaincraft::control;
@@ -989,6 +990,84 @@ fn discovery_local_sequence() {
             assert_book(&book, step, &where_);
         }
     }
+}
+
+#[test]
+fn consensus_poa_replay() {
+    let doc = load("consensus-poa.json");
+    let authorities: Vec<String> = doc["authorities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap().to_owned())
+        .collect();
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = ProofOfAuthority::new(&authorities).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (blocks, canonical, height, tip) = obj.state();
+            assert_eq!(blocks, json_strings(&step["blocks"]), "{where_} blocks");
+            assert_eq!(
+                canonical,
+                json_strings(&step["canonical"]),
+                "{where_} canonical"
+            );
+            assert_eq!(height, step["height"].as_i64().unwrap(), "{where_} height");
+            assert_eq!(tip, step["tip"].as_str().unwrap(), "{where_} tip");
+        }
+        if case.get("reorg_count").is_some() {
+            let reorgs: Vec<&Value> = case["steps"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|step| step["reorg"].as_bool().unwrap())
+                .collect();
+            assert_eq!(
+                reorgs.len() as i64,
+                case["reorg_count"].as_i64().unwrap(),
+                "{name}"
+            );
+            let min_depth = reorgs
+                .iter()
+                .map(|step| step["reorg_depth"].as_i64().unwrap())
+                .min()
+                .unwrap();
+            assert!(
+                min_depth >= case["min_reorg_depth"].as_i64().unwrap(),
+                "{name}"
+            );
+        }
+    }
+}
+
+#[test]
+fn consensus_poa_constructor() {
+    assert!(ProofOfAuthority::new(&[]).is_err());
+    assert!(ProofOfAuthority::new(&["alice".into(), "alice".into()]).is_err());
+    assert!(ProofOfAuthority::new(&["alice".into(), "".into()]).is_err());
+    let mut solo = ProofOfAuthority::new(&["solo".into()]).unwrap();
+    let genesis =
+        parse_json(r#"{"consensus":"poa","height":1,"parent":"","payload":"a","proposer":"solo"}"#)
+            .unwrap();
+    assert!(solo.is_valid(&genesis));
+    solo.add_message(&genesis, None);
+    let (_, _, _, tip) = solo.state();
+    let child = parse_json(&format!(
+        r#"{{"consensus":"poa","height":2,"parent":"{tip}","payload":"b","proposer":"solo"}}"#
+    ))
+    .unwrap();
+    let child_val = child;
+    assert!(solo.is_valid(&child_val));
+    solo.add_message(&child_val, None);
+    let (_, _, height, _) = solo.state();
+    assert_eq!(height, 2);
 }
 
 #[test]
@@ -2239,6 +2318,7 @@ fn vector_files_declare_feature() {
         "vrf.json",
         "discovery-peer.json",
         "discovery-local.json",
+        "consensus-poa.json",
         "consensus-pow.json",
         "consensus-pos.json",
         "consensus-pbft.json",

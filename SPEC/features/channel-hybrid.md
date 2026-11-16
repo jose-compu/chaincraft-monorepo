@@ -1,6 +1,6 @@
 # channel.hybrid
 
-**Release:** 1.5.0
+**Release:** 1.6.0
 
 One mesh. Each member has one channel for the life of the link. Gossip
 accepted from a member is delivered to every other member whose hop can

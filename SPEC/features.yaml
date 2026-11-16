@@ -330,6 +330,16 @@ features:
       rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
+  - id: consensus.poa
+    level: 2
+    spec: SPEC/features/consensus-poa.md
+    summary: Sealed-block Proof of Authority with rotation by height
+    vectors: conformance/vectors/consensus-poa.json
+    status:
+      python:     { state: implemented, since: "2026-11-16" }
+      rust:       { state: implemented, since: "2026-11-16" }
+      typescript: { state: implemented, since: "2026-11-16" }
+
   - id: consensus.avalanche
     level: 2
     spec: SPEC/features/consensus-avalanche.md

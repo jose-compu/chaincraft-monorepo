@@ -1,6 +1,6 @@
 # consensus.avalanche
 
-**Release:** 1.5.0
+**Release:** 1.6.0
 
 Pedagogical Slush, Snowflake, and Snowball. One object, a `phase`
 discriminator. Sample outcomes are messages. There is no network, no
