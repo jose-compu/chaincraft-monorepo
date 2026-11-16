@@ -18,6 +18,7 @@ import {
   Avalanche,
   PBFT,
   ProofOfStake,
+  ProofOfAuthority,
   ProofOfWork,
   BalanceLedger,
   CrdtKv,
@@ -453,6 +454,46 @@ eachCase('discovery-local.json', 'sequence', (c) => {
     assert.deepEqual(book.addresses(), step['book'], where);
     assert.deepEqual(book.advertise(), step['advertised'], where);
   }
+});
+
+eachCase('consensus-poa.json', 'replay', (c, doc) => {
+  const authorities = doc['authorities'] as string[];
+  const obj = new ProofOfAuthority(authorities);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      blocks: step['blocks'],
+      canonical: step['canonical'],
+      height: step['height'],
+      tip: step['tip'],
+    }, where);
+  }
+  if (c['reorg_count'] !== undefined) {
+    const steps = c['steps'] as Case[];
+    const reorgs = steps.filter((step: Case) => step['reorg']);
+    assert.equal(reorgs.length, c['reorg_count']);
+    const depths = reorgs.map((step: Case) => step['reorg_depth'] as number);
+    assert.ok(Math.min(...depths) >= c['min_reorg_depth']);
+  }
+});
+
+test('ProofOfAuthority constructor', () => {
+  assert.throws(() => new ProofOfAuthority([]));
+  assert.throws(() => new ProofOfAuthority(['alice', 'alice']));
+  assert.throws(() => new ProofOfAuthority(['alice', '']));
+  const solo = new ProofOfAuthority(['solo']);
+  const msg1 = { consensus: 'poa', height: 1, parent: '', payload: 'a', proposer: 'solo' };
+  assert.ok(solo.isValid(msg1));
+  solo.addMessage(msg1);
+  const tip = solo.state().tip;
+  const msg2 = { consensus: 'poa', height: 2, parent: tip, payload: 'b', proposer: 'solo' };
+  assert.ok(solo.isValid(msg2));
+  solo.addMessage(msg2);
+  assert.equal(solo.state().height, 2);
 });
 
 eachCase('consensus-pow.json', 'replay', (c, doc) => {
@@ -986,6 +1027,7 @@ test('every vector file declares its feature', () => {
     'vrf.json',
     'discovery-peer.json',
     'discovery-local.json',
+    'consensus-poa.json',
     'consensus-pow.json',
     'consensus-pos.json',
     'consensus-pbft.json',

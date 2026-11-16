@@ -35,6 +35,11 @@ from chaincraft import (  # noqa: E402
 from chaincraft.consensus_avalanche import Avalanche  # noqa: E402
 from chaincraft.consensus_pbft import PBFT  # noqa: E402
 from chaincraft.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
+from chaincraft.consensus_poa import (  # noqa: E402
+    ProofOfAuthority,
+    block_id as poa_block_id,
+    proposer_for as poa_proposer_for,
+)
 from chaincraft.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
 from chaincraft.crdt import MAX_KEYS, CrdtKv  # noqa: E402
 from chaincraft.fees import charge, estimate, next_base_fee, select  # noqa: E402
@@ -1410,6 +1415,130 @@ def consensus_pow_vectors() -> Dict[str, Any]:
             "PoW object: leading-zero work, longest tip, lowest-id tie-break.",
         ),
         "difficulty": difficulty,
+        "replay": replay,
+    }
+
+
+POA_AUTHORITIES = ["alice", "bob", "carol"]
+
+
+def _poa_message(height: int, parent: str, payload: str) -> Dict[str, Any]:
+    proposer = poa_proposer_for(height, POA_AUTHORITIES)
+    return {
+        "consensus": "poa",
+        "height": height,
+        "parent": parent,
+        "payload": payload,
+        "proposer": proposer,
+    }
+
+
+def _poa_chain(parent: str, start_height: int, payloads: List[str]) -> List[Dict[str, Any]]:
+    blocks: List[Dict[str, Any]] = []
+    cursor = parent
+    height = start_height
+    for payload in payloads:
+        message = _poa_message(height, cursor, payload)
+        blocks.append(message)
+        cursor = poa_block_id(height, cursor, payload, message["proposer"])
+        height += 1
+    return blocks
+
+
+def _replay_reorgs_poa() -> Dict[str, Any]:
+    """Side chain overtakes main, then main extension becomes canonical again."""
+    genesis = _poa_message(1, "", "genesis")
+    genesis_id = poa_block_id(1, "", "genesis", "alice")
+    main = _poa_chain(genesis_id, 2, ["main-2", "main-3"])
+    main_tip = poa_block_id(3, poa_block_id(2, genesis_id, "main-2", "bob"), "main-3", "carol")
+    side = _poa_chain(genesis_id, 2, ["side-2", "side-3", "side-4", "side-5"])
+    resumed = _poa_chain(main_tip, 4, ["resume-4", "resume-5", "resume-6"])
+    orphan = _poa_message(2, genesis_id, "lost")
+    messages = [genesis, *main, *side, *resumed, orphan]
+    factory = lambda: ProofOfAuthority(POA_AUTHORITIES)  # noqa: E731
+    obj = factory()
+    steps = []
+    previous: List[str] = []
+    prev_tip = ""
+    for message in messages:
+        accepted = obj.is_valid(message)
+        if accepted:
+            obj.add_message(message)
+        state = obj.state()
+        canon = state["canonical"]
+        shared = 0
+        while shared < len(previous) and shared < len(canon) and previous[shared] == canon[shared]:
+            shared += 1
+        reorg = bool(prev_tip) and prev_tip not in canon
+        steps.append(
+            {
+                "message_json": canonical_json(message),
+                "accepted": accepted,
+                "reorg": reorg,
+                "reorg_depth": (len(previous) - shared) if reorg else 0,
+                **state,
+            }
+        )
+        previous = list(canon)
+        prev_tip = state["tip"]
+    depths = [step["reorg_depth"] for step in steps if step["reorg"]]
+    if len(depths) != 2 or min(depths) < 2:
+        raise AssertionError(f"reorg scenario drifted: {depths}")
+    return {
+        "name": "multi-block reorg and recovery",
+        "min_reorg_depth": 2,
+        "reorg_count": 2,
+        "steps": steps,
+    }
+
+
+def consensus_poa_vectors() -> Dict[str, Any]:
+    genesis_one = _poa_message(1, "", "one")
+    genesis_id = poa_block_id(1, "", "one", "alice")
+    chain_23 = _poa_chain(genesis_id, 2, ["two", "three"])
+    wrong_proposer = {**genesis_one, "proposer": "dave"}
+    alice_h2 = {**_poa_message(2, genesis_id, "skip"), "proposer": "alice"}
+    bob_h2 = _poa_message(2, genesis_id, "two")
+    fork_alt = _poa_message(1, "", "alt")
+    alt_id = poa_block_id(1, "", "alt", "alice")
+    factory = lambda: ProofOfAuthority(POA_AUTHORITIES)  # noqa: E731
+    replay = [
+        _replay_object("empty then three-block rotation", factory, [genesis_one, *chain_23]),
+        _replay_object("wrong proposer at genesis", factory, [wrong_proposer]),
+        _replay_object(
+            "wrong turn then correct proposer",
+            factory,
+            [genesis_one, alice_h2, bob_h2],
+        ),
+        _replay_object("duplicate block rejected", factory, [genesis_one, genesis_one]),
+        _replay_object(
+            "same-height fork prefers lowest id",
+            factory,
+            [genesis_one, fork_alt],
+        ),
+        _replay_reorgs_poa(),
+        _replay_object(
+            "rejection pins",
+            factory,
+            [
+                {**genesis_one, "height": 0},
+                {**genesis_one, "payload": ""},
+                {**_poa_message(2, "", "early")},
+                {**_poa_message(2, "deadbeef", "orphan"), "proposer": "bob"},
+                {**_poa_message(4, genesis_id, "skip"), "proposer": "alice"},
+                {**genesis_one, "height": True},
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "consensus.poa",
+            "SPEC/features/consensus-poa.md",
+            "PoA object: rotating authorities, longest tip, lowest-id tie-break.",
+        ),
+        "authorities": POA_AUTHORITIES,
+        "genesis_one_id": genesis_id,
+        "fork_alt_id": alt_id,
         "replay": replay,
     }
 
@@ -3635,6 +3764,7 @@ def main() -> int:
     write("discovery-peer.json", discovery_peer_vectors())
     write("discovery-local.json", discovery_local_vectors())
     print("\nLevel 2 — consensus")
+    write("consensus-poa.json", consensus_poa_vectors())
     write("consensus-pow.json", consensus_pow_vectors())
     write("consensus-pos.json", consensus_pos_vectors())
     write("consensus-pbft.json", consensus_pbft_vectors())

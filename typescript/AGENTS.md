@@ -40,6 +40,7 @@ src/
   vrf.ts         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.ts   Address book and local-discovery policy
   consensusPow.ts    Prototype PoW object
+  consensusPoa.ts    Prototype PoA object
   consensusPos.ts    Prototype PoS object
   consensusPbft.ts   Prototype PBFT object
   ledgerBalance.ts   Prototype account ledger

@@ -1,0 +1,479 @@
+{
+  "feature": "consensus.poa",
+  "spec": "SPEC/features/consensus-poa.md",
+  "description": "PoA object: rotating authorities, longest tip, lowest-id tie-break.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "authorities": [
+    "alice",
+    "bob",
+    "carol"
+  ],
+  "genesis_one_id": "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+  "fork_alt_id": "5e862980c378b112319395a9e961ed52095212c8360d67e778b46f2db8d68bcb",
+  "replay": [
+    {
+      "name": "empty then three-block rotation",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "height": 1,
+          "tip": "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e\",\"payload\":\"two\",\"proposer\":\"bob\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+            "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+            "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9"
+          ],
+          "height": 2,
+          "tip": "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":3,\"parent\":\"87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9\",\"payload\":\"three\",\"proposer\":\"carol\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+            "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9",
+            "52fea677738ac466c594a9f532aab239c8c1f9a7cc2b638789029b8d1f7d99ae"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+            "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9",
+            "52fea677738ac466c594a9f532aab239c8c1f9a7cc2b638789029b8d1f7d99ae"
+          ],
+          "height": 3,
+          "tip": "52fea677738ac466c594a9f532aab239c8c1f9a7cc2b638789029b8d1f7d99ae"
+        }
+      ]
+    },
+    {
+      "name": "wrong proposer at genesis",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"dave\"}",
+          "accepted": false,
+          "blocks": [],
+          "canonical": [],
+          "height": 0,
+          "tip": ""
+        }
+      ]
+    },
+    {
+      "name": "wrong turn then correct proposer",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "height": 1,
+          "tip": "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e\",\"payload\":\"skip\",\"proposer\":\"alice\"}",
+          "accepted": false,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "height": 1,
+          "tip": "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e\",\"payload\":\"two\",\"proposer\":\"bob\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+            "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+            "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9"
+          ],
+          "height": 2,
+          "tip": "87b8be435dfb9447ccd2d2ef5edb40f345166be3311d674ad078064c2b48efc9"
+        }
+      ]
+    },
+    {
+      "name": "duplicate block rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "height": 1,
+          "tip": "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"alice\"}",
+          "accepted": false,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "height": 1,
+          "tip": "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+        }
+      ]
+    },
+    {
+      "name": "same-height fork prefers lowest id",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "canonical": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+          ],
+          "height": 1,
+          "tip": "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"alt\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "blocks": [
+            "bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e",
+            "5e862980c378b112319395a9e961ed52095212c8360d67e778b46f2db8d68bcb"
+          ],
+          "canonical": [
+            "5e862980c378b112319395a9e961ed52095212c8360d67e778b46f2db8d68bcb"
+          ],
+          "height": 1,
+          "tip": "5e862980c378b112319395a9e961ed52095212c8360d67e778b46f2db8d68bcb"
+        }
+      ]
+    },
+    {
+      "name": "multi-block reorg and recovery",
+      "min_reorg_depth": 2,
+      "reorg_count": 2,
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"genesis\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd"
+          ],
+          "height": 1,
+          "tip": "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd\",\"payload\":\"main-2\",\"proposer\":\"bob\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c"
+          ],
+          "height": 2,
+          "tip": "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":3,\"parent\":\"8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c\",\"payload\":\"main-3\",\"proposer\":\"carol\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7"
+          ],
+          "height": 3,
+          "tip": "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd\",\"payload\":\"side-2\",\"proposer\":\"bob\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7"
+          ],
+          "height": 3,
+          "tip": "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":3,\"parent\":\"429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386\",\"payload\":\"side-3\",\"proposer\":\"carol\"}",
+          "accepted": true,
+          "reorg": true,
+          "reorg_depth": 2,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a"
+          ],
+          "height": 3,
+          "tip": "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":4,\"parent\":\"67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a\",\"payload\":\"side-4\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef"
+          ],
+          "height": 4,
+          "tip": "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":5,\"parent\":\"0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef\",\"payload\":\"side-5\",\"proposer\":\"bob\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef",
+            "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef",
+            "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70"
+          ],
+          "height": 5,
+          "tip": "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":4,\"parent\":\"b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7\",\"payload\":\"resume-4\",\"proposer\":\"alice\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef",
+            "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70",
+            "0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef",
+            "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70"
+          ],
+          "height": 5,
+          "tip": "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":5,\"parent\":\"0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01\",\"payload\":\"resume-5\",\"proposer\":\"bob\"}",
+          "accepted": true,
+          "reorg": true,
+          "reorg_depth": 4,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef",
+            "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70",
+            "0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01",
+            "1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01",
+            "1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491"
+          ],
+          "height": 5,
+          "tip": "1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":6,\"parent\":\"1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491\",\"payload\":\"resume-6\",\"proposer\":\"carol\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef",
+            "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70",
+            "0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01",
+            "1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491",
+            "3244e24b0874a32925abf49c263e3c60f606cb0368486bf050438255517f049b"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01",
+            "1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491",
+            "3244e24b0874a32925abf49c263e3c60f606cb0368486bf050438255517f049b"
+          ],
+          "height": 6,
+          "tip": "3244e24b0874a32925abf49c263e3c60f606cb0368486bf050438255517f049b"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd\",\"payload\":\"lost\",\"proposer\":\"bob\"}",
+          "accepted": true,
+          "reorg": false,
+          "reorg_depth": 0,
+          "blocks": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "429ff19390f57a7087d24eb22a5289a88d6015926ffd2a1a1df286e376dca386",
+            "67eaab003c66cae2304d52c942b6cceebb66db2469c59424dff5fc48b32cc42a",
+            "0fbba51179dccfe27c94df99efc2b62a30b9765746c0899b396a1713bb1253ef",
+            "6338920cadf53961ba61cef77310119224606d144cd60452f081580fa3e65a70",
+            "0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01",
+            "1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491",
+            "3244e24b0874a32925abf49c263e3c60f606cb0368486bf050438255517f049b",
+            "5b248756433539bd3269334c9ec43c3850b80ace4343ab61acba70328e3ca04d"
+          ],
+          "canonical": [
+            "fd5981e99a58c5ff11780b8f9dbbda8a87674b5076d2b5d2bb4dd5dbb31844cd",
+            "8bf33e81e3c4e3f27d00a47c2aa72c14df8c582c688e5745c5bf03cf5003005c",
+            "b6da6f962c951713d1b003e93f3917103405e37d1bb3eb14d1a45841fa170ae7",
+            "0f0a38bd4c99ec8b7b4628cfdd4bc68415980a51a48408debaa9bc410c3f4c01",
+            "1878d33a9a0cb2f8ba8240b6f5971cdb1bbbf244628c2ba4e0df2ef6996cb491",
+            "3244e24b0874a32925abf49c263e3c60f606cb0368486bf050438255517f049b"
+          ],
+          "height": 6,
+          "tip": "3244e24b0874a32925abf49c263e3c60f606cb0368486bf050438255517f049b"
+        }
+      ]
+    },
+    {
+      "name": "rejection pins",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":0,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"alice\"}",
+          "accepted": false,
+          "blocks": [],
+          "canonical": [],
+          "height": 0,
+          "tip": ""
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":1,\"parent\":\"\",\"payload\":\"\",\"proposer\":\"alice\"}",
+          "accepted": false,
+          "blocks": [],
+          "canonical": [],
+          "height": 0,
+          "tip": ""
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"\",\"payload\":\"early\",\"proposer\":\"bob\"}",
+          "accepted": false,
+          "blocks": [],
+          "canonical": [],
+          "height": 0,
+          "tip": ""
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":2,\"parent\":\"deadbeef\",\"payload\":\"orphan\",\"proposer\":\"bob\"}",
+          "accepted": false,
+          "blocks": [],
+          "canonical": [],
+          "height": 0,
+          "tip": ""
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":4,\"parent\":\"bacc2b51526ad448438a17af0d358a4f1be139917a1e1fbcff6be802c3f7c24e\",\"payload\":\"skip\",\"proposer\":\"alice\"}",
+          "accepted": false,
+          "blocks": [],
+          "canonical": [],
+          "height": 0,
+          "tip": ""
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"height\":true,\"parent\":\"\",\"payload\":\"one\",\"proposer\":\"alice\"}",
+          "accepted": false,
+          "blocks": [],
+          "canonical": [],
+          "height": 0,
+          "tip": ""
+        }
+      ]
+    }
+  ]
+}

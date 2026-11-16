@@ -46,6 +46,7 @@ FEATURES = frozenset(
         "consensus.pow",
         "consensus.pos",
         "consensus.pbft",
+        "consensus.poa",
         "consensus.avalanche",
         "ledger.balance",
         "ledger.utxo",

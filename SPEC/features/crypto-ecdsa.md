@@ -1,6 +1,6 @@
 # crypto.ecdsa
 
-**Release:** 1.5.0
+**Release:** 1.6.0
 
 ECDSA over secp256k1. Level 2 signing primitive used by ledgers and by `crypto.vrf`.
 

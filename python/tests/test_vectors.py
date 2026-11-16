@@ -495,6 +495,64 @@ def test_discovery_local_sequence(case):
 # --- Level 2 consensus ------------------------------------------------------
 
 
+@cases("consensus-poa.json", "replay")
+def test_consensus_poa_replay(case):
+    from chaincraft.consensus_poa import ProofOfAuthority
+
+    authorities = load("consensus-poa.json")["authorities"]
+    obj = ProofOfAuthority(authorities)
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "blocks": step["blocks"],
+            "canonical": step["canonical"],
+            "height": step["height"],
+            "tip": step["tip"],
+        }, where
+    if "reorg_count" in case:
+        reorgs = [step for step in case["steps"] if step["reorg"]]
+        assert len(reorgs) == case["reorg_count"]
+        assert min(step["reorg_depth"] for step in reorgs) >= case["min_reorg_depth"]
+
+
+def test_consensus_poa_constructor():
+    from chaincraft.consensus_poa import ProofOfAuthority, proposer_for
+
+    with pytest.raises(ValueError):
+        ProofOfAuthority([])
+    with pytest.raises(ValueError):
+        ProofOfAuthority(["alice", "alice"])
+    with pytest.raises(ValueError):
+        ProofOfAuthority(["alice", ""])
+    solo = ProofOfAuthority(["solo"])
+    assert proposer_for(1, solo.authorities) == "solo"
+    assert proposer_for(2, solo.authorities) == "solo"
+    msg1 = {
+        "consensus": "poa",
+        "height": 1,
+        "parent": "",
+        "payload": "a",
+        "proposer": "solo",
+    }
+    assert solo.is_valid(msg1)
+    solo.add_message(msg1)
+    msg2 = {
+        "consensus": "poa",
+        "height": 2,
+        "parent": solo.state()["tip"],
+        "payload": "b",
+        "proposer": "solo",
+    }
+    assert solo.is_valid(msg2)
+    solo.add_message(msg2)
+    assert solo.state()["height"] == 2
+
+
 @cases("consensus-pow.json", "replay")
 def test_consensus_pow_replay(case):
     from chaincraft.consensus_pow import ProofOfWork
@@ -717,7 +775,9 @@ def test_storage_index_sequence(case):
         elif op == "put":
             assert store.put(step["id"], step["body"]) is step["added"], where
         elif op == "query":
-            assert store.query(step["type"], step["field"], step["value"]) == step["hits"], where
+            assert (
+                store.query(step["type"], step["field"], step["value"]) == step["hits"]
+            ), where
         elif op == "remove":
             assert store.remove(step["id"]) is step["removed"], where
         elif op == "load":
@@ -957,7 +1017,9 @@ def test_nat_sequence(case):
                 "addr": step["addr"],
             }, where
         elif op == "observe_punch":
-            assert node.observe_punch(step["datagram"], step["from"]) is step["ok"], where
+            assert (
+                node.observe_punch(step["datagram"], step["from"]) is step["ok"]
+            ), where
         elif op == "relay_request":
             assert node.relay_request(step["target"]) == {
                 "ok": step["ok"],
@@ -1041,7 +1103,9 @@ def test_app_stream_replay(case):
         assert obj.state() == {"streams": step["streams"]}, where
         for probe in step.get("reads", []):
             assert (
-                obj.read(probe["stream"], probe["partition"], probe["after"], probe["limit"])
+                obj.read(
+                    probe["stream"], probe["partition"], probe["after"], probe["limit"]
+                )
                 == probe["events"]
             ), where
 
