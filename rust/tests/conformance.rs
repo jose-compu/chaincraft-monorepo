@@ -14,8 +14,8 @@ use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
 use chaincraft::consensus_avalanche::Avalanche;
 use chaincraft::consensus_pbft::Pbft;
-use chaincraft::consensus_poet::ProofOfElapsedTime;
 use chaincraft::consensus_poa::ProofOfAuthority;
+use chaincraft::consensus_poet::ProofOfElapsedTime;
 use chaincraft::consensus_pos::ProofOfStake;
 use chaincraft::consensus_pow::ProofOfWork;
 use chaincraft::control;
@@ -1107,9 +1107,7 @@ fn consensus_poet_constructor() {
         empty.emit_state_memento().canonical_digest,
         "b937f65d3e33b1d2041b879a146f6ab092b2f1d3ff5a228ed1d9bf42268d357f"
     );
-    let proof = vdf::proof_to_hex(
-        &vdf::evaluate(b"poet-round", 2).expect("evaluate"),
-    );
+    let proof = vdf::proof_to_hex(&vdf::evaluate(b"poet-round", 2).expect("evaluate"));
     let alice = parse_json(&format!(
         r#"{{"author":"alice","consensus":"poet","payload":"one","proof":"{proof}","wait":2}}"#
     ))
