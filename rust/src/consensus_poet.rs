@@ -75,7 +75,7 @@ impl ProofOfElapsedTime {
             return None;
         }
         let wait_raw = obj.get("wait").and_then(JsonValue::as_i64)?;
-        if wait_raw < 1 || wait_raw > 4_294_967_295 {
+        if !(1..=4_294_967_295).contains(&wait_raw) {
             return None;
         }
         let wait = wait_raw as u32;
