@@ -520,6 +520,68 @@ def test_consensus_poa_replay(case):
         assert min(step["reorg_depth"] for step in reorgs) >= case["min_reorg_depth"]
 
 
+@cases("consensus-poet.json", "replay")
+def test_consensus_poet_replay(case):
+    from chaincraft.consensus_poet import ProofOfElapsedTime
+
+    seed = load("consensus-poet.json")["seed"]
+    obj = ProofOfElapsedTime(seed)
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "canonical": step["canonical"],
+            "tickets": step["tickets"],
+            "wait": step["wait"],
+            "winner": step["winner"],
+        }, where
+
+
+def test_consensus_poet_constructor():
+    from chaincraft.consensus_poet import ProofOfElapsedTime, ticket_id
+    from chaincraft import vdf
+
+    with pytest.raises(ValueError):
+        ProofOfElapsedTime("")
+    empty = ProofOfElapsedTime("poet-round")
+    assert (
+        empty.emit_state_memento().canonical_digest
+        == "b937f65d3e33b1d2041b879a146f6ab092b2f1d3ff5a228ed1d9bf42268d357f"
+    )
+    proof = vdf.proof_to_hex(vdf.evaluate(b"poet-round", 2))
+    msg = {
+        "author": "alice",
+        "consensus": "poet",
+        "payload": "one",
+        "proof": proof,
+        "wait": 2,
+    }
+    fresh = ProofOfElapsedTime("poet-round")
+    assert fresh.is_valid(msg)
+    fresh.add_message(msg)
+    assert (
+        fresh.emit_state_memento().canonical_digest
+        == "671e91205e93cc18534c619c1caf6fdd469e1bdfbeb468dd65f43287c5315eb4"
+    )
+    bob = {
+        "author": "bob",
+        "consensus": "poet",
+        "payload": "two",
+        "proof": vdf.proof_to_hex(vdf.evaluate(b"poet-round", 1)),
+        "wait": 1,
+    }
+    fresh.add_message(bob)
+    assert (
+        fresh.emit_state_memento().canonical_digest
+        == "fd8a92143478eff67f0132fbc0fa293509ec06911fb41a0f61d1baffb7f84a04"
+    )
+    assert ticket_id("alice", "one", proof, 2) == load("consensus-poet.json")["alice_id"]
+
+
 def test_consensus_poa_constructor():
     from chaincraft.consensus_poa import ProofOfAuthority, proposer_for
 

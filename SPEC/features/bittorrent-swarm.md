@@ -1,6 +1,6 @@
 # bittorrent.swarm
 
-**Release:** 1.6.0
+**Release:** 1.7.0
 
 Prototype BitTorrent swarm. It tracks one or more torrents: metainfo,
 verified piece bytes, and which peers have which pieces.

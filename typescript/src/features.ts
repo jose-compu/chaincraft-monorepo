@@ -8,7 +8,7 @@
  * Add an ID here only when the feature is implemented and its vectors pass.
  */
 
-export const VERSION = '1.6.0';
+export const VERSION = '1.7.0';
 export const WIRE_VERSION = 1;
 export const IMPL = `ts-chaincraft/${VERSION}`;
 export const LANGUAGE = 'typescript';
@@ -44,6 +44,7 @@ export const FEATURES: readonly string[] = [
   'consensus.pos',
   'consensus.pbft',
   'consensus.poa',
+  'consensus.poet',
   'consensus.avalanche',
   'ledger.balance',
   'ledger.utxo',

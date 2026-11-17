@@ -35,6 +35,10 @@ from chaincraft import (  # noqa: E402
 from chaincraft.consensus_avalanche import Avalanche  # noqa: E402
 from chaincraft.consensus_pbft import PBFT  # noqa: E402
 from chaincraft.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
+from chaincraft.consensus_poet import (  # noqa: E402
+    ProofOfElapsedTime,
+    ticket_id as poet_ticket_id,
+)
 from chaincraft.consensus_poa import (  # noqa: E402
     ProofOfAuthority,
     block_id as poa_block_id,
@@ -1415,6 +1419,104 @@ def consensus_pow_vectors() -> Dict[str, Any]:
             "PoW object: leading-zero work, longest tip, lowest-id tie-break.",
         ),
         "difficulty": difficulty,
+        "replay": replay,
+    }
+
+
+POET_SEED = "poet-round"
+
+
+def _poet_ticket(author: str, payload: str, wait: int) -> Dict[str, Any]:
+    seed = POET_SEED.encode("utf-8")
+    proof = vdf.proof_to_hex(vdf.evaluate(seed, wait))
+    return {
+        "author": author,
+        "consensus": "poet",
+        "payload": payload,
+        "proof": proof,
+        "wait": wait,
+    }
+
+
+def _replay_poet(name: str, factory, messages: List[Any], track_reorg: bool = False) -> Dict[str, Any]:
+    obj = factory()
+    steps = []
+    previous: List[str] = []
+    prev_winner = ""
+    for message in messages:
+        accepted = obj.is_valid(message)
+        if accepted:
+            obj.add_message(message)
+        state = obj.state()
+        step = {
+            "message_json": canonical_json(message),
+            "accepted": accepted,
+            **state,
+        }
+        if track_reorg:
+            canon = state["canonical"]
+            shared = 0
+            while shared < len(previous) and shared < len(canon) and previous[shared] == canon[shared]:
+                shared += 1
+            reorg = bool(prev_winner) and prev_winner not in canon
+            step["reorg"] = reorg
+            step["reorg_depth"] = (len(previous) - shared) if reorg else 0
+            previous = list(canon)
+            prev_winner = state["winner"]
+        steps.append(step)
+    return {"name": name, "steps": steps}
+
+
+def consensus_poet_vectors() -> Dict[str, Any]:
+    alice = _poet_ticket("alice", "one", 2)
+    bob = _poet_ticket("bob", "two", 1)
+    carol = _poet_ticket("carol", "three", 2)
+    dave = _poet_ticket("dave", "four", 2)
+    erin = _poet_ticket("erin", "five", 3)
+    bob_proof = bob["proof"]
+    factory = lambda: ProofOfElapsedTime(POET_SEED)  # noqa: E731
+    replay = [
+        _replay_poet(
+            "shortest wait replaces winner",
+            factory,
+            [alice, bob, erin],
+            track_reorg=True,
+        ),
+        _replay_poet(
+            "equal wait lowest id wins",
+            factory,
+            [alice, dave, carol],
+            track_reorg=True,
+        ),
+        _replay_poet("duplicate ticket rejected", factory, [alice, alice]),
+        _replay_poet(
+            "rejection pins",
+            factory,
+            [
+                {**alice, "wait": 0},
+                {**alice, "wait": True},
+                {**alice, "wait": 4_294_967_296},
+                {**alice, "author": ""},
+                {**alice, "payload": ""},
+                {**alice, "consensus": "poa"},
+                {**alice, "proof": "1"},
+                {**bob, "wait": 2},
+                {**bob, "proof": bob_proof.upper()},
+                {**bob, "proof": "0" + bob_proof},
+            ],
+        ),
+    ]
+    alice_id = poet_ticket_id("alice", "one", alice["proof"], 2)
+    bob_id = poet_ticket_id("bob", "two", bob["proof"], 1)
+    return {
+        **header(
+            "consensus.poet",
+            "SPEC/features/consensus-poet.md",
+            "PoET object: shortest Sloth wait wins; equal wait breaks to lowest id.",
+        ),
+        "seed": POET_SEED,
+        "alice_id": alice_id,
+        "bob_id": bob_id,
         "replay": replay,
     }
 
@@ -3765,6 +3867,7 @@ def main() -> int:
     write("discovery-local.json", discovery_local_vectors())
     print("\nLevel 2 — consensus")
     write("consensus-poa.json", consensus_poa_vectors())
+    write("consensus-poet.json", consensus_poet_vectors())
     write("consensus-pow.json", consensus_pow_vectors())
     write("consensus-pos.json", consensus_pos_vectors())
     write("consensus-pbft.json", consensus_pbft_vectors())

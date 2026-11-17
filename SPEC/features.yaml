@@ -340,6 +340,16 @@ features:
       rust:       { state: implemented, since: "2026-11-16" }
       typescript: { state: implemented, since: "2026-11-16" }
 
+  - id: consensus.poet
+    level: 2
+    spec: SPEC/features/consensus-poet.md
+    summary: Wait-ticket Proof of Elapsed Time; shortest verified Sloth wait wins
+    vectors: conformance/vectors/consensus-poet.json
+    status:
+      python:     { state: implemented, since: "2026-11-17" }
+      rust:       { state: implemented, since: "2026-11-17" }
+      typescript: { state: implemented, since: "2026-11-17" }
+
   - id: consensus.avalanche
     level: 2
     spec: SPEC/features/consensus-avalanche.md
