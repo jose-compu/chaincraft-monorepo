@@ -19,6 +19,7 @@ import {
   PBFT,
   ProofOfStake,
   ProofOfAuthority,
+  ProofOfElapsedTime,
   ProofOfWork,
   BalanceLedger,
   CrdtKv,
@@ -479,6 +480,60 @@ eachCase('consensus-poa.json', 'replay', (c, doc) => {
     const depths = reorgs.map((step: Case) => step['reorg_depth'] as number);
     assert.ok(Math.min(...depths) >= c['min_reorg_depth']);
   }
+});
+
+eachCase('consensus-poet.json', 'replay', (c, doc) => {
+  const seed = doc['seed'] as string;
+  const obj = new ProofOfElapsedTime(seed);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      canonical: step['canonical'],
+      tickets: step['tickets'],
+      wait: step['wait'],
+      winner: step['winner'],
+    }, where);
+  }
+});
+
+test('ProofOfElapsedTime constructor', () => {
+  assert.throws(() => new ProofOfElapsedTime(''));
+  const empty = new ProofOfElapsedTime('poet-round');
+  assert.equal(
+    empty.emitStateMemento().canonicalDigest,
+    'b937f65d3e33b1d2041b879a146f6ab092b2f1d3ff5a228ed1d9bf42268d357f',
+  );
+  const proof = vdf.proofToHex(vdf.evaluate(new TextEncoder().encode('poet-round'), 2));
+  const msg = {
+    author: 'alice',
+    consensus: 'poet',
+    payload: 'one',
+    proof,
+    wait: 2,
+  };
+  const fresh = new ProofOfElapsedTime('poet-round');
+  assert.ok(fresh.isValid(msg));
+  fresh.addMessage(msg);
+  assert.equal(
+    fresh.emitStateMemento().canonicalDigest,
+    '671e91205e93cc18534c619c1caf6fdd469e1bdfbeb468dd65f43287c5315eb4',
+  );
+  const bobProof = vdf.proofToHex(vdf.evaluate(new TextEncoder().encode('poet-round'), 1));
+  fresh.addMessage({
+    author: 'bob',
+    consensus: 'poet',
+    payload: 'two',
+    proof: bobProof,
+    wait: 1,
+  });
+  assert.equal(
+    fresh.emitStateMemento().canonicalDigest,
+    'fd8a92143478eff67f0132fbc0fa293509ec06911fb41a0f61d1baffb7f84a04',
+  );
 });
 
 test('ProofOfAuthority constructor', () => {
@@ -1028,6 +1083,7 @@ test('every vector file declares its feature', () => {
     'discovery-peer.json',
     'discovery-local.json',
     'consensus-poa.json',
+    'consensus-poet.json',
     'consensus-pow.json',
     'consensus-pos.json',
     'consensus-pbft.json',

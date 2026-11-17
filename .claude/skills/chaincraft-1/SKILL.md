@@ -1,27 +1,27 @@
 ---
 name: chaincraft-1
 description: >-
-  Bootstraps Chaincraft 1.6.0 in Python, Rust, and TypeScript: install from
-  the v1.6.0 tag, run mesh nodes, implement receive / Protocol /
-  BaseSharedObject, assemble PoW PoS PoA PBFT Avalanche chains and a LWW CRDT
+  Bootstraps Chaincraft 1.7.0 in Python, Rust, and TypeScript: install from
+  the v1.7.0 tag, run mesh nodes, implement receive / Protocol /
+  BaseSharedObject, assemble PoW PoS PoA PoET PBFT Avalanche chains and a LWW CRDT
   at feature parity. Use when starting work in this monorepo, writing a
   protocol or blockchain object,
   running chaincraft-node, or when the user mentions Chaincraft, @chaincraft/core,
   chaincraft.node, or parity.
 ---
 
-# Chaincraft 1.6.0 — agent bootstrap
+# Chaincraft 1.7.0 — agent bootstrap
 
 Read this, then root `AGENTS.md`. Spec is `SPEC/`. Do not copy one language into another.
 
-Spec release **1.6.0**. Wire protocol `v` stays **1**. Packages: PyPI and crates.io `chaincraft` 1.6.0, npm `@chaincraft/core` 1.6.0. Unscoped npm `chaincraft` is another project.
+Spec release **1.7.0**. Wire protocol `v` stays **1**. Packages: PyPI and crates.io `chaincraft` 1.7.0, npm `@chaincraft/core` 1.7.0. Unscoped npm `chaincraft` is another project.
 
 ## Install
 
 From the clone root. Python 3.9+, Rust 1.74+, Node 20+.
 
 ```bash
-git clone --branch v1.6.0 https://github.com/jose-compu/chaincraft-monorepo.git
+git clone --branch v1.7.0 https://github.com/jose-compu/chaincraft-monorepo.git
 cd chaincraft-monorepo
 python3 -m pip install -e "./python[dev]"
 cargo build --bin chaincraft-node --manifest-path rust/Cargo.toml
@@ -100,7 +100,7 @@ Rust — `impl Protocol for Room` (`ApplicationObject` is the full contract). Ty
 
 ## Blockchain path
 
-Compose on the same mesh: `ProofOfWork` / `ProofOfStake` / `PBFT` / `Avalanche` + `BalanceLedger` or `UtxoLedger` + mempool + fees. `CrdtKv` is a last-write-wins store. Specs under `SPEC/features/consensus-*.md`, `protocol-crdt-kv.md`, `ledger-*.md`, `mempool-basic.md`, `fees-policy.md`.
+Compose on the same mesh: `ProofOfWork` / `ProofOfStake` / `ProofOfAuthority` / `ProofOfElapsedTime` / `PBFT` / `Avalanche` + `BalanceLedger` or `UtxoLedger` + mempool + fees. `CrdtKv` is a last-write-wins store. Specs under `SPEC/features/consensus-*.md`, `protocol-crdt-kv.md`, `ledger-*.md`, `mempool-basic.md`, `fees-policy.md`.
 
 ## Layout
 

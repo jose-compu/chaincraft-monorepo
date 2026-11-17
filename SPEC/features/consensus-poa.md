@@ -1,6 +1,6 @@
 # consensus.poa
 
-**Release:** 1.6.0
+**Release:** 1.7.0
 
 Prototype proof-of-authority object. A fixed authority list rotates by block
 height. Only the authority for that height may propose. It implements the Level

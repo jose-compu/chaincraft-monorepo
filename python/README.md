@@ -1,9 +1,9 @@
 # chaincraft
 
 Reference implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.6.0](https://pypi.org/project/chaincraft/1.6.0/)** on PyPI.
-1.6.0 adds `consensus.poa` (Proof of Authority with rotation by height).
-46 of 46 registry features are implemented in Python.
+Release **[1.7.0](https://pypi.org/project/chaincraft/1.7.0/)** on PyPI.
+1.7.0 adds `consensus.poet` (Proof of Elapsed Time on a shared Sloth seed).
+47 of 47 registry features are implemented in Python.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.

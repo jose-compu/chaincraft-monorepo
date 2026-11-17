@@ -90,13 +90,14 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, NAT traversal, Avalanche,
 and a last-write-wins CRDT:
-46 of 46 features each (TypeScript 45 implemented plus the UDP framing exemption).
-The spec release is 1.6.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
-Git tag [`v1.6.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.6.0).
-[PyPI `chaincraft` 1.6.0](https://pypi.org/project/chaincraft/1.6.0/),
-[crates.io `chaincraft` 1.6.0](https://crates.io/crates/chaincraft) and
-[npm `@chaincraft/core` 1.6.0](https://www.npmjs.com/package/@chaincraft/core).
-1.6.0 adds `consensus.poa` (Proof of Authority with rotation by block height).
+47 of 47 features each (TypeScript 46 implemented plus the UDP framing exemption).
+The spec release is 1.7.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+Git tag [`v1.7.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.7.0).
+[PyPI `chaincraft` 1.7.0](https://pypi.org/project/chaincraft/1.7.0/),
+[crates.io `chaincraft` 1.7.0](https://crates.io/crates/chaincraft) and
+[npm `@chaincraft/core` 1.7.0](https://www.npmjs.com/package/@chaincraft/core).
+1.7.0 adds `consensus.poet` (Proof of Elapsed Time: shortest Sloth wait wins).
+Render the release banner locally: `python3 brand/render.py banner --version 1.7.0 --headline "Proof of Elapsed Time"`.
 `@chaincraft/core/browser` fetches a PeerJS id and does not import the TCP mesh.
 The default broker is `https://dechess-org-peerjs.vercel.app`.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no

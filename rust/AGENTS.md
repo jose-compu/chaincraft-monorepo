@@ -35,6 +35,7 @@ src/
   discovery.rs   Address book and local-discovery policy
   consensus_pow.rs   Prototype PoW object
   consensus_poa.rs   Prototype PoA object
+  consensus_poet.rs  Prototype PoET object
   consensus_pos.rs   Prototype PoS object
   consensus_pbft.rs  Prototype PBFT object
   ledger_balance.rs  Prototype account ledger

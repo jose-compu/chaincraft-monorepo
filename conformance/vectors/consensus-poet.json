@@ -1,0 +1,226 @@
+{
+  "feature": "consensus.poet",
+  "spec": "SPEC/features/consensus-poet.md",
+  "description": "PoET object: shortest Sloth wait wins; equal wait breaks to lowest id.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "seed": "poet-round",
+  "alice_id": "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+  "bob_id": "e36a77fd5956d7110e492c5396ba8db73e743c2fd2a241ad5f44048d4333a66e",
+  "replay": [
+    {
+      "name": "shortest wait replaces winner",
+      "steps": [
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": true,
+          "canonical": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "wait": 2,
+          "winner": "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+          "reorg": false,
+          "reorg_depth": 0
+        },
+        {
+          "message_json": "{\"author\":\"bob\",\"consensus\":\"poet\",\"payload\":\"two\",\"proof\":\"6a0977045afb8f07bb35a868de75122052e6e8cb77e0ca2ea4d7a9d4081a9588\",\"wait\":1}",
+          "accepted": true,
+          "canonical": [
+            "e36a77fd5956d7110e492c5396ba8db73e743c2fd2a241ad5f44048d4333a66e"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+            "e36a77fd5956d7110e492c5396ba8db73e743c2fd2a241ad5f44048d4333a66e"
+          ],
+          "wait": 1,
+          "winner": "e36a77fd5956d7110e492c5396ba8db73e743c2fd2a241ad5f44048d4333a66e",
+          "reorg": true,
+          "reorg_depth": 1
+        },
+        {
+          "message_json": "{\"author\":\"erin\",\"consensus\":\"poet\",\"payload\":\"five\",\"proof\":\"2a9c997db0734c3bcb42d100fa96cd37394667f00bec5a01254902a1ad55a8e6\",\"wait\":3}",
+          "accepted": true,
+          "canonical": [
+            "e36a77fd5956d7110e492c5396ba8db73e743c2fd2a241ad5f44048d4333a66e"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+            "e36a77fd5956d7110e492c5396ba8db73e743c2fd2a241ad5f44048d4333a66e",
+            "b5e9e98e346b4f15790649f589dbfac241abcc65e7a8943b48650de7cbed3fed"
+          ],
+          "wait": 1,
+          "winner": "e36a77fd5956d7110e492c5396ba8db73e743c2fd2a241ad5f44048d4333a66e",
+          "reorg": false,
+          "reorg_depth": 0
+        }
+      ]
+    },
+    {
+      "name": "equal wait lowest id wins",
+      "steps": [
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": true,
+          "canonical": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "wait": 2,
+          "winner": "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+          "reorg": false,
+          "reorg_depth": 0
+        },
+        {
+          "message_json": "{\"author\":\"dave\",\"consensus\":\"poet\",\"payload\":\"four\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": true,
+          "canonical": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+            "f93f5a365750cf99c25ad802d1aa0c8bf3013519c1d6b40b3b56d16c0c0abf50"
+          ],
+          "wait": 2,
+          "winner": "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+          "reorg": false,
+          "reorg_depth": 0
+        },
+        {
+          "message_json": "{\"author\":\"carol\",\"consensus\":\"poet\",\"payload\":\"three\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": true,
+          "canonical": [
+            "719821f2ff7e3d2f9ccf69be3fa5ed89cc55157d8ce7bf0fcc74c801d1ff003e"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827",
+            "f93f5a365750cf99c25ad802d1aa0c8bf3013519c1d6b40b3b56d16c0c0abf50",
+            "719821f2ff7e3d2f9ccf69be3fa5ed89cc55157d8ce7bf0fcc74c801d1ff003e"
+          ],
+          "wait": 2,
+          "winner": "719821f2ff7e3d2f9ccf69be3fa5ed89cc55157d8ce7bf0fcc74c801d1ff003e",
+          "reorg": true,
+          "reorg_depth": 1
+        }
+      ]
+    },
+    {
+      "name": "duplicate ticket rejected",
+      "steps": [
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": true,
+          "canonical": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "wait": 2,
+          "winner": "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+        },
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": false,
+          "canonical": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "tickets": [
+            "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+          ],
+          "wait": 2,
+          "winner": "8bf2c0086456acfa5c75ed8aa14f41181e121c9b507aac244d0d9d7bac8f8827"
+        }
+      ]
+    },
+    {
+      "name": "rejection pins",
+      "steps": [
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":0}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":true}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":4294967296}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poa\",\"payload\":\"one\",\"proof\":\"6ff6800f0397aee1c8406dfd6d12ddb502af5335ef18052e18ab3d71438f3a1a\",\"wait\":2}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"alice\",\"consensus\":\"poet\",\"payload\":\"one\",\"proof\":\"1\",\"wait\":2}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"bob\",\"consensus\":\"poet\",\"payload\":\"two\",\"proof\":\"6a0977045afb8f07bb35a868de75122052e6e8cb77e0ca2ea4d7a9d4081a9588\",\"wait\":2}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"bob\",\"consensus\":\"poet\",\"payload\":\"two\",\"proof\":\"6A0977045AFB8F07BB35A868DE75122052E6E8CB77E0CA2EA4D7A9D4081A9588\",\"wait\":1}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        },
+        {
+          "message_json": "{\"author\":\"bob\",\"consensus\":\"poet\",\"payload\":\"two\",\"proof\":\"06a0977045afb8f07bb35a868de75122052e6e8cb77e0ca2ea4d7a9d4081a9588\",\"wait\":1}",
+          "accepted": false,
+          "canonical": [],
+          "tickets": [],
+          "wait": 0,
+          "winner": ""
+        }
+      ]
+    }
+  ]
+}

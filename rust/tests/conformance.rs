@@ -14,6 +14,7 @@ use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
 use chaincraft::consensus_avalanche::Avalanche;
 use chaincraft::consensus_pbft::Pbft;
+use chaincraft::consensus_poet::ProofOfElapsedTime;
 use chaincraft::consensus_poa::ProofOfAuthority;
 use chaincraft::consensus_pos::ProofOfStake;
 use chaincraft::consensus_pow::ProofOfWork;
@@ -1068,6 +1069,68 @@ fn consensus_poa_constructor() {
     solo.add_message(&child_val, None);
     let (_, _, height, _) = solo.state();
     assert_eq!(height, 2);
+}
+
+#[test]
+fn consensus_poet_replay() {
+    let doc = load("consensus-poet.json");
+    let seed = doc["seed"].as_str().unwrap();
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = ProofOfElapsedTime::new(seed).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (canonical, tickets, wait, winner) = obj.state();
+            assert_eq!(
+                canonical,
+                json_strings(&step["canonical"]),
+                "{where_} canonical"
+            );
+            assert_eq!(tickets, json_strings(&step["tickets"]), "{where_} tickets");
+            assert_eq!(wait, step["wait"].as_u64().unwrap() as u32, "{where_} wait");
+            assert_eq!(winner, step["winner"].as_str().unwrap(), "{where_} winner");
+        }
+    }
+}
+
+#[test]
+fn consensus_poet_constructor() {
+    assert!(ProofOfElapsedTime::new("").is_err());
+    let empty = ProofOfElapsedTime::new("poet-round").unwrap();
+    assert_eq!(
+        empty.emit_state_memento().canonical_digest,
+        "b937f65d3e33b1d2041b879a146f6ab092b2f1d3ff5a228ed1d9bf42268d357f"
+    );
+    let proof = vdf::proof_to_hex(
+        &vdf::evaluate(b"poet-round", 2).expect("evaluate"),
+    );
+    let alice = parse_json(&format!(
+        r#"{{"author":"alice","consensus":"poet","payload":"one","proof":"{proof}","wait":2}}"#
+    ))
+    .unwrap();
+    let mut fresh = ProofOfElapsedTime::new("poet-round").unwrap();
+    assert!(fresh.is_valid(&alice));
+    fresh.add_message(&alice, None);
+    assert_eq!(
+        fresh.emit_state_memento().canonical_digest,
+        "671e91205e93cc18534c619c1caf6fdd469e1bdfbeb468dd65f43287c5315eb4"
+    );
+    let bob_proof = vdf::proof_to_hex(&vdf::evaluate(b"poet-round", 1).unwrap());
+    let bob = parse_json(&format!(
+        r#"{{"author":"bob","consensus":"poet","payload":"two","proof":"{bob_proof}","wait":1}}"#
+    ))
+    .unwrap();
+    fresh.add_message(&bob, None);
+    assert_eq!(
+        fresh.emit_state_memento().canonical_digest,
+        "fd8a92143478eff67f0132fbc0fa293509ec06911fb41a0f61d1baffb7f84a04"
+    );
 }
 
 #[test]
@@ -2319,6 +2382,7 @@ fn vector_files_declare_feature() {
         "discovery-peer.json",
         "discovery-local.json",
         "consensus-poa.json",
+        "consensus-poet.json",
         "consensus-pow.json",
         "consensus-pos.json",
         "consensus-pbft.json",
