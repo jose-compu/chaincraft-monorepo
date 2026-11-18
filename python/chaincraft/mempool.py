@@ -28,7 +28,9 @@ def _is_int(value: Any) -> bool:
 
 
 def transaction_id(fee: int, nonce: int, payload: str, sender: str) -> str:
-    return merkle_digest({"fee": fee, "nonce": nonce, "payload": payload, "sender": sender})
+    return merkle_digest(
+        {"fee": fee, "nonce": nonce, "payload": payload, "sender": sender}
+    )
 
 
 def parse_tx(message: Any) -> Optional[Tuple[str, str, int, int, str]]:
@@ -136,7 +138,9 @@ class Mempool:
             self._discard(txid)
         return len(expired)
 
-    def _result(self, accepted: bool, replaced: str, evicted: str, expired: int) -> Dict[str, Any]:
+    def _result(
+        self, accepted: bool, replaced: str, evicted: str, expired: int
+    ) -> Dict[str, Any]:
         return {
             "accepted": accepted,
             "evicted": evicted,

@@ -36,6 +36,7 @@ src/
   consensus_pow.rs   Prototype PoW object
   consensus_poa.rs   Prototype PoA object
   consensus_poet.rs  Prototype PoET object
+  consensus_beacon.rs  Prototype randomness beacon
   consensus_pos.rs   Prototype PoS object
   consensus_pbft.rs  Prototype PBFT object
   ledger_balance.rs  Prototype account ledger

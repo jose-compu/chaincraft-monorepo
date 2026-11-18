@@ -520,6 +520,69 @@ def test_consensus_poa_replay(case):
         assert min(step["reorg_depth"] for step in reorgs) >= case["min_reorg_depth"]
 
 
+@cases("consensus-beacon.json", "replay")
+def test_consensus_beacon_replay(case):
+    from chaincraft.consensus_beacon import RandomnessBeacon
+
+    obj = RandomnessBeacon()
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "canonical": step["canonical"],
+            "height": step["height"],
+            "output": step["output"],
+            "pulses": step["pulses"],
+        }, where
+
+
+def test_consensus_beacon_constructor():
+    from chaincraft import canonical_json, vrf
+    from chaincraft.consensus_beacon import (
+        GENESIS_PREVIOUS,
+        RandomnessBeacon,
+        pulse_id,
+    )
+
+    empty = RandomnessBeacon()
+    assert (
+        empty.emit_state_memento().canonical_digest
+        == "b3d1cf3908c77c7645bf1bb5daf96e02d92038c62ffb771aec69d247f965f549"
+    )
+    sk = bytes.fromhex(
+        "0000000000000000000000000000000000000000000000000000000000000003"
+    )
+    msg = canonical_json({"height": 0, "previous": GENESIS_PREVIOUS}).encode("utf-8")
+    proof, output, pk = vrf.evaluate(msg, sk)
+    pulse = {
+        "consensus": "beacon",
+        "height": 0,
+        "previous": GENESIS_PREVIOUS,
+        "pk": pk.hex(),
+        "proof": proof.hex(),
+        "output": output.hex(),
+    }
+    assert (
+        pulse_id(
+            pulse["height"],
+            pulse["output"],
+            pulse["pk"],
+            pulse["previous"],
+            pulse["proof"],
+        )
+        == load("consensus-beacon.json")["genesis_id"]
+    )
+    fresh = RandomnessBeacon()
+    assert fresh.is_valid(pulse)
+    fresh.add_message(pulse)
+    assert fresh.state()["height"] == 0
+    assert fresh.state()["output"] == pulse["output"]
+
+
 @cases("consensus-poet.json", "replay")
 def test_consensus_poet_replay(case):
     from chaincraft.consensus_poet import ProofOfElapsedTime
@@ -579,7 +642,9 @@ def test_consensus_poet_constructor():
         fresh.emit_state_memento().canonical_digest
         == "fd8a92143478eff67f0132fbc0fa293509ec06911fb41a0f61d1baffb7f84a04"
     )
-    assert ticket_id("alice", "one", proof, 2) == load("consensus-poet.json")["alice_id"]
+    assert (
+        ticket_id("alice", "one", proof, 2) == load("consensus-poet.json")["alice_id"]
+    )
 
 
 def test_consensus_poa_constructor():

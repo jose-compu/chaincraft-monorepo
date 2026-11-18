@@ -42,6 +42,7 @@ src/
   consensusPow.ts    Prototype PoW object
   consensusPoa.ts    Prototype PoA object
   consensusPoet.ts   Prototype PoET object
+  consensusBeacon.ts Prototype randomness beacon
   consensusPos.ts    Prototype PoS object
   consensusPbft.ts   Prototype PBFT object
   ledgerBalance.ts   Prototype account ledger

@@ -1,9 +1,9 @@
 # chaincraft
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.7.0](https://crates.io/crates/chaincraft/1.7.0)** on crates.io.
-1.7.0 adds `consensus.poet` (Proof of Elapsed Time on a shared Sloth seed).
-47 of 47 registry features.
+Release **[1.8.0](https://crates.io/crates/chaincraft/1.8.0)** on crates.io.
+1.8.0 adds `consensus.beacon` (chained VRF randomness beacon).
+48 of 48 registry features.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.
@@ -24,7 +24,7 @@ gossips `app.hello`.
 
 ```toml
 [dependencies]
-chaincraft = "1.7.0"
+chaincraft = "1.8.0"
 ```
 
 ```rust

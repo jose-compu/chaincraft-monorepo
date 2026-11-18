@@ -40,6 +40,7 @@ def parse_listen(raw: Optional[str] = None) -> tuple[str, int]:
         raise ValueError("invalid listen")
     return host, port
 
+
 EventFn = Callable[[Dict[str, Any]], None]
 AppFn = Callable[[str, Any], None]
 LinkFn = Callable[[str, str, Any], None]
@@ -108,7 +109,9 @@ class Mesh:
         if not is_connect_allowed(addr):
             raise ValueError("address not allowed")
         host, port_s = addr.rsplit(":", 1)
-        infos = socket.getaddrinfo(host, int(port_s), socket.AF_INET, socket.SOCK_STREAM)
+        infos = socket.getaddrinfo(
+            host, int(port_s), socket.AF_INET, socket.SOCK_STREAM
+        )
         if not infos:
             raise ValueError("unresolvable")
         sockaddr = infos[0][4]
@@ -193,7 +196,9 @@ class Mesh:
                     pass
                 return
             self.peers.append(peer)
-        self._write(peer, control.hello(self.impl, caps=self._caps(), listen=self.listen_addr))
+        self._write(
+            peer, control.hello(self.impl, caps=self._caps(), listen=self.listen_addr)
+        )
         threading.Thread(target=self._read_loop, args=(peer,), daemon=True).start()
 
     def _write(self, peer: _Peer, env: Envelope) -> None:
@@ -303,7 +308,10 @@ class Mesh:
             return
         env = Envelope.parse(body)
         with self.lock:
-            if src not in self._udp_peers and len(self.peers) + len(self._udp_peers) < MAX_PEERS:
+            if (
+                src not in self._udp_peers
+                and len(self.peers) + len(self._udp_peers) < MAX_PEERS
+            ):
                 self._udp_peers.append(src)
         if env.type.startswith("ctl."):
             if env.type == control.HELLO:

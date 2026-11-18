@@ -106,7 +106,9 @@ def _schnorr_pubkey(seckey32: bytes) -> bytes:
     return point[0].to_bytes(32, "big")
 
 
-def _schnorr_sign(msg32: bytes, seckey32: bytes, aux32: Optional[bytes] = None) -> bytes:
+def _schnorr_sign(
+    msg32: bytes, seckey32: bytes, aux32: Optional[bytes] = None
+) -> bytes:
     if len(msg32) != 32:
         raise ValueError("message must be 32 bytes")
     d0 = int.from_bytes(seckey32, "big")
@@ -117,7 +119,9 @@ def _schnorr_sign(msg32: bytes, seckey32: bytes, aux32: Optional[bytes] = None) 
     d = d0 if point[1] % 2 == 0 else _N - d0
     if aux32 is None:
         aux32 = secrets.token_bytes(32)
-    t = (d ^ int.from_bytes(_tagged_hash("BIP0340/aux", aux32), "big")).to_bytes(32, "big")
+    t = (d ^ int.from_bytes(_tagged_hash("BIP0340/aux", aux32), "big")).to_bytes(
+        32, "big"
+    )
     k0 = (
         int.from_bytes(
             _tagged_hash("BIP0340/nonce", t + point[0].to_bytes(32, "big") + msg32),

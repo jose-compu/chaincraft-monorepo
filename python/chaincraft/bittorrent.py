@@ -115,14 +115,18 @@ class Swarm(SharedObject):
             return None
         if any(index not in torrent.data for index in range(len(torrent.pieces))):
             return None
-        raw = b"".join(bytes.fromhex(torrent.data[index]) for index in range(len(torrent.pieces)))
+        raw = b"".join(
+            bytes.fromhex(torrent.data[index]) for index in range(len(torrent.pieces))
+        )
         return raw.hex()
 
     def missing(self, digest: str) -> List[int]:
         torrent = self._torrents.get(digest)
         if torrent is None:
             return []
-        return [index for index in range(len(torrent.pieces)) if index not in torrent.data]
+        return [
+            index for index in range(len(torrent.pieces)) if index not in torrent.data
+        ]
 
     def piece_hex(self, digest: str, index: int) -> Optional[str]:
         torrent = self._torrents.get(digest)
@@ -139,13 +143,16 @@ class Swarm(SharedObject):
             torrent = self._torrents[digest]
             count = len(torrent.pieces)
             have = {
-                peer: sorted(indices)
-                for peer, indices in sorted(torrent.have.items())
+                peer: sorted(indices) for peer, indices in sorted(torrent.have.items())
             }
-            complete = [peer for peer, indices in have.items() if indices == list(range(count))]
+            complete = [
+                peer for peer, indices in have.items() if indices == list(range(count))
+            ]
             out[digest] = {
                 "complete": complete,
-                "data": {str(index): torrent.data[index] for index in sorted(torrent.data)},
+                "data": {
+                    str(index): torrent.data[index] for index in sorted(torrent.data)
+                },
                 "have": have,
                 "name": torrent.name,
                 "pieces": list(torrent.pieces),
@@ -167,7 +174,9 @@ class Swarm(SharedObject):
                 return None
             digest = info_hash(name, list(pieces))
             existing = self._torrents.get(digest)
-            if existing is not None and (existing.name != name or existing.pieces != pieces):
+            if existing is not None and (
+                existing.name != name or existing.pieces != pieces
+            ):
                 return None
             if existing is None and len(self._torrents) >= MAX_TORRENTS:
                 return None
@@ -183,7 +192,11 @@ class Swarm(SharedObject):
                 return None
             if not _is_int(index) or index < 0 or index >= len(torrent.pieces):
                 return None
-            if kind != "request" and peer not in torrent.have and len(torrent.have) >= MAX_HAVE_PEERS:
+            if (
+                kind != "request"
+                and peer not in torrent.have
+                and len(torrent.have) >= MAX_HAVE_PEERS
+            ):
                 return None
             if kind != "piece":
                 return (kind, digest, peer, index)
@@ -216,7 +229,9 @@ class BitTorrentClient:
     def handle_command(self, cmd: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         name = cmd.get("cmd")
         if name == "bt.seed":
-            return self.seed(str(cmd["peer"]), str(cmd["name"]), cmd["data"], cmd["piece_size"])
+            return self.seed(
+                str(cmd["peer"]), str(cmd["name"]), cmd["data"], cmd["piece_size"]
+            )
         if name == "bt.leech":
             return self.leech(str(cmd["peer"]), cmd.get("info_hash"))
         if name == "bt.status":
@@ -232,7 +247,9 @@ class BitTorrentClient:
             raise ValueError("data must be a string")
         self.local_peer = peer
         split = split_payload(name, data, int(piece_size))
-        self._broadcast(WIRE_TYPE, {"bt": "metainfo", "name": name, "pieces": split["pieces"]})
+        self._broadcast(
+            WIRE_TYPE, {"bt": "metainfo", "name": name, "pieces": split["pieces"]}
+        )
         for index, payload in enumerate(split["payloads"]):
             self._broadcast(
                 WIRE_TYPE,
@@ -256,13 +273,22 @@ class BitTorrentClient:
             raise ValueError("peer exceeds the prototype limit")
         self.local_peer = peer
         known = self.swarm.known()
-        digest = info_hash_value if isinstance(info_hash_value, str) else (known[0] if known else "")
+        digest = (
+            info_hash_value
+            if isinstance(info_hash_value, str)
+            else (known[0] if known else "")
+        )
         requested: List[int] = []
         if digest:
             for index in self.swarm.missing(digest):
                 self._broadcast(
                     WIRE_TYPE,
-                    {"bt": "request", "index": index, "info_hash": digest, "peer": peer},
+                    {
+                        "bt": "request",
+                        "index": index,
+                        "info_hash": digest,
+                        "peer": peer,
+                    },
                 )
                 requested.append(index)
         return {"event": "bt.leech", "info_hash": digest, "requested": requested}
@@ -284,11 +310,20 @@ class BitTorrentClient:
         return {"event": "bt.status", "torrents": torrents}
 
     def _serve_request(self, data: Any) -> None:
-        if not isinstance(data, dict) or data.get("bt") != "request" or not self.local_peer:
+        if (
+            not isinstance(data, dict)
+            or data.get("bt") != "request"
+            or not self.local_peer
+        ):
             return
         digest = data.get("info_hash")
         index = data.get("index")
-        if not isinstance(digest, str) or not isinstance(index, int) or index is True or index is False:
+        if (
+            not isinstance(digest, str)
+            or not isinstance(index, int)
+            or index is True
+            or index is False
+        ):
             return
         payload = self.swarm.piece_hex(digest, index)
         if payload is None:

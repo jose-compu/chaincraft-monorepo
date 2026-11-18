@@ -3,9 +3,9 @@
 TypeScript implementation of the Chaincraft wire protocol, object semantics, and
 Level 2 stack (consensus, ledgers, BitTorrent, channels). Same observable
 behaviour as the Python `chaincraft` package and the Rust `chaincraft` crate.
-Release **[1.7.0](https://www.npmjs.com/package/@chaincraft/core/v/1.7.0)** on npm.
-1.7.0 adds `consensus.poet` (Proof of Elapsed Time on a shared Sloth seed).
-46 of 47 registry features implemented plus the UDP framing exemption.
+Release **[1.8.0](https://www.npmjs.com/package/@chaincraft/core/v/1.8.0)** on npm.
+1.8.0 adds `consensus.beacon` (chained VRF randomness beacon).
+47 of 48 registry features implemented plus the UDP framing exemption.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.

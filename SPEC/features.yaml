@@ -360,6 +360,16 @@ features:
       rust:       { state: implemented, since: "2026-10-30" }
       typescript: { state: implemented, since: "2026-10-30" }
 
+  - id: consensus.beacon
+    level: 2
+    spec: SPEC/features/consensus-beacon.md
+    summary: Chained VRF beacon; next height must cite the previous output
+    vectors: conformance/vectors/consensus-beacon.json
+    status:
+      python:     { state: implemented, since: "2026-11-18" }
+      rust:       { state: implemented, since: "2026-11-18" }
+      typescript: { state: implemented, since: "2026-11-18" }
+
   - id: ledger.balance
     level: 2
     spec: SPEC/features/ledger-balance.md

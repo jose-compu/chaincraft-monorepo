@@ -20,6 +20,9 @@ import {
   ProofOfStake,
   ProofOfAuthority,
   ProofOfElapsedTime,
+  RandomnessBeacon,
+  GENESIS_PREVIOUS,
+  pulseId,
   ProofOfWork,
   BalanceLedger,
   CrdtKv,
@@ -48,6 +51,7 @@ import {
   FramingError,
   ProtocolError,
   StateMemento,
+  bytesToHex,
   canonicalJson,
   control,
   ecdsa,
@@ -480,6 +484,54 @@ eachCase('consensus-poa.json', 'replay', (c, doc) => {
     const depths = reorgs.map((step: Case) => step['reorg_depth'] as number);
     assert.ok(Math.min(...depths) >= c['min_reorg_depth']);
   }
+});
+
+eachCase('consensus-beacon.json', 'replay', (c) => {
+  const obj = new RandomnessBeacon();
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      canonical: step['canonical'],
+      height: step['height'],
+      output: step['output'],
+      pulses: step['pulses'],
+    }, where);
+  }
+});
+
+test('RandomnessBeacon constructor', () => {
+  const empty = new RandomnessBeacon();
+  assert.equal(
+    empty.emitStateMemento().canonicalDigest,
+    'b3d1cf3908c77c7645bf1bb5daf96e02d92038c62ffb771aec69d247f965f549',
+  );
+  const sk = hexToBytes('0000000000000000000000000000000000000000000000000000000000000003');
+  const vrfMessage = new TextEncoder().encode(
+    canonicalJson({ height: 0, previous: GENESIS_PREVIOUS }),
+  );
+  const { proof, output, publicKey } = vrf.evaluate(vrfMessage, sk);
+  const pulse = {
+    consensus: 'beacon',
+    height: 0,
+    previous: GENESIS_PREVIOUS,
+    pk: bytesToHex(publicKey),
+    proof: bytesToHex(proof),
+    output: bytesToHex(output),
+  };
+  const doc = load('consensus-beacon.json');
+  assert.equal(
+    pulseId(pulse.height, pulse.output, pulse.pk, pulse.previous, pulse.proof),
+    doc['genesis_id'],
+  );
+  const fresh = new RandomnessBeacon();
+  assert.ok(fresh.isValid(pulse));
+  fresh.addMessage(pulse);
+  assert.equal(fresh.state().height, 0);
+  assert.equal(fresh.state().output, pulse.output);
 });
 
 eachCase('consensus-poet.json', 'replay', (c, doc) => {
@@ -1084,6 +1136,7 @@ test('every vector file declares its feature', () => {
     'discovery-local.json',
     'consensus-poa.json',
     'consensus-poet.json',
+    'consensus-beacon.json',
     'consensus-pow.json',
     'consensus-pos.json',
     'consensus-pbft.json',
