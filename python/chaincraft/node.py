@@ -44,7 +44,14 @@ def main() -> int:
                     break
                 else:
                     emit({"event": "error", "message": f"unknown cmd {name}"}, out_lock)
-            except (ValueError, OSError, ProtocolError, TypeError, KeyError, json.JSONDecodeError) as exc:
+            except (
+                ValueError,
+                OSError,
+                ProtocolError,
+                TypeError,
+                KeyError,
+                json.JSONDecodeError,
+            ) as exc:
                 emit({"event": "error", "message": str(exc)}, out_lock)
     finally:
         mesh.close()

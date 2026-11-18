@@ -77,7 +77,9 @@ def parse_hello(env: Envelope) -> Dict[str, Any]:
     if version is True or version is False or not isinstance(version, int):
         raise ProtocolError("ctl.hello requires an integer v")
     if version != PROTOCOL_VERSION:
-        raise ProtocolError(f"peer speaks protocol v{version}, we speak v{PROTOCOL_VERSION}")
+        raise ProtocolError(
+            f"peer speaks protocol v{version}, we speak v{PROTOCOL_VERSION}"
+        )
 
     impl = data.get("impl")
     if not isinstance(impl, str) or not impl:

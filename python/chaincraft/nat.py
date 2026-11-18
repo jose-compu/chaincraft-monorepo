@@ -40,7 +40,10 @@ def binding_success(txid: str, host: str, port: Any) -> Dict[str, Any]:
         return {"ok": False, "packet": ""}
     value = _xor_mapped(host, port)
     attr = struct.pack(">HH", _XOR_MAPPED, len(value)) + value
-    return {"ok": True, "packet": (_header(_BINDING_SUCCESS, len(attr), raw) + attr).hex()}
+    return {
+        "ok": True,
+        "packet": (_header(_BINDING_SUCCESS, len(attr), raw) + attr).hex(),
+    }
 
 
 def parse_binding_response(packet: Any, txid: Any) -> Dict[str, Any]:
@@ -69,7 +72,13 @@ def parse_binding_response(packet: Any, txid: Any) -> Dict[str, Any]:
         offset += pad
         if atype == _XOR_MAPPED and found is None:
             found = value
-    if offset != end or found is None or len(found) != 8 or found[0] != 0 or found[1] != 1:
+    if (
+        offset != end
+        or found is None
+        or len(found) != 8
+        or found[0] != 0
+        or found[1] != 1
+    ):
         return dict(_FAIL_PARSE)
     port = struct.unpack(">H", found[2:4])[0] ^ 0x2112
     if not 1 <= port <= 65535:
@@ -127,14 +136,23 @@ class NatTraversal:
         return True
 
     def punch(self, peer: Any) -> Dict[str, Any]:
-        if not self._armed or not isinstance(peer, str) or not is_valid_address(peer) or self._ours(peer):
+        if (
+            not self._armed
+            or not isinstance(peer, str)
+            or not is_valid_address(peer)
+            or self._ours(peer)
+        ):
             return {"ok": False, "datagram": "", "addr": ""}
         return {"ok": True, "datagram": PUNCH_HEX, "addr": peer}
 
     def observe_punch(self, datagram: Any, origin: Any) -> bool:
         if not self._armed or datagram != PUNCH_HEX:
             return False
-        if not isinstance(origin, str) or not is_valid_address(origin) or self._ours(origin):
+        if (
+            not isinstance(origin, str)
+            or not is_valid_address(origin)
+            or self._ours(origin)
+        ):
             return False
         if origin not in self._opened:
             self._opened.append(origin)
@@ -175,7 +193,11 @@ class NatTraversal:
             return fail
         if not isinstance(origin, str) or not isinstance(target, str):
             return fail
-        if not is_valid_address(origin) or not is_valid_address(target) or self._ours(origin):
+        if (
+            not is_valid_address(origin)
+            or not is_valid_address(target)
+            or self._ours(origin)
+        ):
             return fail
         if kind == "request":
             relay = message.get("relay")
@@ -242,7 +264,9 @@ def _unhex(value: Any) -> Optional[bytes]:
 
 
 def _port(value: Any) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 65535
+    return (
+        isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 65535
+    )
 
 
 def _ipv4(host: Any) -> Optional[List[int]]:
@@ -253,7 +277,11 @@ def _ipv4(host: Any) -> Optional[List[int]]:
         return None
     octets: List[int] = []
     for label in labels:
-        if not label or not all("0" <= ch <= "9" for ch in label) or (len(label) > 1 and label.startswith("0")):
+        if (
+            not label
+            or not all("0" <= ch <= "9" for ch in label)
+            or (len(label) > 1 and label.startswith("0"))
+        ):
             return None
         octet = int(label)
         if octet > 255:

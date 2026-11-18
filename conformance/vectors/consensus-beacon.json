@@ -1,0 +1,218 @@
+{
+  "feature": "consensus.beacon",
+  "spec": "SPEC/features/consensus-beacon.md",
+  "description": "Chained VRF beacon; next height must cite the previous output.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "genesis_id": "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5",
+  "replay": [
+    {
+      "name": "chained genesis and extension",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": true,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":1,\"output\":\"c7a65d01e4bc67de0e9b90f36f559da569037a00dfa8a053914aeb3a85005014\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"previous\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"proof\":\"348b2925573bda3065c39199e97483ccd1675aed827eabed30ee27589a9e93b13c2ea3be935c53e1b03d46a1d76baddd7b0f57c3436ffee07c06832f5af03ee2\"}",
+          "accepted": true,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5",
+            "f71ef7c2194a7a3fead25bb949df9fac264e4667951fb30b30ee86ff9524c0c2"
+          ],
+          "height": 1,
+          "output": "c7a65d01e4bc67de0e9b90f36f559da569037a00dfa8a053914aeb3a85005014",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5",
+            "f71ef7c2194a7a3fead25bb949df9fac264e4667951fb30b30ee86ff9524c0c2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wrong height rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": true,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":2,\"output\":\"c1cd2e81f2210fe41166f262743c03a88a6e27a98c1900359ed374a223fd0450\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"previous\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"proof\":\"dcd28280f9267adfe8f6e590517ba7142117aa740d9b4d813c0dcf64e63cb04e4746a2eaf66d27c5ea80d902adb703310f31f658ef99b83ceab4bc609a178d18\"}",
+          "accepted": false,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wrong previous rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": true,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":1,\"output\":\"f68db5e312491a569f3e4c324a6a6fd4974b409df567bf7ec45a5bb1b0c9222d\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"previous\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"proof\":\"678c31c4663d41e55a64453122055a316a21c11f29d2a4b766a0e68b347d36b103678b8ef61020527ccc039ba3d7e30582cd442498ce87d2b4070020c6657f65\"}",
+          "accepted": false,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "vrf failure rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": true,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":1,\"output\":\"c7a65d01e4bc67de0e9b90f36f559da569037a00dfa8a053914aeb3a85005014\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"previous\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"proof\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"}",
+          "accepted": false,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":1,\"output\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"previous\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"proof\":\"348b2925573bda3065c39199e97483ccd1675aed827eabed30ee27589a9e93b13c2ea3be935c53e1b03d46a1d76baddd7b0f57c3436ffee07c06832f5af03ee2\"}",
+          "accepted": false,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duplicate and competing genesis rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": true,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": false,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"efcc4ca884e93be8809b01a3e97797e147d0857f50995c3c8cf0bdd5f478f76d\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"320cf62ccc3677fbed792ea67021a81573823604163ea6459e51f1212ccadcd72a01a0ffc8334248b9899ec5e2e7bd173f25dad8a185634188acbdca50d846f7\"}",
+          "accepted": false,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "malformed pulses rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":true,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": false,
+          "canonical": [],
+          "height": -1,
+          "output": "",
+          "pulses": []
+        },
+        {
+          "message_json": "{\"consensus\":\"beacon\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": true,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        },
+        {
+          "message_json": "{\"consensus\":\"poet\",\"height\":0,\"output\":\"3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"previous\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"proof\":\"6435f4c6e9937a6be125861ae81d8da258659ee92e85a8483dda0eb2e304aa116ea2ab2c3b4a024408231aa14e18d97ddb4182a335ee2273e10e4ae065ccd61d\"}",
+          "accepted": false,
+          "canonical": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ],
+          "height": 0,
+          "output": "3accb300379f9878f003b44970f06547837d3b31479eb9f3e668e6a6192aa52c",
+          "pulses": [
+            "fc628caeeadbbbe4f7933d30966c529fe39e5557fe0a694e130106316dbf5aa5"
+          ]
+        }
+      ]
+    }
+  ]
+}

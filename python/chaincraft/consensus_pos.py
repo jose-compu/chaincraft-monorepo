@@ -42,7 +42,9 @@ class ProofOfStake(SharedObject):
             raise ValueError("validators must not be empty")
         for vid, stake in table.items():
             if not vid or not _is_int(stake) or stake < 1:
-                raise ValueError("each validator needs a non-empty id and positive stake")
+                raise ValueError(
+                    "each validator needs a non-empty id and positive stake"
+                )
         self.seed = seed
         self.validators = table
         self.current = 0

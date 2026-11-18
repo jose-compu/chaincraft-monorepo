@@ -82,6 +82,7 @@ export {
 export { PBFT, DEFAULT_REPLICAS as PBFT_DEFAULT_REPLICAS } from './consensusPbft.ts';
 export { ProofOfStake, DEFAULT_SEED, DEFAULT_VALIDATORS, proposerFor } from './consensusPos.ts';
 export { ProofOfAuthority, blockId as poaBlockId, proposerFor as poaProposerFor } from './consensusPoa.ts';
+export { RandomnessBeacon, GENESIS_PREVIOUS, pulseId } from './consensusBeacon.ts';
 export { ProofOfElapsedTime, ticketId as poetTicketId } from './consensusPoet.ts';
 export { ProofOfWork, DEFAULT_DIFFICULTY, blockId, meetsWork } from './consensusPow.ts';
 export { BalanceLedger, DEFAULT_ALLOCATIONS as BALANCE_DEFAULT_ALLOCATIONS } from './ledgerBalance.ts';

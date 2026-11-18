@@ -92,7 +92,10 @@ def _valid_hostname(labels: List[str]) -> bool:
             return False
         if label[0] == "-" or label[-1] == "-":
             return False
-        if not all(("0" <= ch <= "9") or ("A" <= ch <= "Z") or ("a" <= ch <= "z") or ch == "-" for ch in label):
+        if not all(
+            ("0" <= ch <= "9") or ("A" <= ch <= "Z") or ("a" <= ch <= "z") or ch == "-"
+            for ch in label
+        ):
             return False
     return True
 

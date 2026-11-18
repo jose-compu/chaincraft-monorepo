@@ -32,7 +32,9 @@ def meets_work(digest: str, difficulty: int) -> bool:
     return len(digest) >= difficulty and digest[:difficulty] == "0" * difficulty
 
 
-def mine(parent: str, height: int, miner: str, payload: str, difficulty: int) -> Dict[str, Any]:
+def mine(
+    parent: str, height: int, miner: str, payload: str, difficulty: int
+) -> Dict[str, Any]:
     nonce = 0
     while True:
         digest = block_id(height, miner, nonce, parent, payload)

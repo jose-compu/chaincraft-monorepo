@@ -14,7 +14,6 @@ from chaincraft.discovery import is_connect_allowed, is_resolved_ip_allowed
 from chaincraft.framing import FrameReader, FramingError, encode_frame
 from chaincraft.mesh import DEFAULT_LISTEN, MAX_PEERS, Mesh, parse_listen
 
-
 # --- section 1: canonical JSON ---------------------------------------------
 
 
@@ -159,7 +158,8 @@ class TestEnvelope:
     def test_wrong_version_rejected(self):
         with pytest.raises(ProtocolError, match="unsupported protocol version"):
             Envelope.parse(
-                '{"data":{},"id":"%s","ts":0,"type":"app.t","v":2}' % payload_digest({}),
+                '{"data":{},"id":"%s","ts":0,"type":"app.t","v":2}'
+                % payload_digest({}),
                 now_ms=0,
             )
 

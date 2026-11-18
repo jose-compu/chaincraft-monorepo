@@ -130,7 +130,10 @@ class MessageStore:
 
     def dump(self) -> Dict[str, Any]:
         return {
-            "entries": [{"body": body, "id": record_id} for record_id, body in self._entries.items()],
+            "entries": [
+                {"body": body, "id": record_id}
+                for record_id, body in self._entries.items()
+            ],
             "v": 1,
         }
 

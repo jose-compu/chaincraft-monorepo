@@ -1,6 +1,6 @@
 """TCP framing — SPEC/wire-v1.md section 4.
 
-    [u32 big-endian length][canonical JSON body]
+[u32 big-endian length][canonical JSON body]
 """
 
 from __future__ import annotations

@@ -35,6 +35,11 @@ from chaincraft import (  # noqa: E402
 from chaincraft.consensus_avalanche import Avalanche  # noqa: E402
 from chaincraft.consensus_pbft import PBFT  # noqa: E402
 from chaincraft.consensus_pos import ProofOfStake, proposer_for  # noqa: E402
+from chaincraft.consensus_beacon import (  # noqa: E402
+    GENESIS_PREVIOUS,
+    RandomnessBeacon,
+    pulse_id as beacon_pulse_id,
+)
 from chaincraft.consensus_poet import (  # noqa: E402
     ProofOfElapsedTime,
     ticket_id as poet_ticket_id,
@@ -85,6 +90,9 @@ TS = 1757430000000  # fixed reference timestamp for every generated envelope
 NOW = 1757430000000
 SECKEY = bytes.fromhex(
     "0000000000000000000000000000000000000000000000000000000000000003"
+)
+SECKEY_B = bytes.fromhex(
+    "c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721"
 )
 AUX = bytes(32)
 
@@ -1517,6 +1525,93 @@ def consensus_poet_vectors() -> Dict[str, Any]:
         "seed": POET_SEED,
         "alice_id": alice_id,
         "bob_id": bob_id,
+        "replay": replay,
+    }
+
+
+def _beacon_vrf_message(height: int, previous: str) -> bytes:
+    return canonical_json({"height": height, "previous": previous}).encode("utf-8")
+
+
+def _beacon_pulse(sk: bytes, height: int, previous: str) -> Dict[str, Any]:
+    message = _beacon_vrf_message(height, previous)
+    proof, output, pk = vrf.evaluate(message, sk)
+    return {
+        "consensus": "beacon",
+        "height": height,
+        "previous": previous,
+        "pk": pk.hex(),
+        "proof": proof.hex(),
+        "output": output.hex(),
+    }
+
+
+def _replay_beacon(name: str, factory, messages: List[Any]) -> Dict[str, Any]:
+    obj = factory()
+    steps = []
+    for message in messages:
+        accepted = obj.is_valid(message)
+        if accepted:
+            obj.add_message(message)
+        state = obj.state()
+        steps.append(
+            {
+                "message_json": canonical_json(message),
+                "accepted": accepted,
+                **state,
+            }
+        )
+    return {"name": name, "steps": steps}
+
+
+def consensus_beacon_vectors() -> Dict[str, Any]:
+    genesis = _beacon_pulse(SECKEY, 0, GENESIS_PREVIOUS)
+    genesis_output = genesis["output"]
+    height1 = _beacon_pulse(SECKEY_B, 1, genesis_output)
+    wrong_height = _beacon_pulse(SECKEY_B, 2, genesis_output)
+    bad_previous = _beacon_pulse(SECKEY_B, 1, "f" * 64)
+    bad_proof = {**height1, "proof": "f" * 128}
+    swapped_output = {**height1, "output": "a" * 64}
+    alt_genesis = _beacon_pulse(SECKEY_B, 0, GENESIS_PREVIOUS)
+    factory = lambda: RandomnessBeacon()  # noqa: E731
+    replay = [
+        _replay_beacon("chained genesis and extension", factory, [genesis, height1]),
+        _replay_beacon("wrong height rejected", factory, [genesis, wrong_height]),
+        _replay_beacon("wrong previous rejected", factory, [genesis, bad_previous]),
+        _replay_beacon(
+            "vrf failure rejected",
+            factory,
+            [genesis, bad_proof, swapped_output],
+        ),
+        _replay_beacon(
+            "duplicate and competing genesis rejected",
+            factory,
+            [genesis, genesis, alt_genesis],
+        ),
+        _replay_beacon(
+            "malformed pulses rejected",
+            factory,
+            [
+                {**genesis, "height": True},
+                {**genesis, "previous": genesis["previous"].upper()},
+                {**genesis, "consensus": "poet"},
+            ],
+        ),
+    ]
+    genesis_id = beacon_pulse_id(
+        genesis["height"],
+        genesis["output"],
+        genesis["pk"],
+        genesis["previous"],
+        genesis["proof"],
+    )
+    return {
+        **header(
+            "consensus.beacon",
+            "SPEC/features/consensus-beacon.md",
+            "Chained VRF beacon; next height must cite the previous output.",
+        ),
+        "genesis_id": genesis_id,
         "replay": replay,
     }
 
@@ -3868,6 +3963,7 @@ def main() -> int:
     print("\nLevel 2 — consensus")
     write("consensus-poa.json", consensus_poa_vectors())
     write("consensus-poet.json", consensus_poet_vectors())
+    write("consensus-beacon.json", consensus_beacon_vectors())
     write("consensus-pow.json", consensus_pow_vectors())
     write("consensus-pos.json", consensus_pos_vectors())
     write("consensus-pbft.json", consensus_pbft_vectors())

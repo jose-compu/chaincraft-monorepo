@@ -97,7 +97,9 @@ class UtxoLedger(SharedObject):
             for utxo_id in self._order
         ]
 
-    def _parse(self, message: Any) -> Optional[Tuple[int, List[str], List[Dict[str, Any]], str]]:
+    def _parse(
+        self, message: Any
+    ) -> Optional[Tuple[int, List[str], List[Dict[str, Any]], str]]:
         if not isinstance(message, dict) or message.get("ledger") != "utxo":
             return None
         fee = message.get("fee")

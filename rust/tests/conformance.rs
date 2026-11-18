@@ -13,6 +13,7 @@ use chaincraft::canonical::{canonical_json, hex_to_bytes, parse_json, payload_di
 use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
 use chaincraft::consensus_avalanche::Avalanche;
+use chaincraft::consensus_beacon::{pulse_id, RandomnessBeacon, GENESIS_PREVIOUS};
 use chaincraft::consensus_pbft::Pbft;
 use chaincraft::consensus_poa::ProofOfAuthority;
 use chaincraft::consensus_poet::ProofOfElapsedTime;
@@ -1069,6 +1070,82 @@ fn consensus_poa_constructor() {
     solo.add_message(&child_val, None);
     let (_, _, height, _) = solo.state();
     assert_eq!(height, 2);
+}
+
+#[test]
+fn consensus_beacon_replay() {
+    let doc = load("consensus-beacon.json");
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = RandomnessBeacon::new();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (pulses, height, output) = obj.state();
+            assert_eq!(
+                pulses,
+                json_strings(&step["canonical"]),
+                "{where_} canonical"
+            );
+            assert_eq!(pulses, json_strings(&step["pulses"]), "{where_} pulses");
+            assert_eq!(height, step["height"].as_i64().unwrap(), "{where_} height");
+            assert_eq!(output, step["output"].as_str().unwrap(), "{where_} output");
+        }
+    }
+}
+
+#[test]
+fn consensus_beacon_constructor() {
+    let empty = RandomnessBeacon::new();
+    assert_eq!(
+        empty.emit_state_memento().canonical_digest,
+        "b3d1cf3908c77c7645bf1bb5daf96e02d92038c62ffb771aec69d247f965f549"
+    );
+    let sk =
+        hex_to_bytes("0000000000000000000000000000000000000000000000000000000000000003").unwrap();
+    let vrf_message = canonical_json(&JsonValue::object([
+        ("height".into(), JsonValue::Number(0)),
+        (
+            "previous".into(),
+            JsonValue::String(GENESIS_PREVIOUS.to_string()),
+        ),
+    ]))
+    .unwrap();
+    let (proof, output, pk) = vrf::evaluate(vrf_message.as_bytes(), &sk).unwrap();
+    let pulse = JsonValue::object([
+        ("consensus".into(), JsonValue::String("beacon".into())),
+        ("height".into(), JsonValue::Number(0)),
+        (
+            "previous".into(),
+            JsonValue::String(GENESIS_PREVIOUS.to_string()),
+        ),
+        ("pk".into(), JsonValue::String(hex::encode(&pk))),
+        ("proof".into(), JsonValue::String(hex::encode(&proof))),
+        ("output".into(), JsonValue::String(hex::encode(&output))),
+    ]);
+    let doc = load("consensus-beacon.json");
+    assert_eq!(
+        pulse_id(
+            0,
+            &hex::encode(&output),
+            &hex::encode(&pk),
+            GENESIS_PREVIOUS,
+            &hex::encode(&proof),
+        )
+        .unwrap(),
+        doc["genesis_id"].as_str().unwrap()
+    );
+    let mut fresh = RandomnessBeacon::new();
+    assert!(fresh.is_valid(&pulse));
+    fresh.add_message(&pulse, None);
+    let (_, height, output_hex) = fresh.state();
+    assert_eq!(height, 0);
+    assert_eq!(output_hex, hex::encode(&output));
 }
 
 #[test]
@@ -2381,6 +2458,7 @@ fn vector_files_declare_feature() {
         "discovery-local.json",
         "consensus-poa.json",
         "consensus-poet.json",
+        "consensus-beacon.json",
         "consensus-pow.json",
         "consensus-pos.json",
         "consensus-pbft.json",
