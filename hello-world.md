@@ -2,9 +2,9 @@
 
 Interactive version: open [`index.html`](index.html) in this folder, or the published site.
 
-Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.7.0 over **TCP sockets**: default bind `0.0.0.0:9735`, local dial `127.0.0.1:9735`, two nodes in one program, then a three-language mesh on loopback or across hosts. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
+Open-source toolkit for peer-to-peer protocols like blockchains. This walks through a gossiped message on Chaincraft 1.8.0 over **TCP sockets**: default bind `0.0.0.0:9735`, local dial `127.0.0.1:9735`, two nodes in one program, then a three-language mesh on loopback or across hosts. The control channel is JSON lines. Python, Rust, and TypeScript speak the same commands and produce the same payload id.
 
-Published: [`chaincraft` 1.7.0 on PyPI](https://pypi.org/project/chaincraft/1.7.0/), [`chaincraft` 1.7.0 on crates.io](https://crates.io/crates/chaincraft/1.7.0), [`@chaincraft/core` 1.7.0 on npm](https://www.npmjs.com/package/@chaincraft/core/v/1.7.0).
+Published: [`chaincraft` 1.8.0 on PyPI](https://pypi.org/project/chaincraft/1.8.0/), [`chaincraft` 1.8.0 on crates.io](https://crates.io/crates/chaincraft/1.8.0), [`@chaincraft/core` 1.8.0 on npm](https://www.npmjs.com/package/@chaincraft/core/v/1.8.0).
 
 ## Install
 
@@ -60,7 +60,7 @@ python3 -m chaincraft.node
 ```
 
 ```json
-{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.7.0"}
+{"event":"ready","addr":"0.0.0.0:9735","impl":"py-chaincraft/1.8.0"}
 ```
 
 Same default in Rust (`chaincraft-node`) and TypeScript (`chaincraft-ts-node`). Pass `host:port` to override. `127.0.0.1:0` is ephemeral.
@@ -109,7 +109,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chaincraft = "1.7.0"
+chaincraft = "1.8.0"
 ```
 
 ```rust
@@ -217,4 +217,4 @@ python3 -m chaincraft.node 0.0.0.0:9736
 
 The live 3×3 check is `python3 conformance/runner/run_interop.py` from the repository root.
 
-Release: https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.7.0
+Release: https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.8.0
