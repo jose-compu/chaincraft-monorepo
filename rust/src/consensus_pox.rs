@@ -12,12 +12,14 @@ const MAX_INT: i64 = 9007199254740991;
 #[derive(Clone, Debug)]
 struct Stacker {
     locker: String,
+    #[allow(dead_code)]
     amount: i64,
 }
 
 #[derive(Clone, Debug)]
 struct StackRecord {
     locker: String,
+    #[allow(dead_code)]
     amount: i64,
     reward_cycle: i64,
 }
@@ -31,6 +33,7 @@ struct BidRecord {
 
 #[derive(Clone, Debug)]
 struct TenureRecord {
+    #[allow(dead_code)]
     winner: String,
     prev: String,
     block_height: i64,
@@ -41,6 +44,17 @@ enum Parsed {
     Bid(String, BidRecord),
     Tenure(String, TenureRecord),
 }
+
+type PoxState = (
+    i64,
+    String,
+    i64,
+    i64,
+    Vec<String>,
+    Vec<String>,
+    Vec<String>,
+    Vec<String>,
+);
 
 #[derive(Debug)]
 pub struct ProofOfTransfer {
@@ -161,18 +175,7 @@ impl ProofOfTransfer {
         })
     }
 
-    pub fn state(
-        &self,
-    ) -> (
-        i64,
-        String,
-        i64,
-        i64,
-        Vec<String>,
-        Vec<String>,
-        Vec<String>,
-        Vec<String>,
-    ) {
+    pub fn state(&self) -> PoxState {
         let (tip, height) = self.tip();
         let open_height = self.open_height;
         let canonical = self.canonical(&tip);
