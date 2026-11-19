@@ -118,11 +118,7 @@ pub fn sortition_score(seed: &str, miner: &str, btc_out: i64, block_height: i64)
 }
 
 impl ProofOfTransfer {
-    pub fn new(
-        seed: &str,
-        cycle_length: i64,
-        stackers: &[(String, i64)],
-    ) -> Result<Self, String> {
+    pub fn new(seed: &str, cycle_length: i64, stackers: &[(String, i64)]) -> Result<Self, String> {
         if !is_seed(seed) {
             return Err("seed must be 64 lowercase hex characters".into());
         }
@@ -242,12 +238,7 @@ impl ProofOfTransfer {
         let mut best_id = String::new();
         for (miner, digest) in miners {
             let record = &self.bids[digest];
-            let score = sortition_score(
-                &self.seed,
-                miner,
-                record.btc_out,
-                block_height,
-            );
+            let score = sortition_score(&self.seed, miner, record.btc_out, block_height);
             if best_miner.is_none()
                 || score < best_score
                 || (score == best_score && digest < &best_id)
