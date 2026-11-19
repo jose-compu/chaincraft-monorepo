@@ -370,6 +370,16 @@ features:
       rust:       { state: implemented, since: "2026-11-18" }
       typescript: { state: implemented, since: "2026-11-18" }
 
+  - id: consensus.pox
+    level: 2
+    spec: SPEC/features/consensus-pox.md
+    summary: Proof of Transfer; stack cycles, bid sortition, tenure chain
+    vectors: conformance/vectors/consensus-pox.json
+    status:
+      python:     { state: implemented, since: "2026-11-19" }
+      rust:       { state: implemented, since: "2026-11-19" }
+      typescript: { state: implemented, since: "2026-11-19" }
+
   - id: ledger.balance
     level: 2
     spec: SPEC/features/ledger-balance.md

@@ -35,6 +35,7 @@ src/
   discovery.rs   Address book and local-discovery policy
   consensus_pow.rs   Prototype PoW object
   consensus_poa.rs   Prototype PoA object
+  consensus_pox.rs   Prototype Proof of Transfer object
   consensus_poet.rs  Prototype PoET object
   consensus_beacon.rs  Prototype randomness beacon
   consensus_pos.rs   Prototype PoS object

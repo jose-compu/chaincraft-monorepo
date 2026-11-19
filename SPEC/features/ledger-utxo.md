@@ -1,6 +1,6 @@
 # ledger.utxo
 
-**Release:** 1.8.0
+**Release:** 1.9.0
 
 Prototype UTXO ledger. It implements the Level 1 object contract
 (`SPEC/semantics-v1.md` §2) and is applied through the ordinary pipeline.

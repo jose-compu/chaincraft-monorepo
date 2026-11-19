@@ -1,0 +1,1402 @@
+{
+  "feature": "consensus.pox",
+  "spec": "SPEC/features/consensus-pox.md",
+  "description": "PoX object: stack cycles, bid sortition, tenure chain.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "seed": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "cycle_length": 3,
+  "stackers": [
+    {
+      "locker": "alice",
+      "amount": 100
+    },
+    {
+      "locker": "bob",
+      "amount": 200
+    },
+    {
+      "locker": "carol",
+      "amount": 50
+    }
+  ],
+  "sortition_winner_height_1": "alice",
+  "replay": [
+    {
+      "name": "tenure at height 1 after one bid",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":7,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "lower sortition score wins despite smaller btc_out",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":99,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "791254297ae48090a196b4e92f5e1d753846de1f896e92d998ef1d4bf379b1eb"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":1,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "791254297ae48090a196b4e92f5e1d753846de1f896e92d998ef1d4bf379b1eb",
+            "9808af16c23cadc98f13e8c6686cd61cbfff206fd3ea813ef5c04c4a3738e715"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "791254297ae48090a196b4e92f5e1d753846de1f896e92d998ef1d4bf379b1eb",
+            "9808af16c23cadc98f13e8c6686cd61cbfff206fd3ea813ef5c04c4a3738e715"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "tenure naming loser rejected",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":99,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "791254297ae48090a196b4e92f5e1d753846de1f896e92d998ef1d4bf379b1eb"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":1,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "791254297ae48090a196b4e92f5e1d753846de1f896e92d998ef1d4bf379b1eb",
+            "9808af16c23cadc98f13e8c6686cd61cbfff206fd3ea813ef5c04c4a3738e715"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"bob\"}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "791254297ae48090a196b4e92f5e1d753846de1f896e92d998ef1d4bf379b1eb",
+            "9808af16c23cadc98f13e8c6686cd61cbfff206fd3ea813ef5c04c4a3738e715"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "bid from locker absent in cycle",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":3,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"dave\"}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "second bid by same miner at height rejected",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":7,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":8,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "tenure before any bid rejected",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "stack for current open cycle rejected",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92\",\"winner\":\"bob\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef\",\"winner\":\"carol\"}",
+          "accepted": true,
+          "height": 3,
+          "tip": "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707",
+          "open_height": 4,
+          "cycle": 1,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"amount\":10,\"consensus\":\"pox\",\"kind\":\"stack\",\"locker\":\"alice\",\"reward_cycle\":1}",
+          "accepted": false,
+          "height": 3,
+          "tip": "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707",
+          "open_height": 4,
+          "cycle": 1,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "stack next cycle then bid after boundary; cycle-0-only miner rejected",
+      "steps": [
+        {
+          "message_json": "{\"amount\":15,\"consensus\":\"pox\",\"kind\":\"stack\",\"locker\":\"dave\",\"reward_cycle\":2}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":2,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92\",\"winner\":\"bob\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":3,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef\",\"winner\":\"carol\"}",
+          "accepted": true,
+          "height": 3,
+          "tip": "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707",
+          "open_height": 4,
+          "cycle": 1,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"block_height\":4,\"btc_out\":3,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": false,
+          "height": 3,
+          "tip": "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707",
+          "open_height": 4,
+          "cycle": 1,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "empty next-cycle snapshot rejects bids",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92\",\"winner\":\"bob\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":5,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":6,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"bob\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"btc_out\":4,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"carol\"}",
+          "accepted": true,
+          "height": 2,
+          "tip": "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+          "open_height": 3,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":3,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef\",\"winner\":\"carol\"}",
+          "accepted": true,
+          "height": 3,
+          "tip": "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707",
+          "open_height": 4,
+          "cycle": 1,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":4,\"btc_out\":2,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": false,
+          "height": 3,
+          "tip": "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707",
+          "open_height": 4,
+          "cycle": 1,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+            "cb3203122a8354746208d0585c08a14bac1264da6b428f658bd60860c1e403ef",
+            "8c82973e85a2885568aaaa423e5e7447219c02afec3e50b2afd1885e49de0707"
+          ],
+          "bids": [
+            "e2a7ff5966535a783d838afa268510164fa7047dd7c9308e54fc836de3db6247",
+            "ac0c36790e2099654a51361f440b7c98f08dbe33c254836344881fcea0b86287",
+            "7d3f1e46df60f7966d3cc0029b5fd21b569dcf26c8574e23d279099bfa8ab0ce",
+            "a25441bd3debb70335e74b3e16fc54af9e27d8065ef2f4b19af2de509a806ccb",
+            "3cd946f4b15f8337328aa1bf7064ce25e4827f0b3c48792f4bf791df7d48c2cd",
+            "470daa52d173411bc7430b538def2e2fe7aa9d24ac3656cc0b01a4b2d2d54d9d",
+            "7f74d5989436a57943fcbc55b9486b04170ba79c9d8677e58975476dbeb5f2c7",
+            "137a787c165790830e7f3ebd5d86c06be7fcc2bec46bfd1c327147a3bc1ce735",
+            "aa60ad28609ad4f34df60302ce4bfd2d89d9e6ce5824e3589306e55ce88682b7"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "duplicate stack locker for cycle rejected",
+      "steps": [
+        {
+          "message_json": "{\"amount\":15,\"consensus\":\"pox\",\"kind\":\"stack\",\"locker\":\"dave\",\"reward_cycle\":2}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        },
+        {
+          "message_json": "{\"amount\":20,\"consensus\":\"pox\",\"kind\":\"stack\",\"locker\":\"dave\",\"reward_cycle\":2}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": [
+            "5bd6ec2304f34c129f4d8fe5a796fb84ae493c0a3ec5193201b4d59801c281f6"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "boolean and float amounts rejected",
+      "steps": [
+        {
+          "message_json": "{\"amount\":true,\"consensus\":\"pox\",\"kind\":\"stack\",\"locker\":\"eve\",\"reward_cycle\":2}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"amount\":1.5,\"consensus\":\"pox\",\"kind\":\"stack\",\"locker\":\"eve\",\"reward_cycle\":2}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "consensus other than pox rejected",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":7,\"consensus\":\"pow\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "duplicate id rejected",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":7,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":7,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": false,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "extra keys ignored",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":7,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\",\"note\":\"ok\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        }
+      ]
+    },
+    {
+      "name": "prev not equal to tip rejected",
+      "steps": [
+        {
+          "message_json": "{\"block_height\":1,\"btc_out\":7,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 0,
+          "tip": "",
+          "open_height": 1,
+          "cycle": 0,
+          "canonical": [],
+          "tenures": [],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":1,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"\",\"winner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"btc_out\":2,\"consensus\":\"pox\",\"kind\":\"bid\",\"miner\":\"alice\"}",
+          "accepted": true,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983",
+            "5d1e6bf1c49abf80dfb2e2a9402239e640bc1ef80228fd2eae55232fa674ec64"
+          ],
+          "stacks": []
+        },
+        {
+          "message_json": "{\"block_height\":2,\"consensus\":\"pox\",\"kind\":\"tenure\",\"prev\":\"deadbeef\",\"winner\":\"alice\"}",
+          "accepted": false,
+          "height": 1,
+          "tip": "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92",
+          "open_height": 2,
+          "cycle": 0,
+          "canonical": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "tenures": [
+            "2720afd4b5d738e3f35414edd90bf311deca8990e2bc6d7c5bb3b81d91442e92"
+          ],
+          "bids": [
+            "83d52550d35731ec9ec9cda5b994bef71847f3a088f3eeca6e1795d20c2d3983",
+            "5d1e6bf1c49abf80dfb2e2a9402239e640bc1ef80228fd2eae55232fa674ec64"
+          ],
+          "stacks": []
+        }
+      ]
+    }
+  ]
+}

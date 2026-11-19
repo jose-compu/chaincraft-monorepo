@@ -1,6 +1,6 @@
 # Chaincraft Object Semantics — v1 (Level 1)
 
-**Release:** 1.8.0
+**Release:** 1.9.0
 
 **Status:** Current
 **Scope:** Level 1. Behaviour that MUST match across implementations so that the same

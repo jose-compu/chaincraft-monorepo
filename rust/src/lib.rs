@@ -11,6 +11,7 @@ pub mod consensus_avalanche;
 pub mod consensus_beacon;
 pub mod consensus_pbft;
 pub mod consensus_poa;
+pub mod consensus_pox;
 pub mod consensus_poet;
 pub mod consensus_pos;
 pub mod consensus_pow;

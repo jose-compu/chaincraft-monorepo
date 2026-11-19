@@ -41,6 +41,7 @@ src/
   discovery.ts   Address book and local-discovery policy
   consensusPow.ts    Prototype PoW object
   consensusPoa.ts    Prototype PoA object
+  consensusPox.ts    Prototype Proof of Transfer object
   consensusPoet.ts   Prototype PoET object
   consensusBeacon.ts Prototype randomness beacon
   consensusPos.ts    Prototype PoS object

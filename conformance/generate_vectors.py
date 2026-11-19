@@ -49,6 +49,13 @@ from chaincraft.consensus_poa import (  # noqa: E402
     block_id as poa_block_id,
     proposer_for as poa_proposer_for,
 )
+from chaincraft.consensus_pox import (  # noqa: E402
+    ProofOfTransfer,
+    bid_id as pox_bid_id,
+    sortition_score as pox_sortition_score,
+    stack_id as pox_stack_id,
+    tenure_id as pox_tenure_id,
+)
 from chaincraft.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
 from chaincraft.crdt import MAX_KEYS, CrdtKv  # noqa: E402
 from chaincraft.fees import charge, estimate, next_base_fee, select  # noqa: E402
@@ -1313,6 +1320,13 @@ def discovery_local_vectors() -> Dict[str, Any]:
     }
 
 
+def _message_json(message: Any) -> str:
+    try:
+        return canonical_json(message)
+    except Exception:
+        return json.dumps(message, sort_keys=True, separators=(",", ":"))
+
+
 def _replay_object(name: str, factory, messages: List[Any]) -> Dict[str, Any]:
     obj = factory()
     steps = []
@@ -1322,7 +1336,7 @@ def _replay_object(name: str, factory, messages: List[Any]) -> Dict[str, Any]:
             obj.add_message(message)
         steps.append(
             {
-                "message_json": canonical_json(message),
+                "message_json": _message_json(message),
                 "accepted": accepted,
                 **obj.state(),
             }
@@ -1686,6 +1700,191 @@ def _replay_reorgs_poa() -> Dict[str, Any]:
         "min_reorg_depth": 2,
         "reorg_count": 2,
         "steps": steps,
+    }
+
+
+POX_SEED = "0123456789abcdef" * 4
+POX_CYCLE_LENGTH = 3
+POX_STACKERS = [("alice", 100), ("bob", 200), ("carol", 50)]
+
+
+def _pox_stack(locker: str, amount: int, reward_cycle: int) -> Dict[str, Any]:
+    return {
+        "consensus": "pox",
+        "kind": "stack",
+        "locker": locker,
+        "amount": amount,
+        "reward_cycle": reward_cycle,
+    }
+
+
+def _pox_bid(miner: str, btc_out: int, block_height: int) -> Dict[str, Any]:
+    return {
+        "consensus": "pox",
+        "kind": "bid",
+        "miner": miner,
+        "btc_out": btc_out,
+        "block_height": block_height,
+    }
+
+
+def _pox_tenure(winner: str, prev: str, block_height: int) -> Dict[str, Any]:
+    return {
+        "consensus": "pox",
+        "kind": "tenure",
+        "winner": winner,
+        "prev": prev,
+        "block_height": block_height,
+    }
+
+
+def _pox_factory() -> ProofOfTransfer:
+    return ProofOfTransfer(POX_SEED, POX_CYCLE_LENGTH, POX_STACKERS)
+
+
+def _pox_winning_tenure(obj: ProofOfTransfer, height: int) -> Dict[str, Any]:
+    elected = obj._elected_miner(height)  # noqa: SLF001
+    assert elected is not None
+    tip, _ = obj._tip()  # noqa: SLF001
+    prev = "" if height == 1 else tip
+    return _pox_tenure(elected, prev, height)
+
+
+def _pox_advance_three_blocks() -> List[Dict[str, Any]]:
+    """Bid and tenure at heights 1..3 using the elected miner each time."""
+    messages: List[Dict[str, Any]] = []
+    probe = _pox_factory()
+    for height in range(1, 4):
+        for miner, btc in (("alice", 5), ("bob", 6), ("carol", 4)):
+            bid = _pox_bid(miner, btc, height)
+            if probe.is_valid(bid):
+                messages.append(bid)
+                probe.add_message(bid)
+        messages.append(_pox_winning_tenure(probe, height))
+        probe.add_message(messages[-1])
+    return messages
+
+
+def consensus_pox_vectors() -> Dict[str, Any]:
+    bid_alice_h1 = _pox_bid("alice", 7, 1)
+    tenure_alice_h1 = _pox_tenure("alice", "", 1)
+    bid_bob_high = _pox_bid("bob", 99, 1)
+    bid_alice_low = _pox_bid("alice", 1, 1)
+    score_bob = pox_sortition_score(POX_SEED, "bob", 99, 1)
+    score_alice = pox_sortition_score(POX_SEED, "alice", 1, 1)
+    bid_alice_id = pox_bid_id("alice", 1, 1)
+    bid_bob_id = pox_bid_id("bob", 99, 1)
+    if score_alice < score_bob or (score_alice == score_bob and bid_alice_id < bid_bob_id):
+        sortition_winner = "alice"
+    else:
+        sortition_winner = "bob"
+    sortition_loser = "bob" if sortition_winner == "alice" else "alice"
+    tenure_loser = _pox_tenure(sortition_loser, "", 1)
+    bid_alice_dup = _pox_bid("alice", 8, 1)
+    tenure_early = _pox_tenure("alice", "", 1)
+    stack_open_cycle = _pox_stack("alice", 10, 1)
+    stack_next = _pox_stack("dave", 15, 2)
+    stack_dup = _pox_stack("dave", 20, 2)
+    bid_dave_h1 = _pox_bid("dave", 3, 1)
+    bid_bob_h4 = _pox_bid("bob", 3, 4)
+    three_blocks = _pox_advance_three_blocks()
+    factory = _pox_factory
+    replay = [
+        _replay_object(
+            "tenure at height 1 after one bid",
+            factory,
+            [bid_alice_h1, tenure_alice_h1],
+        ),
+        _replay_object(
+            "lower sortition score wins despite smaller btc_out",
+            factory,
+            [bid_bob_high, bid_alice_low, _pox_tenure(sortition_winner, "", 1)],
+        ),
+        _replay_object(
+            "tenure naming loser rejected",
+            factory,
+            [bid_bob_high, bid_alice_low, tenure_loser],
+        ),
+        _replay_object(
+            "bid from locker absent in cycle",
+            factory,
+            [bid_dave_h1],
+        ),
+        _replay_object(
+            "second bid by same miner at height rejected",
+            factory,
+            [bid_alice_h1, bid_alice_dup],
+        ),
+        _replay_object(
+            "tenure before any bid rejected",
+            factory,
+            [tenure_early],
+        ),
+        _replay_object(
+            "stack for current open cycle rejected",
+            factory,
+            three_blocks + [stack_open_cycle],
+        ),
+        _replay_object(
+            "stack next cycle then bid after boundary; cycle-0-only miner rejected",
+            factory,
+            [stack_next, *three_blocks, bid_bob_h4],
+        ),
+        _replay_object(
+            "empty next-cycle snapshot rejects bids",
+            factory,
+            three_blocks + [_pox_bid("alice", 2, 4)],
+        ),
+        _replay_object(
+            "duplicate stack locker for cycle rejected",
+            factory,
+            [stack_next, stack_dup],
+        ),
+        _replay_object(
+            "boolean and float amounts rejected",
+            factory,
+            [
+                {**_pox_stack("eve", 10, 2), "amount": True},
+                {**_pox_stack("eve", 10, 2), "amount": 1.5},
+            ],
+        ),
+        _replay_object(
+            "consensus other than pox rejected",
+            factory,
+            [{**bid_alice_h1, "consensus": "pow"}],
+        ),
+        _replay_object(
+            "duplicate id rejected",
+            factory,
+            [bid_alice_h1, bid_alice_h1],
+        ),
+        _replay_object(
+            "extra keys ignored",
+            factory,
+            [{**bid_alice_h1, "note": "ok"}, tenure_alice_h1],
+        ),
+        _replay_object(
+            "prev not equal to tip rejected",
+            factory,
+            [
+                bid_alice_h1,
+                tenure_alice_h1,
+                _pox_bid("alice", 2, 2),
+                {**_pox_tenure("alice", "", 2), "prev": "deadbeef"},
+            ],
+        ),
+    ]
+    return {
+        **header(
+            "consensus.pox",
+            "SPEC/features/consensus-pox.md",
+            "PoX object: stack cycles, bid sortition, tenure chain.",
+        ),
+        "seed": POX_SEED,
+        "cycle_length": POX_CYCLE_LENGTH,
+        "stackers": [{"locker": l, "amount": a} for l, a in POX_STACKERS],
+        "sortition_winner_height_1": sortition_winner,
+        "replay": replay,
     }
 
 
@@ -3964,6 +4163,7 @@ def main() -> int:
     write("consensus-poa.json", consensus_poa_vectors())
     write("consensus-poet.json", consensus_poet_vectors())
     write("consensus-beacon.json", consensus_beacon_vectors())
+    write("consensus-pox.json", consensus_pox_vectors())
     write("consensus-pow.json", consensus_pow_vectors())
     write("consensus-pos.json", consensus_pos_vectors())
     write("consensus-pbft.json", consensus_pbft_vectors())

@@ -1,6 +1,6 @@
 # app.pubsub
 
-**Release:** 1.8.0
+**Release:** 1.9.0
 
 Topic publish-subscribe. A chat room is one topic. There is no leader, no
 round, and no fork choice. Nodes that have accepted the same messages hold

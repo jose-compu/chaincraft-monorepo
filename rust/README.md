@@ -1,8 +1,8 @@
 # chaincraft
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.8.0](https://crates.io/crates/chaincraft/1.8.0)** on crates.io.
-1.8.0 adds `consensus.beacon` (chained VRF randomness beacon).
+Release **[1.9.0](https://crates.io/crates/chaincraft/1.9.0)** on crates.io.
+1.9.0 adds `consensus.pox` (pedagogical Proof of Transfer).
 48 of 48 registry features.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
@@ -24,7 +24,7 @@ gossips `app.hello`.
 
 ```toml
 [dependencies]
-chaincraft = "1.8.0"
+chaincraft = "1.9.0"
 ```
 
 ```rust

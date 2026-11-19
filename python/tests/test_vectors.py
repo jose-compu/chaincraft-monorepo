@@ -520,6 +520,32 @@ def test_consensus_poa_replay(case):
         assert min(step["reorg_depth"] for step in reorgs) >= case["min_reorg_depth"]
 
 
+@cases("consensus-pox.json", "replay")
+def test_consensus_pox_replay(case):
+    from chaincraft.consensus_pox import ProofOfTransfer
+
+    doc = load("consensus-pox.json")
+    stackers = [(s["locker"], s["amount"]) for s in doc["stackers"]]
+    obj = ProofOfTransfer(doc["seed"], doc["cycle_length"], stackers)
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "height": step["height"],
+            "tip": step["tip"],
+            "open_height": step["open_height"],
+            "cycle": step["cycle"],
+            "canonical": step["canonical"],
+            "tenures": step["tenures"],
+            "bids": step["bids"],
+            "stacks": step["stacks"],
+        }, where
+
+
 @cases("consensus-beacon.json", "replay")
 def test_consensus_beacon_replay(case):
     from chaincraft.consensus_beacon import RandomnessBeacon
