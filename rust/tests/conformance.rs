@@ -19,6 +19,7 @@ use chaincraft::consensus_poa::ProofOfAuthority;
 use chaincraft::consensus_poet::ProofOfElapsedTime;
 use chaincraft::consensus_pos::ProofOfStake;
 use chaincraft::consensus_pow::ProofOfWork;
+use chaincraft::consensus_pox::ProofOfTransfer;
 use chaincraft::control;
 use chaincraft::crdt::CrdtKv;
 use chaincraft::crypto::{public_key_hex, sign, verify, Algorithm};
@@ -1070,6 +1071,58 @@ fn consensus_poa_constructor() {
     solo.add_message(&child_val, None);
     let (_, _, height, _) = solo.state();
     assert_eq!(height, 2);
+}
+
+#[test]
+fn consensus_pox_replay() {
+    let doc = load("consensus-pox.json");
+    let seed = doc["seed"].as_str().unwrap();
+    let cycle_length = doc["cycle_length"].as_i64().unwrap();
+    let stackers: Vec<(String, i64)> = doc["stackers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| {
+            (
+                entry["locker"].as_str().unwrap().to_owned(),
+                entry["amount"].as_i64().unwrap(),
+            )
+        })
+        .collect();
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = ProofOfTransfer::new(seed, cycle_length, &stackers).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let parsed = parse_json(step["message_json"].as_str().unwrap());
+            let accepted = match &parsed {
+                Ok(message) => obj.is_valid(message),
+                Err(_) => false,
+            };
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                let message = parsed.unwrap();
+                obj.add_message(&message, None);
+            }
+            let (height, tip, open_height, cycle, canonical, tenures, bids, stacks) = obj.state();
+            assert_eq!(height, step["height"].as_i64().unwrap(), "{where_} height");
+            assert_eq!(tip, step["tip"].as_str().unwrap(), "{where_} tip");
+            assert_eq!(
+                open_height,
+                step["open_height"].as_i64().unwrap(),
+                "{where_} open_height"
+            );
+            assert_eq!(cycle, step["cycle"].as_i64().unwrap(), "{where_} cycle");
+            assert_eq!(
+                canonical,
+                json_strings(&step["canonical"]),
+                "{where_} canonical"
+            );
+            assert_eq!(tenures, json_strings(&step["tenures"]), "{where_} tenures");
+            assert_eq!(bids, json_strings(&step["bids"]), "{where_} bids");
+            assert_eq!(stacks, json_strings(&step["stacks"]), "{where_} stacks");
+        }
+    }
 }
 
 #[test]
@@ -2458,6 +2511,7 @@ fn vector_files_declare_feature() {
         "discovery-local.json",
         "consensus-poa.json",
         "consensus-poet.json",
+        "consensus-pox.json",
         "consensus-beacon.json",
         "consensus-pow.json",
         "consensus-pos.json",

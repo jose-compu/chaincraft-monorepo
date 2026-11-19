@@ -14,6 +14,7 @@ pub mod consensus_poa;
 pub mod consensus_poet;
 pub mod consensus_pos;
 pub mod consensus_pow;
+pub mod consensus_pox;
 pub mod control;
 pub mod crdt;
 pub mod crypto;

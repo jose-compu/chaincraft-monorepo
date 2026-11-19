@@ -1,6 +1,6 @@
 # consensus.pbft
 
-**Release:** 1.8.0
+**Release:** 1.9.0
 
 Prototype Castro–Liskov three-phase object (pre-prepare / prepare /
 commit). One replica's log, driven by messages — it does not broadcast.

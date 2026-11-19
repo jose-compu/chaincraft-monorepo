@@ -7,6 +7,7 @@
  */
 
 import assert from 'node:assert/strict';
+import type { JsonValue } from '../src/canonical.ts';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -19,6 +20,7 @@ import {
   PBFT,
   ProofOfStake,
   ProofOfAuthority,
+  ProofOfTransfer,
   ProofOfElapsedTime,
   RandomnessBeacon,
   GENESIS_PREVIOUS,
@@ -483,6 +485,43 @@ eachCase('consensus-poa.json', 'replay', (c, doc) => {
     assert.equal(reorgs.length, c['reorg_count']);
     const depths = reorgs.map((step: Case) => step['reorg_depth'] as number);
     assert.ok(Math.min(...depths) >= c['min_reorg_depth']);
+  }
+});
+
+function parseReplayMessage(json: string): JsonValue | undefined {
+  try {
+    return parseJson(json);
+  } catch (err) {
+    if (err instanceof CanonicalError) return undefined;
+    throw err;
+  }
+}
+
+eachCase('consensus-pox.json', 'replay', (c, doc) => {
+  const seed = doc['seed'] as string;
+  const cycleLength = doc['cycle_length'] as number;
+  const stackers = doc['stackers'] as { locker: string; amount: number }[];
+  const obj = new ProofOfTransfer(seed, cycleLength, stackers);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseReplayMessage(step['message_json']);
+    const where = `step ${index}`;
+    if (message === undefined) {
+      assert.equal(step['accepted'], false, where);
+      continue;
+    }
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      height: step['height'],
+      tip: step['tip'],
+      open_height: step['open_height'],
+      cycle: step['cycle'],
+      canonical: step['canonical'],
+      tenures: step['tenures'],
+      bids: step['bids'],
+      stacks: step['stacks'],
+    }, where);
   }
 });
 
@@ -1136,6 +1175,7 @@ test('every vector file declares its feature', () => {
     'discovery-local.json',
     'consensus-poa.json',
     'consensus-poet.json',
+    'consensus-pox.json',
     'consensus-beacon.json',
     'consensus-pow.json',
     'consensus-pos.json',

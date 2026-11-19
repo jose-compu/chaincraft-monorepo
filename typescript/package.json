@@ -1,6 +1,6 @@
 {
   "name": "@chaincraft/core",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "A platform for decentralized protocols — wire, objects, and pedagogical consensus",
   "license": "MIT",
   "type": "module",
