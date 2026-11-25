@@ -3,6 +3,7 @@
 //! Implements SPEC/wire-v1.md and SPEC/semantics-v1.md.
 
 pub mod adapters;
+pub mod ban;
 pub mod bittorrent;
 pub mod canonical;
 pub mod channel;
@@ -42,6 +43,7 @@ pub mod stream;
 pub mod vdf;
 pub mod vrf;
 
+pub use ban::{classify_inbound, BanSet, DEFAULT_BAN_TTL_MS, DEFAULT_STRIKE_LIMIT, MAX_TRACKED};
 pub use canonical::{
     bytes_to_hex, canonical_bytes, canonical_json, hex_to_bytes, parse_json, payload_digest,
     JsonValue, MAX_DEPTH, MAX_SAFE_INT, MIN_SAFE_INT,

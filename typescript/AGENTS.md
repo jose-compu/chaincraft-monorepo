@@ -39,6 +39,7 @@ src/
   vdf.ts         Sloth VDF (crypto-vdf.md)
   vrf.ts         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.ts   Address book and local-discovery policy
+  ban.ts         Local strike list and inbound classification
   consensusPow.ts    Prototype PoW object
   consensusPoa.ts    Prototype PoA object
   consensusPox.ts    Prototype Proof of Transfer object

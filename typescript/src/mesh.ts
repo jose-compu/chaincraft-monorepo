@@ -57,6 +57,7 @@ export class Mesh {
   private readonly udpPeers: string[] = [];
   onApp: AppHandler = () => undefined;
   onLink: LinkHandler = () => undefined;
+  allowPeer: (addr: string) => boolean = () => true;
   private readonly onEvent: (event: MeshEvent) => void;
   private server: net.Server | undefined;
 
@@ -209,6 +210,7 @@ export class Mesh {
       this.onLink(peer.addr, env.type, env.data);
       return;
     }
+    if (!this.allowPeer(peer.addr)) return;
     if (!this.dedup.shouldProcess(env)) return;
     this.record(env);
     this.onEvent({ event: 'received', id: env.id, type: env.type, data: env.data });
@@ -281,6 +283,7 @@ export class Mesh {
       this.onLink(src, env.type, env.data);
       return;
     }
+    if (!this.allowPeer(src)) return;
     if (!this.dedup.shouldProcess(env)) return;
     this.record(env);
     this.onEvent({ event: 'received', id: env.id, type: env.type, data: env.data });

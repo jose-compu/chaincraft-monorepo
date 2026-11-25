@@ -181,6 +181,16 @@ export {
   isConnectAllowed,
   isResolvedIpAllowed,
 } from './discovery.ts';
+export {
+  BanSet,
+  classifyInbound,
+  DEFAULT_BAN_TTL_MS,
+  DEFAULT_STRIKE_LIMIT,
+  MAX_TRACKED as BAN_MAX_TRACKED,
+  type BanPeerState,
+  type BanSetState,
+  type ClassifyResult,
+} from './ban.ts';
 
 export {
   type Manifest,

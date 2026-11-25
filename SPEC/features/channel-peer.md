@@ -1,6 +1,6 @@
 # channel.peer
 
-**Release:** 1.9.0
+**Release:** 1.10.0
 
 PeerJS peer ids, the broker a browser uses to learn an id, and an in-memory
 relay that delivers one envelope to every other joined address.

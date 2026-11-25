@@ -463,6 +463,56 @@ def test_discovery_peer_sequence(case):
         assert book.advertise() == step["advertised"], where
 
 
+@cases("discovery-ban.json", "sequence")
+def test_discovery_ban_sequence(case):
+    from chaincraft.ban import BanSet, classify_inbound
+
+    base = 1757430000000
+    bs = BanSet(strike_limit=case["strike_limit"], ban_ttl_ms=case["ban_ttl_ms"])
+    for index, step in enumerate(case["steps"]):
+        where = f"step {index} ({step['op']})"
+        op = step["op"]
+        if op == "note":
+            now_ms = step.get("now_ms", base)
+            if isinstance(now_ms, bool) or not isinstance(now_ms, int) or now_ms < 0:
+                result = "ignored"
+            else:
+                result = bs.note(step["peer"], step["reason"], now_ms)
+            assert result == step["result"], where
+            if "strikes" in step:
+                assert bs.strikes(step["peer"]) == step["strikes"], where
+        elif op == "strikes":
+            assert bs.strikes(step["peer"]) == step["strikes"], where
+        elif op == "banned":
+            clock = step.get("now_ms", base)
+            assert bs.banned(clock) == step["banned"], where
+        elif op == "is_banned":
+            peer = step["peer"]
+            clock = step["now_ms"]
+            expect = peer in step["banned"]
+            assert bs.is_banned(peer, clock) is expect, where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        clock = step.get("now_ms", base)
+        if isinstance(clock, bool):
+            clock = base
+        state = bs.state(clock)
+        assert state["size"] == step["size"], where
+        assert state["banned"] == step["banned"], where
+        assert state["tracked"] == step["tracked"], where
+    for index, row in enumerate(case["classify"]):
+        where = f"classify {index}"
+        out = classify_inbound(
+            row["type"], row["solicited"], row["duplicate"], row["address_ok"]
+        )
+        assert out["action"] == row["action"], where
+        assert out["reason"] == row["reason"], where
+        state = bs.state(base)
+        assert state["size"] == row["size"], where
+        assert state["banned"] == row["banned"], where
+        assert state["tracked"] == row["tracked"], where
+
+
 @cases("discovery-local.json", "sequence")
 def test_discovery_local_sequence(case):
     from chaincraft.discovery import AddressBook, LocalDiscovery

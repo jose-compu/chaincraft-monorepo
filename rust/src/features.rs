@@ -1,9 +1,9 @@
 //! Feature manifest — the IDs this implementation claims to provide.
 
-pub const VERSION: &str = "1.9.0";
+pub const VERSION: &str = "1.10.0";
 pub const WIRE_VERSION: i64 = 1;
 pub const LANGUAGE: &str = "rust";
-pub const IMPL: &str = "rust-chaincraft/1.9.0";
+pub const IMPL: &str = "rust-chaincraft/1.10.0";
 
 pub const FEATURES: &[&str] = &[
     "wire.canonical-json",
@@ -27,6 +27,7 @@ pub const FEATURES: &[&str] = &[
     "crypto.vrf",
     "discovery.peer",
     "discovery.local",
+    "discovery.ban",
     "discovery.nat",
     "consensus.pow",
     "consensus.pos",

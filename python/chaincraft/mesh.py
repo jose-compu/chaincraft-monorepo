@@ -63,11 +63,13 @@ class Mesh:
         on_event: Optional[EventFn] = None,
         on_app: Optional[AppFn] = None,
         on_link: Optional[LinkFn] = None,
+        allow_peer: Optional[Callable[[str], bool]] = None,
     ) -> None:
         self.impl = impl
         self.on_event = on_event or (lambda _e: None)
         self.on_app = on_app or (lambda _t, _d: None)
         self.on_link = on_link or (lambda _addr, _t, _d: None)
+        self.allow_peer = allow_peer or (lambda _a: True)
         self.dedup = Deduplicator()
         self.peers: List[_Peer] = []
         self.received: List[Dict[str, Any]] = []
@@ -233,6 +235,8 @@ class Mesh:
         if env.is_control():
             self.on_link(peer.addr, env.type, env.data)
             return
+        if not self.allow_peer(peer.addr):
+            return
         with self.lock:
             if not self.dedup.should_process(env):
                 return
@@ -320,6 +324,8 @@ class Mesh:
             return
         if env.is_control():
             self.on_link(src, env.type, env.data)
+            return
+        if not self.allow_peer(src):
             return
         with self.lock:
             if not self.dedup.should_process(env):

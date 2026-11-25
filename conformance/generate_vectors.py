@@ -56,6 +56,7 @@ from chaincraft.consensus_pox import (  # noqa: E402
     stack_id as pox_stack_id,
     tenure_id as pox_tenure_id,
 )
+from chaincraft.ban import BanSet, classify_inbound  # noqa: E402
 from chaincraft.consensus_pow import ProofOfWork, block_id, mine  # noqa: E402
 from chaincraft.crdt import MAX_KEYS, CrdtKv  # noqa: E402
 from chaincraft.fees import charge, estimate, next_base_fee, select  # noqa: E402
@@ -1316,6 +1317,229 @@ def discovery_local_vectors() -> Dict[str, Any]:
             "share or learn addresses.",
         ),
         "now_ms": NOW,
+        "sequence": sequence,
+    }
+
+
+def _ban_state(bs: BanSet, now_ms: int) -> Dict[str, Any]:
+    state = bs.state(now_ms)
+    return {
+        "size": state["size"],
+        "banned": state["banned"],
+        "tracked": state["tracked"],
+    }
+
+
+def discovery_ban_vectors() -> Dict[str, Any]:
+    base = 1757430000000
+    peer_a = "10.0.0.2:9735"
+    peer_b = "10.0.0.3:9735"
+    bad_peer = "not-an-address"
+
+    def run(
+        name: str,
+        note: str,
+        strike_limit: int = 3,
+        ban_ttl_ms: int = 60_000,
+        ops: List[Dict[str, Any]] | None = None,
+        classify: List[Dict[str, Any]] | None = None,
+    ) -> Dict[str, Any]:
+        bs = BanSet(strike_limit=strike_limit, ban_ttl_ms=ban_ttl_ms)
+        steps: List[Dict[str, Any]] = []
+        for op in ops or []:
+            kind = op["op"]
+            clock = op.get("now_ms", base)
+            if kind == "note":
+                result = bs.note(op["peer"], op["reason"], clock)
+                step = {
+                    "op": "note",
+                    "peer": op["peer"],
+                    "reason": op["reason"],
+                    "now_ms": clock,
+                    "result": result,
+                    "strikes": bs.strikes(op["peer"]),
+                }
+            elif kind == "strikes":
+                step = {
+                    "op": "strikes",
+                    "peer": op["peer"],
+                    "strikes": bs.strikes(op["peer"]),
+                }
+            elif kind == "banned":
+                step = {"op": "banned", "now_ms": clock, "banned": bs.banned(clock)}
+            elif kind == "is_banned":
+                step = {
+                    "op": "is_banned",
+                    "peer": op["peer"],
+                    "now_ms": clock,
+                    "banned": bs.is_banned(op["peer"], clock),
+                }
+            else:
+                raise ValueError(kind)
+            step.update(_ban_state(bs, op.get("now_ms", base)))
+            steps.append(step)
+        classification = []
+        for row in classify or []:
+            out = classify_inbound(
+                row["type"],
+                row["solicited"],
+                row["duplicate"],
+                row["address_ok"],
+            )
+            classification.append({**row, **out})
+            classification[-1].update(_ban_state(bs, base))
+        return {
+            "name": name,
+            "note": note,
+            "strike_limit": strike_limit,
+            "ban_ttl_ms": ban_ttl_ms,
+            "steps": steps,
+            "classify": classification,
+        }
+
+    peers64 = [f"10.0.0.{index}:9735" for index in range(2, 66)]
+    cap_evict_ops = [
+        {"op": "note", "peer": peer, "reason": "digest_flood"} for peer in peers64
+    ] + [{"op": "note", "peer": "10.0.1.1:9735", "reason": "digest_flood"}]
+    fill_ops = [
+        {
+            "op": "note",
+            "peer": peer,
+            "reason": "invalid_address",
+            "now_ms": base + index,
+        }
+        for index, peer in enumerate(peers64)
+    ]
+    sequence = [
+        run(
+            "three digest_flood strikes ban",
+            "third note is banned with three strikes",
+            ops=[
+                {"op": "note", "peer": peer_a, "reason": "digest_flood"},
+                {"op": "note", "peer": peer_a, "reason": "digest_flood"},
+                {"op": "note", "peer": peer_a, "reason": "digest_flood"},
+                {"op": "strikes", "peer": peer_a},
+                {"op": "banned", "now_ms": base},
+            ],
+        ),
+        run(
+            "strike_limit one",
+            "first digest_flood bans immediately",
+            strike_limit=1,
+            ops=[
+                {"op": "note", "peer": peer_a, "reason": "digest_flood"},
+                {"op": "strikes", "peer": peer_a},
+            ],
+        ),
+        run(
+            "invalid_address immediate ban",
+            "one strike reason bans on first call",
+            ops=[{"op": "note", "peer": peer_a, "reason": "invalid_address"}],
+        ),
+        run(
+            "malformed counts as flood",
+            "malformed adds a strike like digest_flood",
+            ops=[
+                {"op": "note", "peer": peer_a, "reason": "malformed"},
+                {"op": "strikes", "peer": peer_a},
+            ],
+        ),
+        run(
+            "ignored invalid inputs",
+            "unknown reason and bad peer leave strikes at zero",
+            ops=[
+                {"op": "note", "peer": peer_a, "reason": "unknown"},
+                {"op": "note", "peer": bad_peer, "reason": "digest_flood"},
+                {"op": "note", "peer": peer_a, "reason": "digest_flood", "now_ms": True},
+                {"op": "note", "peer": peer_a, "reason": "digest_flood", "now_ms": -1},
+                {"op": "strikes", "peer": peer_a},
+            ],
+        ),
+        run(
+            "ban ttl and repeat note",
+            "banned_at fixed until expiry clears strikes",
+            ops=[
+                {"op": "note", "peer": peer_a, "reason": "invalid_address"},
+                {"op": "note", "peer": peer_a, "reason": "digest_flood", "now_ms": base + 1000},
+                {"op": "is_banned", "peer": peer_a, "now_ms": base + 60_000},
+                {"op": "is_banned", "peer": peer_a, "now_ms": base + 60_001},
+                {"op": "strikes", "peer": peer_a},
+            ],
+        ),
+        run(
+            "65th peer evicts oldest non-banned",
+            "one strike per slot then one more peer",
+            ops=cap_evict_ops,
+        ),
+        run(
+            "full ban set ignores new peer",
+            "64 active bans block tracking a new peer",
+            ops=fill_ops
+            + [
+                {
+                    "op": "note",
+                    "peer": "10.0.1.1:9735",
+                    "reason": "digest_flood",
+                    "now_ms": base + 200,
+                },
+            ],
+        ),
+        run(
+            "classify_inbound rows",
+            "unsolicited ctl.peers does not touch the ban set",
+            classify=[
+                {
+                    "type": "ctl.peers",
+                    "solicited": False,
+                    "duplicate": False,
+                    "address_ok": True,
+                },
+                {
+                    "type": "ctl.peers",
+                    "solicited": True,
+                    "duplicate": False,
+                    "address_ok": True,
+                },
+                {"type": "link.ping", "solicited": False, "duplicate": False, "address_ok": True},
+                {
+                    "type": "app.counter",
+                    "solicited": False,
+                    "duplicate": False,
+                    "address_ok": False,
+                },
+                {
+                    "type": "app.counter",
+                    "solicited": False,
+                    "duplicate": True,
+                    "address_ok": True,
+                },
+                {
+                    "type": "app.counter",
+                    "solicited": False,
+                    "duplicate": False,
+                    "address_ok": True,
+                },
+            ],
+        ),
+        run(
+            "banned sort order",
+            "banned list is code-point sorted",
+            ops=[
+                {"op": "note", "peer": "10.0.0.10:9735", "reason": "invalid_address"},
+                {"op": "note", "peer": "10.0.0.2:9735", "reason": "invalid_address"},
+                {"op": "note", "peer": "10.0.0.3:9735", "reason": "invalid_address"},
+                {"op": "banned", "now_ms": base},
+            ],
+        ),
+    ]
+
+    return {
+        **header(
+            "discovery.ban",
+            "SPEC/features/discovery-ban.md",
+            "Local strike list with ban TTL and mesh allow_peer gate.",
+        ),
+        "now_ms": base,
         "sequence": sequence,
     }
 
@@ -4159,6 +4383,7 @@ def main() -> int:
     print("\nLevel 2 — discovery")
     write("discovery-peer.json", discovery_peer_vectors())
     write("discovery-local.json", discovery_local_vectors())
+    write("discovery-ban.json", discovery_ban_vectors())
     print("\nLevel 2 — consensus")
     write("consensus-poa.json", consensus_poa_vectors())
     write("consensus-poet.json", consensus_poet_vectors())
