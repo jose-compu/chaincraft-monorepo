@@ -93,6 +93,13 @@ impl Mesh {
         &self.listen_addr
     }
 
+    pub fn peer_addrs(&self) -> Vec<String> {
+        self.peers
+            .iter()
+            .filter_map(|peer| peer.lock().ok().map(|item| item.addr.clone()))
+            .collect()
+    }
+
     pub fn set_on_app(&mut self, handler: AppHandler) {
         self.on_app = Some(handler);
     }

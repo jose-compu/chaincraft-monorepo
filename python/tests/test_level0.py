@@ -483,15 +483,12 @@ class TestListen:
 
 
 class TestThreeNodeAllowPeer:
-    def test_middle_blocks_second_peer_gossip(self):
+    def test_hub_blocks_only_sender(self):
         got_b: List[tuple[str, object]] = []
-        first: List[str] = []
+        sender_addr: List[str] = []
 
         def allow_peer(addr: str) -> bool:
-            if not first:
-                first.append(addr)
-                return True
-            return addr == first[0]
+            return not sender_addr or addr != sender_addr[0]
 
         b = Mesh(
             on_app=lambda t, d: got_b.append((t, d)),
@@ -504,20 +501,29 @@ class TestThreeNodeAllowPeer:
             a.start("127.0.0.1", 0)
             c.start("127.0.0.1", 0)
             a.connect(addr_b)
-            c.connect(addr_b)
-            digest_warm = a.broadcast("app.warm", {"n": 0})
             deadline = time.time() + 2
-            while time.time() < deadline and digest_warm not in b.ids():
+            while time.time() < deadline and not b.peers:
                 time.sleep(0.05)
-            assert first, "expected first gossip peer on b"
-            got_b.clear()
-            digest = c.broadcast("app.blocked", {"n": 1})
+            assert b.peers, "sender should connect to hub"
+            sender_addr.append(b.peers[0].addr)
+            c.connect(addr_b)
+
+            blocked = a.broadcast("app.blocked", {"n": 0})
             deadline = time.time() + 2
             while time.time() < deadline:
                 time.sleep(0.05)
             assert got_b == []
-            assert digest not in b.ids()
-            assert digest in c.ids()
+            assert blocked not in b.ids()
+            assert blocked not in c.ids()
+
+            got_b.clear()
+            allowed = c.broadcast("app.ok", {"n": 1})
+            deadline = time.time() + 2
+            while time.time() < deadline and allowed not in b.ids():
+                time.sleep(0.05)
+            assert got_b == [("app.ok", {"n": 1})]
+            assert allowed in b.ids()
+            assert allowed in c.ids()
         finally:
             a.close()
             b.close()
