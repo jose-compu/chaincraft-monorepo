@@ -1,8 +1,8 @@
 # chaincraft
 
 Reference implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.9.0](https://pypi.org/project/chaincraft/1.9.0/)** on PyPI.
-1.9.0 adds `consensus.pox` (pedagogical Proof of Transfer).
+Release **[1.10.0](https://pypi.org/project/chaincraft/1.10.0/)** on PyPI.
+1.10.0 adds `consensus.pox` (pedagogical Proof of Transfer).
 48 of 48 registry features are implemented in Python.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,

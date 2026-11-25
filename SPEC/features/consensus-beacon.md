@@ -1,6 +1,6 @@
 # consensus.beacon
 
-**Release:** 1.9.0
+**Release:** 1.10.0
 
 Chained VRF randomness beacon. Each pulse proves unpredictable output at a height
 that cites the previous output. It implements the Level 1 contract

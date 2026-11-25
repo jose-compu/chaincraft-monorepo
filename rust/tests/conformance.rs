@@ -8,6 +8,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use chaincraft::adapters::{AdapterBus, AdapterChannel};
+use chaincraft::ban::{classify_inbound, BanSet};
 use chaincraft::bittorrent::Swarm;
 use chaincraft::canonical::{canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue};
 use chaincraft::channel::{self, LoopBus, LoopChannel};
@@ -924,6 +925,98 @@ fn discovery_peer_sequence() {
                 other => panic!("unknown op {other}"),
             }
             assert_book(&book, step, &where_);
+        }
+    }
+}
+
+fn assert_ban_step(bs: &mut BanSet, step: &Value, base: u64, where_: &str) {
+    let clock = step
+        .get("now_ms")
+        .and_then(|v| if v.is_boolean() { None } else { v.as_i64() })
+        .unwrap_or(base as i64);
+    let state = bs.state(clock as u64);
+    assert_eq!(
+        state["size"].as_u64().unwrap() as usize,
+        step["size"].as_u64().unwrap() as usize,
+        "{where_} size"
+    );
+    assert_eq!(state["banned"], step["banned"], "{where_} banned");
+    assert_eq!(state["tracked"], step["tracked"], "{where_} tracked");
+}
+
+fn step_now_ms(step: &Value, base: u64) -> Option<u64> {
+    match step.get("now_ms") {
+        None => Some(base),
+        Some(raw) if raw.is_boolean() => None,
+        Some(raw) => raw.as_i64().and_then(|n| (n >= 0).then_some(n as u64)),
+    }
+}
+
+#[test]
+fn discovery_ban_replay() {
+    let doc = load("discovery-ban.json");
+    let base = doc["now_ms"].as_u64().unwrap();
+    for case in doc["sequence"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let strike_limit = case["strike_limit"].as_u64().unwrap() as u32;
+        let ban_ttl_ms = case["ban_ttl_ms"].as_u64().unwrap();
+        let mut bs = BanSet::new(strike_limit, ban_ttl_ms).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            match step["op"].as_str().unwrap() {
+                "note" => {
+                    let result = match step_now_ms(step, base) {
+                        Some(now_ms) => bs.note(
+                            step["peer"].as_str().unwrap(),
+                            step["reason"].as_str().unwrap(),
+                            now_ms,
+                        ),
+                        None => "ignored",
+                    };
+                    assert_eq!(result, step["result"].as_str().unwrap(), "{where_}");
+                    if let Some(strikes) = step.get("strikes") {
+                        assert_eq!(
+                            bs.strikes(step["peer"].as_str().unwrap()),
+                            strikes.as_u64().unwrap() as u32,
+                            "{where_}"
+                        );
+                    }
+                }
+                "strikes" => assert_eq!(
+                    bs.strikes(step["peer"].as_str().unwrap()),
+                    step["strikes"].as_u64().unwrap() as u32,
+                    "{where_}"
+                ),
+                "banned" => assert_eq!(
+                    bs.banned(step_now_ms(step, base).unwrap_or(base)),
+                    json_strings(&step["banned"]),
+                    "{where_}"
+                ),
+                "is_banned" => {
+                    let now_ms = step_now_ms(step, base).unwrap();
+                    let peer = step["peer"].as_str().unwrap();
+                    let expect = step["banned"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|item| item.as_str() == Some(peer));
+                    assert_eq!(bs.is_banned(peer, now_ms), expect, "{where_}");
+                }
+                other => panic!("unknown op {other}"),
+            }
+            assert_ban_step(&mut bs, step, base, &where_);
+        }
+        for (index, row) in case["classify"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} classify {index}");
+            let out = classify_inbound(
+                row["type"].as_str().unwrap(),
+                row["solicited"].as_bool().unwrap(),
+                row["duplicate"].as_bool().unwrap(),
+                row["address_ok"].as_bool().unwrap(),
+            );
+            assert_eq!(out["action"], row["action"], "{where_}");
+            assert_eq!(out["reason"], row["reason"], "{where_}");
+            assert_ban_step(&mut bs, row, base, &where_);
         }
     }
 }
@@ -2508,6 +2601,7 @@ fn vector_files_declare_feature() {
         "vdf.json",
         "vrf.json",
         "discovery-peer.json",
+        "discovery-ban.json",
         "discovery-local.json",
         "consensus-poa.json",
         "consensus-poet.json",

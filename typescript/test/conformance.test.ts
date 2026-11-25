@@ -62,6 +62,8 @@ import {
   encodeFrame,
   frontierDigest,
   hexToBytes,
+  BanSet,
+  classifyInbound,
   isConnectAllowed,
   isValidAddress,
   merkleDigest,
@@ -460,6 +462,66 @@ eachCase('discovery-local.json', 'sequence', (c) => {
     assert.equal(book.size, step['size'], where);
     assert.deepEqual(book.addresses(), step['book'], where);
     assert.deepEqual(book.advertise(), step['advertised'], where);
+  }
+});
+
+function banNowMs(step: Case, base: number): number | undefined {
+  if (!('now_ms' in step)) return base;
+  const raw = step['now_ms'];
+  if (typeof raw === 'boolean') return undefined;
+  if (typeof raw !== 'number' || raw < 0) return undefined;
+  return raw;
+}
+
+function assertBanState(bs: BanSet, step: Case, base: number, where: string): void {
+  const clock = banNowMs(step, base) ?? base;
+  const state = bs.state(clock);
+  assert.equal(state.size, step['size'], where);
+  assert.deepEqual(state.banned, step['banned'], where);
+  assert.deepEqual(state.tracked, step['tracked'], where);
+}
+
+eachCase('discovery-ban.json', 'sequence', (c, doc) => {
+  const base = doc['now_ms'] as number;
+  const bs = new BanSet(c['strike_limit'], c['ban_ttl_ms']);
+  for (const [index, step] of c['steps'].entries()) {
+    const where = `step ${index} (${step['op']})`;
+    if (step['op'] === 'note') {
+      const nowMs = banNowMs(step, base);
+      const result =
+        nowMs === undefined
+          ? 'ignored'
+          : bs.note(String(step['peer']), String(step['reason']), nowMs);
+      assert.equal(result, step['result'], where);
+      if ('strikes' in step) {
+        assert.equal(bs.strikes(String(step['peer'])), step['strikes'], where);
+      }
+    } else if (step['op'] === 'strikes') {
+      assert.equal(bs.strikes(String(step['peer'])), step['strikes'], where);
+    } else if (step['op'] === 'banned') {
+      assert.deepEqual(bs.banned(banNowMs(step, base) ?? base), step['banned'], where);
+    } else if (step['op'] === 'is_banned') {
+      const peer = String(step['peer']);
+      const nowMs = banNowMs(step, base);
+      assert.equal(nowMs !== undefined, true, where);
+      const expect = (step['banned'] as string[]).includes(peer);
+      assert.equal(bs.isBanned(peer, nowMs!), expect, where);
+    } else {
+      assert.fail(`unknown op ${step['op']}`);
+    }
+    assertBanState(bs, step, base, where);
+  }
+  for (const [index, row] of (c['classify'] as Case[]).entries()) {
+    const where = `classify ${index}`;
+    const out = classifyInbound(
+      String(row['type']),
+      Boolean(row['solicited']),
+      Boolean(row['duplicate']),
+      Boolean(row['address_ok']),
+    );
+    assert.equal(out.action, row['action'], where);
+    assert.equal(out.reason, row['reason'], where);
+    assertBanState(bs, row, base, where);
   }
 });
 
@@ -1172,6 +1234,7 @@ test('every vector file declares its feature', () => {
     'vdf.json',
     'vrf.json',
     'discovery-peer.json',
+    'discovery-ban.json',
     'discovery-local.json',
     'consensus-poa.json',
     'consensus-poet.json',

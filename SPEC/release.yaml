@@ -11,10 +11,10 @@
 #   - every markdown file under SPEC/ is listed here
 #   - every listed file contains **Release:** <release>
 
-release: "1.9.0"
+release: "1.10.0"
 wire_protocol: 1
 status: current
-since: "2026-11-19"
+since: "2026-11-25"
 
 documents:
   - SPEC/features/app-pubsub.md
@@ -35,6 +35,7 @@ documents:
   - SPEC/features/crypto-ecdsa.md
   - SPEC/features/crypto-vdf.md
   - SPEC/features/crypto-vrf.md
+  - SPEC/features/discovery-ban.md
   - SPEC/features/discovery-local.md
   - SPEC/features/discovery-nat.md
   - SPEC/features/discovery-peer.md

@@ -26,6 +26,7 @@ chaincraft/
   vdf.py         Sloth VDF (crypto-vdf.md)
   vrf.py         Deterministic ECDSA VRF (crypto-vrf.md)
   discovery.py   Address book and local-discovery policy
+  ban.py         Local strike list and inbound classification
   consensus_pow.py   Prototype PoW object
   consensus_poa.py   Prototype PoA object
   consensus_pox.py   Prototype Proof of Transfer object

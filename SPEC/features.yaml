@@ -291,6 +291,16 @@ features:
       rust:       { state: implemented, since: "2026-09-09" }
       typescript: { state: implemented, since: "2026-09-09" }
 
+  - id: discovery.ban
+    level: 2
+    spec: SPEC/features/discovery-ban.md
+    summary: Local strike list; ban TTL and mesh allow_peer gossip gate
+    vectors: conformance/vectors/discovery-ban.json
+    status:
+      python:     { state: implemented, since: "2026-11-25" }
+      rust:       { state: implemented, since: "2026-11-25" }
+      typescript: { state: implemented, since: "2026-11-25" }
+
   - id: consensus.pow
     level: 2
     spec: SPEC/features/consensus-pow.md

@@ -33,6 +33,8 @@ struct Peer {
     addr: String,
 }
 
+pub type AllowPeer = Arc<dyn Fn(&str) -> bool + Send + Sync>;
+
 pub struct Mesh {
     impl_name: String,
     listen_addr: String,
@@ -43,6 +45,7 @@ pub struct Mesh {
     received: Vec<String>,
     on_app: Option<AppHandler>,
     on_link: Option<LinkHandler>,
+    allow_peer: Option<AllowPeer>,
 }
 
 impl Mesh {
@@ -66,6 +69,7 @@ impl Mesh {
             received: Vec::new(),
             on_app: None,
             on_link: None,
+            allow_peer: None,
         }));
         let accept_mesh = Arc::clone(&mesh);
         thread::spawn(move || {
@@ -95,6 +99,10 @@ impl Mesh {
 
     pub fn set_on_link(&mut self, handler: LinkHandler) {
         self.on_link = Some(handler);
+    }
+
+    pub fn set_allow_peer(&mut self, handler: AllowPeer) {
+        self.allow_peer = Some(handler);
     }
 
     pub fn ids(&self) -> Vec<String> {
@@ -471,6 +479,14 @@ fn handle_datagram(mesh: &Arc<Mutex<Mesh>>, src: &str, body: &[u8]) -> Result<()
         }
         return Ok(());
     }
+    {
+        let guard = mesh.lock().map_err(|e| e.to_string())?;
+        if let Some(allow) = &guard.allow_peer {
+            if !allow(src) {
+                return Ok(());
+            }
+        }
+    }
     let (should_relay, others, handler) = {
         let mut guard = mesh.lock().map_err(|e| e.to_string())?;
         if !guard.dedup.should_process(&env) {
@@ -509,6 +525,15 @@ fn handle(mesh: &Arc<Mutex<Mesh>>, peer: &Arc<Mutex<Peer>>, body: &[u8]) -> Resu
             handler(&addr, &env.type_name, &env.data);
         }
         return Ok(());
+    }
+    {
+        let addr = peer.lock().map_err(|e| e.to_string())?.addr.clone();
+        let guard = mesh.lock().map_err(|e| e.to_string())?;
+        if let Some(allow) = &guard.allow_peer {
+            if !allow(&addr) {
+                return Ok(());
+            }
+        }
     }
     let (should_relay, others, handler) = {
         let mut guard = mesh.lock().map_err(|e| e.to_string())?;

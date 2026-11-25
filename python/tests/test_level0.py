@@ -482,6 +482,48 @@ class TestListen:
             parse_listen("127.0.0.1:65536")
 
 
+class TestThreeNodeAllowPeer:
+    def test_middle_blocks_second_peer_gossip(self):
+        got_b: List[tuple[str, object]] = []
+        first: List[str] = []
+
+        def allow_peer(addr: str) -> bool:
+            if not first:
+                first.append(addr)
+                return True
+            return addr == first[0]
+
+        b = Mesh(
+            on_app=lambda t, d: got_b.append((t, d)),
+            allow_peer=allow_peer,
+        )
+        a = Mesh()
+        c = Mesh()
+        try:
+            addr_b = b.start("127.0.0.1", 0)
+            a.start("127.0.0.1", 0)
+            c.start("127.0.0.1", 0)
+            a.connect(addr_b)
+            c.connect(addr_b)
+            digest_warm = a.broadcast("app.warm", {"n": 0})
+            deadline = time.time() + 2
+            while time.time() < deadline and digest_warm not in b.ids():
+                time.sleep(0.05)
+            assert first, "expected first gossip peer on b"
+            got_b.clear()
+            digest = c.broadcast("app.blocked", {"n": 1})
+            deadline = time.time() + 2
+            while time.time() < deadline:
+                time.sleep(0.05)
+            assert got_b == []
+            assert digest not in b.ids()
+            assert digest in c.ids()
+        finally:
+            a.close()
+            b.close()
+            c.close()
+
+
 class TestTwoNodeMesh:
     def test_two_local_sockets_gossip_hello(self):
         got = []
