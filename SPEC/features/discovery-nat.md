@@ -1,6 +1,6 @@
 # discovery.nat
 
-**Release:** 1.12.0
+**Release:** 1.12.1
 
 Prototype NAT traversal for a Mesh client. STUN Binding (RFC 5389, IPv4
 only), a one-byte UDP hole punch, and an `app.nat` introduction relay.

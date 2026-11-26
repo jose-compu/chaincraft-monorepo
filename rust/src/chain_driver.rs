@@ -801,6 +801,23 @@ impl PoxDriver {
     }
 }
 
+impl PoxDriver {
+    fn pox_elected(height: i64) -> String {
+        use crate::consensus_pox::sortition_score;
+        let miners = [("alice", 5i64), ("bob", 6), ("carol", 4)];
+        let mut best_miner = "alice".to_owned();
+        let mut best_score = String::new();
+        for (miner, btc) in miners {
+            let score = sortition_score(POX_SEED, miner, btc, height);
+            if best_score.is_empty() || score < best_score {
+                best_miner = miner.to_owned();
+                best_score = score;
+            }
+        }
+        best_miner
+    }
+}
+
 impl ChainDriver for PoxDriver {
     fn build_proof(&mut self, block: &JsonValue) -> Result<JsonValue, String> {
         let header = block
@@ -809,10 +826,7 @@ impl ChainDriver for PoxDriver {
             .ok_or_else(|| "header required".to_string())?;
         let hdr = header.as_object().unwrap();
         let h = hdr.get("height").unwrap().as_i64().unwrap();
-        let elected = self
-            .pox
-            .driver_elected_miner(h)
-            .unwrap_or_else(|| hdr.get("producer").unwrap().as_str().unwrap().to_owned());
+        let elected = Self::pox_elected(h);
         let (tip, _) = self.pox.driver_tip();
         let prev = if h == 1 { String::new() } else { tip };
         let bids = vec![
@@ -866,24 +880,42 @@ impl ChainDriver for PoxDriver {
             .unwrap()
             .as_i64()
             .unwrap();
-        if let Some(elected) = self.pox.driver_elected_miner(height) {
-            if header
+        let Some(messages) = obj.get("messages").and_then(JsonValue::as_array) else {
+            return false;
+        };
+        let mut bids = Vec::new();
+        let mut tenures = Vec::new();
+        for msg in messages {
+            let kind = msg
                 .as_object()
-                .unwrap()
-                .get("producer")
-                .and_then(JsonValue::as_str)
-                != Some(elected.as_str())
-            {
-                return false;
+                .and_then(|o| o.get("kind"))
+                .and_then(JsonValue::as_str);
+            match kind {
+                Some("bid") => bids.push(msg),
+                Some("tenure") => tenures.push(msg),
+                _ => return false,
             }
         }
-        if let Some(messages) = obj.get("messages").and_then(JsonValue::as_array) {
-            for msg in messages {
-                if !self.pox.is_valid(msg) {
-                    return false;
-                }
-                self.pox.add_message(msg, None);
+        for msg in bids {
+            if !self.pox.is_valid(msg) {
+                return false;
             }
+            self.pox.add_message(msg, None);
+        }
+        let elected = self.pox.driver_elected_miner(height);
+        let producer = header
+            .as_object()
+            .unwrap()
+            .get("producer")
+            .and_then(JsonValue::as_str);
+        if elected.as_deref() != producer {
+            return false;
+        }
+        for msg in tenures {
+            if !self.pox.is_valid(msg) {
+                return false;
+            }
+            self.pox.add_message(msg, None);
         }
         if let Ok(cid) = block_id(header) {
             self.chain_ids.push(cid);

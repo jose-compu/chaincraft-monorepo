@@ -1803,6 +1803,12 @@ fn chain_transfer_replay() {
                     assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
                     assert_chain_state(&where_, &chain.state(), step);
                 }
+                "accept_block" => {
+                    let block = parse_json(step["block_json"].as_str().unwrap()).unwrap();
+                    let accepted = chain.accept_block(&block);
+                    assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+                    assert_chain_state(&where_, &chain.state(), step);
+                }
                 other => panic!("{where_} unknown op {other}"),
             }
         }

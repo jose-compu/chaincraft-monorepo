@@ -11,7 +11,7 @@
 #   - every markdown file under SPEC/ is listed here
 #   - every listed file contains **Release:** <release>
 
-release: "1.12.0"
+release: "1.12.1"
 wire_protocol: 1
 status: current
 since: "2026-11-26"
