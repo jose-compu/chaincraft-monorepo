@@ -11,10 +11,10 @@
 #   - every markdown file under SPEC/ is listed here
 #   - every listed file contains **Release:** <release>
 
-release: "1.10.0"
+release: "1.11.0"
 wire_protocol: 1
 status: current
-since: "2026-11-25"
+since: "2026-11-26"
 
 documents:
   - SPEC/features/app-pubsub.md
@@ -29,6 +29,7 @@ documents:
   - SPEC/features/consensus-pbft.md
   - SPEC/features/consensus-poa.md
   - SPEC/features/consensus-pox.md
+  - SPEC/features/consensus-ouroboros.md
   - SPEC/features/consensus-poet.md
   - SPEC/features/consensus-pos.md
   - SPEC/features/consensus-pow.md

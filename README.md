@@ -90,14 +90,14 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, NAT traversal, Avalanche,
 and a last-write-wins CRDT:
-49 of 49 features each (TypeScript 48 implemented plus the UDP framing exemption).
-The spec release is 1.10.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
-Git tag [`v1.10.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.10.0).
-[PyPI `chaincraft` 1.10.0](https://pypi.org/project/chaincraft/1.10.0/),
-[crates.io `chaincraft` 1.10.0](https://crates.io/crates/chaincraft) and
-[npm `@chaincraft/core` 1.10.0](https://www.npmjs.com/package/@chaincraft/core).
-1.10.0 adds `discovery.ban` (three-strike peer bans and mesh gossip gate).
-Render the release banner locally: `python3 brand/render.py banner --version 1.10.0 --headline "Three-strike peer bans"`.
+50 of 50 features each (TypeScript 49 implemented plus the UDP framing exemption).
+The spec release is 1.11.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+Git tag [`v1.11.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.11.0).
+[PyPI `chaincraft` 1.11.0](https://pypi.org/project/chaincraft/1.11.0/),
+[crates.io `chaincraft` 1.11.0](https://crates.io/crates/chaincraft) and
+[npm `@chaincraft/core` 1.11.0](https://www.npmjs.com/package/@chaincraft/core).
+1.11.0 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
+Render the release banner locally: `python3 brand/render.py banner --version 1.11.0 --headline "Ouroboros slot leaders"`.
 `@chaincraft/core/browser` fetches a PeerJS id and does not import the TCP mesh.
 The default broker is `https://dechess-org-peerjs.vercel.app`.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no

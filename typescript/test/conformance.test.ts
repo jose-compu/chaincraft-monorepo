@@ -20,6 +20,7 @@ import {
   PBFT,
   ProofOfStake,
   ProofOfAuthority,
+  Ouroboros,
   ProofOfTransfer,
   ProofOfElapsedTime,
   RandomnessBeacon,
@@ -522,6 +523,37 @@ eachCase('discovery-ban.json', 'sequence', (c, doc) => {
     assert.equal(out.action, row['action'], where);
     assert.equal(out.reason, row['reason'], where);
     assertBanState(bs, row, base, where);
+  }
+});
+
+eachCase('consensus-ouroboros.json', 'replay', (c, doc) => {
+  const nonce = doc['nonce'] as string;
+  const epochLength = doc['epoch_length'] as number;
+  const stakeholders = (doc['stakeholders'] as { id: string; stake: number; pk: string }[]).map(
+    (entry) => ({ id: entry.id, stake: entry.stake, pk: entry.pk }),
+  );
+  const obj = new Ouroboros(nonce, epochLength, stakeholders);
+  for (const [index, step] of c['steps'].entries()) {
+    const message = parseJson(step['message_json']);
+    const where = `step ${index}`;
+    const accepted = obj.isValid(message);
+    assert.equal(accepted, step['accepted'], where);
+    if (accepted) obj.addMessage(message);
+    assert.deepEqual(obj.state(), {
+      slot: step['slot'],
+      tip: step['tip'],
+      canonical: step['canonical'],
+      blocks: step['blocks'],
+      epoch: step['epoch'],
+      nonce: step['nonce'],
+    }, where);
+  }
+  if (c['reorg_count'] !== undefined) {
+    const steps = c['steps'] as Case[];
+    const reorgs = steps.filter((step: Case) => step['reorg'] === true);
+    assert.equal(reorgs.length, c['reorg_count']);
+    const depths = reorgs.map((step: Case) => step['reorg_depth'] as number);
+    assert.ok(Math.min(...depths) >= c['min_reorg_depth']);
   }
 });
 
@@ -1236,6 +1268,7 @@ test('every vector file declares its feature', () => {
     'discovery-peer.json',
     'discovery-ban.json',
     'discovery-local.json',
+    'consensus-ouroboros.json',
     'consensus-poa.json',
     'consensus-poet.json',
     'consensus-pox.json',

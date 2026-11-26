@@ -1,0 +1,490 @@
+{
+  "feature": "consensus.ouroboros",
+  "spec": "SPEC/features/consensus-ouroboros.md",
+  "description": "Ouroboros object: stake-weighted VRF slot leaders, longest chain.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "epoch_length": 2,
+  "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "stakeholders": [
+    {
+      "id": "alice",
+      "stake": 100,
+      "pk": "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9"
+    },
+    {
+      "id": "bob",
+      "stake": 1,
+      "pk": "032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645"
+    }
+  ],
+  "slot1_id": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+  "slot2_id": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+  "replay": [
+    {
+      "name": "eligible leader at slot 1",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    {
+      "name": "non-leader rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"bob\",\"output\":\"25e2bbac734b4311191a3085869504fb3688bdf68f916f9c2b8bee4c196f78bb\",\"parent\":\"\",\"payload\":\"bob-only\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"proof\":\"7c1364db97011165394b841c2dc788780230083f112ac1ba40422a1bf052e7591831d4cd76d8e493ce1219648799193ea855df070d3de7ac76f578a6c807c7ff\",\"slot\":1}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    {
+      "name": "two-slot epoch-0 chain",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52\",\"parent\":\"0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba\",\"payload\":\"two\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"6e98757c8d5792e975bd1688592432d649ea8e1d8a82de53750e3fe95856b16d371a753e174fc5d43df71f15309e99e65c21a5356395978388b47bd6564f7cf9\",\"slot\":2}",
+          "accepted": true,
+          "slot": 2,
+          "tip": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        }
+      ]
+    },
+    {
+      "name": "epoch nonce from parent output at slot 3",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52\",\"parent\":\"0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba\",\"payload\":\"two\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"6e98757c8d5792e975bd1688592432d649ea8e1d8a82de53750e3fe95856b16d371a753e174fc5d43df71f15309e99e65c21a5356395978388b47bd6564f7cf9\",\"slot\":2}",
+          "accepted": true,
+          "slot": 2,
+          "tip": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"10966fe968a0cdcc279566984f80626b54fcbca6543447a624d4226f18363f4b\",\"parent\":\"c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5\",\"payload\":\"three\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9998145ce48134efaa45e33795ca67c40ad1e1c6a9aaf17593dd865b631fbd5617ea759e1daf207e70781405d854420f509c6e7c4484765a0993edce2f58d23f\",\"slot\":3}",
+          "accepted": true,
+          "slot": 3,
+          "tip": "78970164c6cb3e625b1d657a8f5934da058e7478b3a233d30ba48921da11430a",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+            "78970164c6cb3e625b1d657a8f5934da058e7478b3a233d30ba48921da11430a"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+            "78970164c6cb3e625b1d657a8f5934da058e7478b3a233d30ba48921da11430a"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        }
+      ]
+    },
+    {
+      "name": "epoch-0 nonce at slot 3 rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52\",\"parent\":\"0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba\",\"payload\":\"two\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"6e98757c8d5792e975bd1688592432d649ea8e1d8a82de53750e3fe95856b16d371a753e174fc5d43df71f15309e99e65c21a5356395978388b47bd6564f7cf9\",\"slot\":2}",
+          "accepted": true,
+          "slot": 2,
+          "tip": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"783abaa32d05b046039b60bd0768759b6d9ef3978daaf0ab5c7ef035b1118392\",\"parent\":\"c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5\",\"payload\":\"wrong-nonce\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"a74ecdfdcbe53446390f1a7987dc88c37f77dbe7d64b1c92e6c280db9cedf601662d91c3f5c13ea1bd566171a0a23a9ba838967397a248d464546570a1302090\",\"slot\":3}",
+          "accepted": false,
+          "slot": 2,
+          "tip": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        }
+      ]
+    },
+    {
+      "name": "bad vrf material rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"slot\":1}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02F9308A019258C31049344F85F89D5229B531C845836F99B08601F113BCE036F9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    {
+      "name": "malformed fields rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":true}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"poa\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"eve\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": false,
+          "slot": 0,
+          "tip": "",
+          "canonical": [],
+          "blocks": [],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    {
+      "name": "duplicate id rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": false,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    {
+      "name": "parent height mismatch rejected",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52\",\"parent\":\"0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba\",\"payload\":\"two\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"6e98757c8d5792e975bd1688592432d649ea8e1d8a82de53750e3fe95856b16d371a753e174fc5d43df71f15309e99e65c21a5356395978388b47bd6564f7cf9\",\"slot\":2}",
+          "accepted": true,
+          "slot": 2,
+          "tip": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"c839db5edc3dd62755660eda0548dd2c663bed70fd6a0dd9b06dfb5fe2c8561e\",\"parent\":\"0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba\",\"payload\":\"skip\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"26bb49f90643ef0fd1d20a9c563393c238894669fbcab8f4aa31c9d532bea5922ad2a99cc24caade93b306f30b625b312270c99ee343948c01e5964f3084dcbd\",\"slot\":3}",
+          "accepted": false,
+          "slot": 2,
+          "tip": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"deadbeef\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": false,
+          "slot": 2,
+          "tip": "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "c3a2b66c7e1284205ef57a7b278d475a9bcaec3069e7413efa430bc59c7887a5"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52"
+        }
+      ]
+    },
+    {
+      "name": "two payloads same slot lower id is tip",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"two\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "d0c9b64b18f1eeb4814113ba93e628379151df05b9711ed7d502c9f4b337535c"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    {
+      "name": "fork overtakes tip",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "reorg": false,
+          "reorg_depth": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"two\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "d0c9b64b18f1eeb4814113ba93e628379151df05b9711ed7d502c9f4b337535c"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "reorg": false,
+          "reorg_depth": 0
+        },
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"output\":\"8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52\",\"parent\":\"d0c9b64b18f1eeb4814113ba93e628379151df05b9711ed7d502c9f4b337535c\",\"payload\":\"fork-two\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"6e98757c8d5792e975bd1688592432d649ea8e1d8a82de53750e3fe95856b16d371a753e174fc5d43df71f15309e99e65c21a5356395978388b47bd6564f7cf9\",\"slot\":2}",
+          "accepted": true,
+          "slot": 2,
+          "tip": "2b21d8fc7995ecb43ad42f8bcb2a493660e993eced8d1a00d24b094e64564814",
+          "canonical": [
+            "d0c9b64b18f1eeb4814113ba93e628379151df05b9711ed7d502c9f4b337535c",
+            "2b21d8fc7995ecb43ad42f8bcb2a493660e993eced8d1a00d24b094e64564814"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+            "d0c9b64b18f1eeb4814113ba93e628379151df05b9711ed7d502c9f4b337535c",
+            "2b21d8fc7995ecb43ad42f8bcb2a493660e993eced8d1a00d24b094e64564814"
+          ],
+          "epoch": 1,
+          "nonce": "8fc770d30a2ea18ed205174d86fb36c4856b8d2ee3b2f2547684178f1fae7a52",
+          "reorg": true,
+          "reorg_depth": 1
+        }
+      ],
+      "reorg_count": 1,
+      "min_reorg_depth": 1
+    },
+    {
+      "name": "extra keys ignored",
+      "steps": [
+        {
+          "message_json": "{\"consensus\":\"ouroboros\",\"leader\":\"alice\",\"note\":\"ok\",\"output\":\"2887def627e432ef70dd01740cb622d4defeec4cba8565bd7fa486e74b4f30e5\",\"parent\":\"\",\"payload\":\"one\",\"pk\":\"02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9\",\"proof\":\"9a0785017bbe1d24c2b92985abba7ee1c2ac41f36aab918876dcc3a90732c74d5a3001e5b4c0313536cc07714b5bbc72a628a0a6e1118de31e06f3e790996784\",\"slot\":1}",
+          "accepted": true,
+          "slot": 1,
+          "tip": "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba",
+          "canonical": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "blocks": [
+            "0451901b26bee78dad916f545b817b176a6633c8f48c99e81be7b42e5f0325ba"
+          ],
+          "epoch": 0,
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  ]
+}

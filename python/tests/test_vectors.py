@@ -570,6 +570,36 @@ def test_consensus_poa_replay(case):
         assert min(step["reorg_depth"] for step in reorgs) >= case["min_reorg_depth"]
 
 
+@cases("consensus-ouroboros.json", "replay")
+def test_consensus_ouroboros_replay(case):
+    from chaincraft.consensus_ouroboros import Ouroboros
+
+    doc = load("consensus-ouroboros.json")
+    stakeholders = [
+        (s["id"], s["stake"], s["pk"]) for s in doc["stakeholders"]
+    ]
+    obj = Ouroboros(doc["nonce"], doc["epoch_length"], stakeholders)
+    for index, step in enumerate(case["steps"]):
+        message = parse_json(step["message_json"])
+        where = f"step {index}"
+        accepted = obj.is_valid(message)
+        assert accepted is step["accepted"], where
+        if accepted:
+            obj.add_message(message)
+        assert obj.state() == {
+            "slot": step["slot"],
+            "tip": step["tip"],
+            "canonical": step["canonical"],
+            "blocks": step["blocks"],
+            "epoch": step["epoch"],
+            "nonce": step["nonce"],
+        }, where
+    if "reorg_count" in case:
+        reorgs = [step for step in case["steps"] if step.get("reorg")]
+        assert len(reorgs) == case["reorg_count"]
+        assert min(step["reorg_depth"] for step in reorgs) >= case["min_reorg_depth"]
+
+
 @cases("consensus-pox.json", "replay")
 def test_consensus_pox_replay(case):
     from chaincraft.consensus_pox import ProofOfTransfer

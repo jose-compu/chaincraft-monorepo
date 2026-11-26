@@ -390,6 +390,16 @@ features:
       rust:       { state: implemented, since: "2026-11-19" }
       typescript: { state: implemented, since: "2026-11-19" }
 
+  - id: consensus.ouroboros
+    level: 2
+    spec: SPEC/features/consensus-ouroboros.md
+    summary: Ouroboros slot leaders; stake-weighted VRF, longest chain
+    vectors: conformance/vectors/consensus-ouroboros.json
+    status:
+      python:     { state: implemented, since: "2026-11-26" }
+      rust:       { state: implemented, since: "2026-11-26" }
+      typescript: { state: implemented, since: "2026-11-26" }
+
   - id: ledger.balance
     level: 2
     spec: SPEC/features/ledger-balance.md

@@ -10,6 +10,7 @@ pub mod channel;
 pub mod cli;
 pub mod consensus_avalanche;
 pub mod consensus_beacon;
+pub mod consensus_ouroboros;
 pub mod consensus_pbft;
 pub mod consensus_poa;
 pub mod consensus_poet;

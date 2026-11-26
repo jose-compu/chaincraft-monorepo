@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "python"))
@@ -43,6 +43,11 @@ from chaincraft.consensus_beacon import (  # noqa: E402
 from chaincraft.consensus_poet import (  # noqa: E402
     ProofOfElapsedTime,
     ticket_id as poet_ticket_id,
+)
+from chaincraft.consensus_ouroboros import (  # noqa: E402
+    Ouroboros,
+    block_id as ouroboros_block_id,
+    epoch_of as ouroboros_epoch_of,
 )
 from chaincraft.consensus_poa import (  # noqa: E402
     ProofOfAuthority,
@@ -1850,6 +1855,231 @@ def consensus_beacon_vectors() -> Dict[str, Any]:
             "Chained VRF beacon; next height must cite the previous output.",
         ),
         "genesis_id": genesis_id,
+        "replay": replay,
+    }
+
+
+OURO_NONCE = "0123456789abcdef" * 4
+OURO_EPOCH_LENGTH = 2
+OURO_KEYS = {"alice": SECKEY, "bob": SECKEY_B}
+
+
+def _ouro_stakeholder_table() -> List[Tuple[str, int, str]]:
+    rows: List[Tuple[str, int, str]] = []
+    for sid, stake, sk in [("alice", 100, SECKEY), ("bob", 1, SECKEY_B)]:
+        pk = vrf.evaluate(b"bootstrap", sk)[2].hex()
+        rows.append((sid, stake, pk))
+    return rows
+
+
+def _ouro_factory() -> Ouroboros:
+    return Ouroboros(OURO_NONCE, OURO_EPOCH_LENGTH, _ouro_stakeholder_table())
+
+
+def _ouro_block(
+    prior: List[Dict[str, Any]],
+    parent_id: str,
+    slot: int,
+    payload: str,
+    leader: str,
+) -> Dict[str, Any]:
+    obj = Ouroboros(OURO_NONCE, OURO_EPOCH_LENGTH, _ouro_stakeholder_table())
+    for message in prior:
+        obj.add_message(message)
+    parent_record = obj._blocks.get(parent_id) if parent_id else None
+    epoch, epoch_nonce = obj._epoch_nonce_for_slot(slot, parent_record)
+    sk = OURO_KEYS[leader]
+    vrf_message = obj._vrf_message(epoch, epoch_nonce, slot, leader)
+    proof, output, pk = vrf.evaluate(vrf_message, sk)
+    return {
+        "consensus": "ouroboros",
+        "slot": slot,
+        "parent": parent_id,
+        "payload": payload,
+        "leader": leader,
+        "pk": pk.hex(),
+        "proof": proof.hex(),
+        "output": output.hex(),
+    }
+
+
+def _replay_ouro(
+    name: str, factory, messages: List[Any], track_reorg: bool = False
+) -> Dict[str, Any]:
+    obj = factory()
+    steps = []
+    previous: List[str] = []
+    prev_tip = ""
+    for message in messages:
+        accepted = obj.is_valid(message)
+        if accepted:
+            obj.add_message(message)
+        state = obj.state()
+        step = {
+            "message_json": canonical_json(message),
+            "accepted": accepted,
+            **state,
+        }
+        if track_reorg:
+            canon = state["canonical"]
+            shared = 0
+            while (
+                shared < len(previous)
+                and shared < len(canon)
+                and previous[shared] == canon[shared]
+            ):
+                shared += 1
+            reorg = bool(prev_tip) and prev_tip not in canon
+            step["reorg"] = reorg
+            step["reorg_depth"] = (len(previous) - shared) if reorg else 0
+            previous = list(canon)
+            prev_tip = state["tip"]
+        steps.append(step)
+    result = {"name": name, "steps": steps}
+    if track_reorg:
+        depths = [step["reorg_depth"] for step in steps if step["reorg"]]
+        if depths:
+            result["reorg_count"] = len(depths)
+            result["min_reorg_depth"] = min(depths)
+    return result
+
+
+def consensus_ouroboros_vectors() -> Dict[str, Any]:
+    prior: List[Dict[str, Any]] = []
+    slot1 = _ouro_block(prior, "", 1, "one", "alice")
+    prior = [slot1]
+    bob_fail = _ouro_block([], "", 1, "bob-only", "bob")
+    slot2 = _ouro_block(prior, ouroboros_block_id(
+        slot1["slot"],
+        slot1["parent"],
+        slot1["payload"],
+        slot1["leader"],
+        slot1["pk"],
+        slot1["proof"],
+        slot1["output"],
+    ), 2, "two", "alice")
+    s1_id = ouroboros_block_id(
+        slot1["slot"],
+        slot1["parent"],
+        slot1["payload"],
+        slot1["leader"],
+        slot1["pk"],
+        slot1["proof"],
+        slot1["output"],
+    )
+    s2_id = ouroboros_block_id(
+        slot2["slot"],
+        slot2["parent"],
+        slot2["payload"],
+        slot2["leader"],
+        slot2["pk"],
+        slot2["proof"],
+        slot2["output"],
+    )
+    prior2 = [slot1, slot2]
+    slot3 = _ouro_block(prior2, s2_id, 3, "three", "alice")
+    bad_epoch_nonce = _ouro_block(prior2, s2_id, 3, "wrong-nonce", "alice")
+    msg = canonical_json(
+        {
+            "epoch": ouroboros_epoch_of(3, OURO_EPOCH_LENGTH),
+            "nonce": OURO_NONCE,
+            "slot": 3,
+            "stakeholder": "alice",
+        }
+    ).encode("utf-8")
+    proof, output, pk = vrf.evaluate(msg, SECKEY)
+    bad_epoch_nonce["proof"] = proof.hex()
+    bad_epoch_nonce["output"] = output.hex()
+    bad_epoch_nonce["pk"] = slot3["pk"]
+    bad_proof = {**slot1, "proof": "f" * 128}
+    swapped_output = {**slot1, "output": "a" * 64}
+    upper_hex = {**slot1, "pk": slot1["pk"].upper()}
+    bool_slot = {**slot1, "slot": True}
+    wrong_consensus = {**slot1, "consensus": "poa"}
+    unknown_leader = {**slot1, "leader": "eve"}
+    wrong_pk = {**slot1, "pk": bob_fail["pk"]}
+    dup = slot1
+    skip_parent = _ouro_block(prior2, s1_id, 3, "skip", "alice")
+    bad_parent_genesis = {**slot1, "parent": "deadbeef"}
+    alt_one = _ouro_block([], "", 1, "two", "alice")
+    alt_two = _ouro_block(
+        [alt_one],
+        ouroboros_block_id(
+            alt_one["slot"],
+            alt_one["parent"],
+            alt_one["payload"],
+            alt_one["leader"],
+            alt_one["pk"],
+            alt_one["proof"],
+            alt_one["output"],
+        ),
+        2,
+        "fork-two",
+        "alice",
+    )
+    factory = _ouro_factory
+    replay = [
+        _replay_ouro("eligible leader at slot 1", factory, [slot1]),
+        _replay_ouro("non-leader rejected", factory, [bob_fail]),
+        _replay_ouro("two-slot epoch-0 chain", factory, [slot1, slot2]),
+        _replay_ouro(
+            "epoch nonce from parent output at slot 3",
+            factory,
+            [slot1, slot2, slot3],
+        ),
+        _replay_ouro(
+            "epoch-0 nonce at slot 3 rejected",
+            factory,
+            [slot1, slot2, bad_epoch_nonce],
+        ),
+        _replay_ouro(
+            "bad vrf material rejected",
+            factory,
+            [bad_proof, swapped_output, upper_hex],
+        ),
+        _replay_ouro(
+            "malformed fields rejected",
+            factory,
+            [bool_slot, wrong_consensus, unknown_leader, wrong_pk],
+        ),
+        _replay_ouro("duplicate id rejected", factory, [slot1, dup]),
+        _replay_ouro(
+            "parent height mismatch rejected",
+            factory,
+            [slot1, slot2, skip_parent, bad_parent_genesis],
+        ),
+        _replay_ouro(
+            "two payloads same slot lower id is tip",
+            factory,
+            [slot1, alt_one],
+        ),
+        _replay_ouro(
+            "fork overtakes tip",
+            factory,
+            [slot1, alt_one, alt_two],
+            track_reorg=True,
+        ),
+        _replay_ouro(
+            "extra keys ignored",
+            factory,
+            [{**slot1, "note": "ok"}],
+        ),
+    ]
+    stakeholders = [
+        {"id": sid, "stake": stake, "pk": pk}
+        for sid, stake, pk in _ouro_stakeholder_table()
+    ]
+    return {
+        **header(
+            "consensus.ouroboros",
+            "SPEC/features/consensus-ouroboros.md",
+            "Ouroboros object: stake-weighted VRF slot leaders, longest chain.",
+        ),
+        "epoch_length": OURO_EPOCH_LENGTH,
+        "nonce": OURO_NONCE,
+        "stakeholders": stakeholders,
+        "slot1_id": s1_id,
+        "slot2_id": s2_id,
         "replay": replay,
     }
 
@@ -4389,6 +4619,7 @@ def main() -> int:
     write("consensus-poet.json", consensus_poet_vectors())
     write("consensus-beacon.json", consensus_beacon_vectors())
     write("consensus-pox.json", consensus_pox_vectors())
+    write("consensus-ouroboros.json", consensus_ouroboros_vectors())
     write("consensus-pow.json", consensus_pow_vectors())
     write("consensus-pos.json", consensus_pos_vectors())
     write("consensus-pbft.json", consensus_pbft_vectors())

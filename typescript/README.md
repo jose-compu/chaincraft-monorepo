@@ -3,8 +3,8 @@
 TypeScript implementation of the Chaincraft wire protocol, object semantics, and
 Level 2 stack (consensus, ledgers, BitTorrent, channels). Same observable
 behaviour as the Python `chaincraft` package and the Rust `chaincraft` crate.
-Release **[1.10.0](https://www.npmjs.com/package/@chaincraft/core/v/1.10.0)** on npm.
-1.10.0 adds `consensus.pox` (pedagogical Proof of Transfer).
+Release **[1.11.0](https://www.npmjs.com/package/@chaincraft/core/v/1.11.0)** on npm.
+1.11.0 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
 47 of 48 registry features implemented plus the UDP framing exemption.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
