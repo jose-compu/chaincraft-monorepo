@@ -57,6 +57,8 @@ pub const FEATURES: &[&str] = &[
     "app.pubsub",
     "app.stream",
     "protocol.crdt-kv",
+    "chain.transfer",
+    "node.preset",
 ];
 
 /// JSON on stdout for `tools/parity_check.py`. Nothing else may reach stdout.

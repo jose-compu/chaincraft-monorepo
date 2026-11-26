@@ -11,6 +11,8 @@ use chaincraft::adapters::{AdapterBus, AdapterChannel};
 use chaincraft::ban::{classify_inbound, BanSet};
 use chaincraft::bittorrent::Swarm;
 use chaincraft::canonical::{canonical_json, hex_to_bytes, parse_json, payload_digest, JsonValue};
+use chaincraft::chain::TransferChain;
+use chaincraft::chain_driver::make_driver;
 use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
 use chaincraft::consensus_avalanche::Avalanche;
@@ -38,6 +40,7 @@ use chaincraft::mesh::to_json_value;
 use chaincraft::nat::{self, NatTraversal};
 use chaincraft::object::{frontier_digest, merkle_digest, wins_replacement, ApplicationObject};
 use chaincraft::pipeline::ObjectRegistry;
+use chaincraft::preset;
 use chaincraft::pubsub::PubSub;
 use chaincraft::storage::MessageStore;
 use chaincraft::stream::Stream;
@@ -1681,8 +1684,175 @@ fn ledger_utxo_replay() {
     }
 }
 
+fn json_string_list(value: &Value) -> Vec<String> {
+    value
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap().to_owned())
+        .collect()
+}
+
+fn assert_chain_state(where_: &str, got: &JsonValue, step: &Value) {
+    assert_eq!(
+        json_i64_map(&step["balances"]),
+        json_i64_map_from_core(got),
+        "{where_} balances"
+    );
+    assert_eq!(
+        json_i64_map(&step["nonces"]),
+        json_i64_map_from_core_nonces(got),
+        "{where_} nonces"
+    );
+    assert_eq!(
+        json_string_list(&step["canonical"]),
+        json_string_list_from_core(got),
+        "{where_} canonical"
+    );
+    assert_eq!(
+        step["height"].as_i64().unwrap(),
+        got.as_object()
+            .unwrap()
+            .get("height")
+            .unwrap()
+            .as_i64()
+            .unwrap(),
+        "{where_} height"
+    );
+    assert_eq!(
+        step["tip"].as_str().unwrap(),
+        got.as_object()
+            .unwrap()
+            .get("tip")
+            .unwrap()
+            .as_str()
+            .unwrap(),
+        "{where_} tip"
+    );
+}
+
+fn json_i64_map_from_core(value: &JsonValue) -> std::collections::BTreeMap<String, i64> {
+    value
+        .as_object()
+        .unwrap()
+        .get("balances")
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .iter()
+        .map(|(k, v)| (k.clone(), v.as_i64().unwrap()))
+        .collect()
+}
+
+fn json_i64_map_from_core_nonces(value: &JsonValue) -> std::collections::BTreeMap<String, i64> {
+    value
+        .as_object()
+        .unwrap()
+        .get("nonces")
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .iter()
+        .map(|(k, v)| (k.clone(), v.as_i64().unwrap()))
+        .collect()
+}
+
+fn json_string_list_from_core(value: &JsonValue) -> Vec<String> {
+    value
+        .as_object()
+        .unwrap()
+        .get("canonical")
+        .unwrap()
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(JsonValue::as_str)
+        .map(str::to_owned)
+        .collect()
+}
+
 fn as_core_json(value: &Value) -> JsonValue {
     parse_json(&value.to_string()).unwrap()
+}
+
+#[test]
+fn chain_transfer_replay() {
+    let doc = load("chain-transfer.json");
+    let genesis = json_i64_map(&doc["genesis"]);
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let consensus = case["consensus"].as_str().unwrap();
+        let reward = case["reward"].as_i64().unwrap();
+        let options = as_core_json(&case["options"]);
+        let driver = make_driver(consensus, &options).expect("driver");
+        let mut chain = TransferChain::new(genesis.clone(), reward, Some(driver)).expect("chain");
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            match step["op"].as_str().unwrap() {
+                "submit" => {
+                    let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+                    let accepted = chain.submit(&message);
+                    assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+                    assert_chain_state(&where_, &chain.state(), step);
+                }
+                "produce" => {
+                    let time = step["time"].as_i64().unwrap();
+                    let producer = step["producer"].as_str().unwrap();
+                    let block = chain.produce(time, producer).expect("produce");
+                    let accepted = block.is_some();
+                    assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+                    assert_chain_state(&where_, &chain.state(), step);
+                }
+                other => panic!("{where_} unknown op {other}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn node_preset_replay() {
+    let doc = load("node-preset.json");
+    let valid = as_core_json(&doc["valid_config"]);
+    let handle = preset::start(&valid).expect("valid preset");
+    assert!(
+        handle
+            .listen_addr
+            .starts_with(doc["valid_listen_prefix"].as_str().unwrap()),
+        "listen addr"
+    );
+    let mut chain = TransferChain::new(
+        json_i64_map(&doc["valid_config"]["genesis"]),
+        0,
+        Some(
+            make_driver(
+                doc["valid_config"]["consensus"].as_str().unwrap(),
+                &as_core_json(&serde_json::json!({
+                    "authorities": doc["valid_config"]["authorities"]
+                })),
+            )
+            .unwrap(),
+        ),
+    )
+    .expect("chain");
+    let block = chain.produce(1, "alice").expect("produce").expect("block");
+    let expected = parse_json(&doc["hand_built_block"].to_string()).unwrap();
+    assert_eq!(
+        serde_json::to_string(&chaincraft::mesh::json_to_serde(&block)).unwrap(),
+        serde_json::to_string(&chaincraft::mesh::json_to_serde(&expected)).unwrap(),
+        "hand-built block"
+    );
+    for item in doc["rejections"].as_array().unwrap() {
+        let cfg = as_core_json(&item["config"]);
+        match preset::start(&cfg) {
+            Err(err) => assert!(
+                err.contains(item["error"].as_str().unwrap()),
+                "expected {:?} got {err}",
+                item["error"]
+            ),
+            Ok(_) => panic!("expected preset error {:?}", item["error"]),
+        }
+    }
+    handle.close();
 }
 
 #[test]
@@ -2698,6 +2868,8 @@ fn vector_files_declare_feature() {
         "app-pubsub.json",
         "app-stream.json",
         "protocol-crdt-kv.json",
+        "chain-transfer.json",
+        "node-preset.json",
     ] {
         let doc = load(name);
         assert!(doc.get("feature").is_some(), "{name} missing feature");

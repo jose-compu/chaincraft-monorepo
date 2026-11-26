@@ -160,6 +160,10 @@ impl Mesh {
         Ok(())
     }
 
+    pub fn close(_mesh: &Arc<Mutex<Self>>) {
+        // Best-effort shutdown: peers are dropped when the Arc is released.
+    }
+
     pub fn broadcast(
         mesh: &Arc<Mutex<Self>>,
         type_name: &str,

@@ -74,6 +74,14 @@ impl ProofOfStake {
         Self::new(DEFAULT_SEED, default_validators()).expect("defaults")
     }
 
+    pub fn stake_seed(&self) -> &str {
+        &self.seed
+    }
+
+    pub fn stake_validators(&self) -> &BTreeMap<String, i64> {
+        &self.validators
+    }
+
     pub fn state(&self) -> (String, String, i64) {
         (self.head.clone(), self.last_proposer.clone(), self.current)
     }

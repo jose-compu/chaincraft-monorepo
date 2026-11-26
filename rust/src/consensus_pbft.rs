@@ -65,6 +65,18 @@ impl Pbft {
         &self.replicas[(view as usize) % self.n]
     }
 
+    pub fn sequence_no(&self) -> i64 {
+        self.sequence
+    }
+
+    pub fn quorum_size(&self) -> usize {
+        self.quorum
+    }
+
+    pub fn replica_list(&self) -> &[String] {
+        &self.replicas
+    }
+
     pub fn state(&self) -> (i64, i64, usize, usize, Vec<(String, i64)>) {
         (
             self.view,
