@@ -90,7 +90,12 @@ from chaincraft.nat import (  # noqa: E402
 from chaincraft.cli import NodeSession  # noqa: E402
 from chaincraft.mempool import Mempool, transaction_id as mempool_tx_id  # noqa: E402
 from chaincraft.storage import MessageStore  # noqa: E402
-from chaincraft.canonical import MAX_SAFE_INT, canonical_json, payload_digest  # noqa: E402
+from chaincraft.canonical import (  # noqa: E402
+    MAX_SAFE_INT,
+    canonical_json,
+    parse_json,
+    payload_digest,
+)
 from chaincraft.dedup import DEFAULT_CAPACITY, Deduplicator  # noqa: E402
 from chaincraft.envelope import Envelope  # noqa: E402
 from chaincraft.memento import StateMemento  # noqa: E402
@@ -4592,6 +4597,153 @@ def channel_hybrid_vectors() -> Dict[str, Any]:
     }
 
 
+def _chain_transfer_step_state(chain: Any) -> Dict[str, Any]:
+    st = chain.state()
+    return {
+        "balances": st["balances"],
+        "canonical": st["canonical"],
+        "height": st["height"],
+        "nonces": st["nonces"],
+        "tip": st["tip"],
+    }
+
+
+def _chain_transfer_replay_case(
+    name: str,
+    consensus: str,
+    options: Dict[str, Any],
+    reward: int,
+    genesis: Dict[str, int],
+    message_json: str,
+) -> Dict[str, Any]:
+    from chaincraft.chain import TransferChain
+    from chaincraft.chain_driver import make_driver
+
+    driver = make_driver(consensus, **options)
+    chain = TransferChain(genesis, reward=reward, driver=driver)
+    steps: List[Dict[str, Any]] = []
+    message = parse_json(message_json)
+    accepted = chain.submit(message)
+    steps.append(
+        {
+            "op": "submit",
+            "accepted": accepted,
+            "message_json": message_json,
+            **_chain_transfer_step_state(chain),
+        }
+    )
+    for time, producer in ((1, "alice"), (2, "alice")):
+        block = chain.produce(time, producer)
+        steps.append(
+            {
+                "op": "produce",
+                "accepted": block is not None,
+                "producer": producer,
+                "time": time,
+                **_chain_transfer_step_state(chain),
+            }
+        )
+    return {
+        "consensus": consensus,
+        "name": name,
+        "options": options,
+        "reward": reward,
+        "steps": steps,
+    }
+
+
+def chain_transfer_vectors() -> Dict[str, Any]:
+    from chaincraft.chain import sign_transfer
+
+    sender_pk = crypto.public_key(crypto.SCHNORR, SECKEY_B).hex()
+    genesis = {sender_pk: 1000, "bob": 50}
+    tx = sign_transfer(
+        {
+            "amount": 10,
+            "fee": 2,
+            "nonce": 0,
+            "recipient": "bob",
+            "sender": sender_pk,
+        },
+        SECKEY_B,
+        AUX,
+    )
+    message_json = canonical_json(tx)
+    return {
+        **header(
+            "chain.transfer",
+            "SPEC/features/chain-transfer.md",
+            "Account transfer chain with consensus drivers.",
+        ),
+        "genesis": genesis,
+        "replay": [
+            _chain_transfer_replay_case(
+                "poa two blocks with transfer",
+                "poa",
+                {"authorities": ["alice"]},
+                1,
+                genesis,
+                message_json,
+            ),
+            _chain_transfer_replay_case(
+                "pow two blocks with transfer",
+                "pow",
+                {},
+                1,
+                genesis,
+                message_json,
+            ),
+        ],
+        "sender_aux": AUX.hex(),
+        "sender_pk": sender_pk,
+        "sender_sk": SECKEY_B.hex(),
+    }
+
+
+def node_preset_vectors() -> Dict[str, Any]:
+    from chaincraft.chain import TransferChain
+    from chaincraft.chain_driver import make_driver
+    from chaincraft import preset
+
+    valid_config = {
+        "authorities": ["alice"],
+        "consensus": "poa",
+        "genesis": {"alice": 100},
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "protocol": "transfer",
+        "reward": 0,
+        "udp": False,
+    }
+    handle = preset.start(dict(valid_config))
+    driver = make_driver("poa", authorities=["alice"])
+    chain = TransferChain(valid_config["genesis"], reward=0, driver=driver)
+    block = chain.produce(1, "alice")
+    handle["close"]()
+    return {
+        **header(
+            "node.preset",
+            "SPEC/features/node-preset.md",
+            "Preset transfer node and config validation.",
+        ),
+        "valid_config": valid_config,
+        "valid_listen_prefix": "127.0.0.1:",
+        "hand_built_block": block,
+        "rejections": [
+            {"config": {"protocol": "nope"}, "error": "invalid protocol"},
+            {
+                "config": {
+                    "consensus": "poa",
+                    "extra": 1,
+                    "genesis": {"alice": 100},
+                    "protocol": "transfer",
+                },
+                "error": "unknown config key",
+            },
+        ],
+    }
+
+
 def main() -> int:
     print("Generating conformance vectors from the Python reference core\n")
     print("Level 0 — wire protocol")
@@ -4649,6 +4801,9 @@ def main() -> int:
     write("app-stream.json", app_stream_vectors())
     print("\nLevel 2 — CRDT key-value")
     write("protocol-crdt-kv.json", protocol_crdt_kv_vectors())
+    print("\nLevel 2 — transfer chain and preset")
+    write("chain-transfer.json", chain_transfer_vectors())
+    write("node-preset.json", node_preset_vectors())
     print(f"\nWritten to {VECTORS.relative_to(REPO)}")
     print("A diff here means the wire protocol changed. See AGENTS.md section 7.")
     return 0

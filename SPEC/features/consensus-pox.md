@@ -1,6 +1,6 @@
 # consensus.pox
 
-**Release:** 1.11.0
+**Release:** 1.12.0
 
 Pedagogical Proof of Transfer. A frozen cycle-0 stacker snapshot and sortition by
 SHA-256 over bid fields and a fixed seed elect the miner for each height. It implements

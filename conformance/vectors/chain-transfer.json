@@ -1,0 +1,154 @@
+{
+  "feature": "chain.transfer",
+  "spec": "SPEC/features/chain-transfer.md",
+  "description": "Account transfer chain with consensus drivers.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "genesis": {
+    "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 1000,
+    "bob": 50
+  },
+  "replay": [
+    {
+      "consensus": "poa",
+      "name": "poa two blocks with transfer",
+      "options": {
+        "authorities": [
+          "alice"
+        ]
+      },
+      "reward": 1,
+      "steps": [
+        {
+          "op": "submit",
+          "accepted": true,
+          "message_json": "{\"amount\":10,\"fee\":2,\"nonce\":0,\"recipient\":\"bob\",\"sender\":\"2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"signature\":\"339c7325048f2f7f03833cdfbff69a3ca9358633983b9765c1a7db3d12fb3de7472afef22c2175363bc1f4fe17b6cb181328b4784aff26711620291b2498942e\"}",
+          "balances": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 1000,
+            "bob": 50
+          },
+          "canonical": [],
+          "height": 0,
+          "nonces": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 0,
+            "bob": 0
+          },
+          "tip": ""
+        },
+        {
+          "op": "produce",
+          "accepted": true,
+          "producer": "alice",
+          "time": 1,
+          "balances": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 988,
+            "bob": 60,
+            "alice": 3
+          },
+          "canonical": [
+            "327cacab746efd22e7607aa90146c1c648926a02ef22201762bf02c5bc5f7be5"
+          ],
+          "height": 1,
+          "nonces": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 1,
+            "bob": 0,
+            "alice": 0
+          },
+          "tip": "327cacab746efd22e7607aa90146c1c648926a02ef22201762bf02c5bc5f7be5"
+        },
+        {
+          "op": "produce",
+          "accepted": true,
+          "producer": "alice",
+          "time": 2,
+          "balances": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 988,
+            "bob": 60,
+            "alice": 3
+          },
+          "canonical": [
+            "327cacab746efd22e7607aa90146c1c648926a02ef22201762bf02c5bc5f7be5",
+            "35a67111cf1d761a6a316ae9cf7a92e8fe25d2e2e6462354bcd8263e5b37da40"
+          ],
+          "height": 2,
+          "nonces": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 1,
+            "bob": 0,
+            "alice": 0
+          },
+          "tip": "35a67111cf1d761a6a316ae9cf7a92e8fe25d2e2e6462354bcd8263e5b37da40"
+        }
+      ]
+    },
+    {
+      "consensus": "pow",
+      "name": "pow two blocks with transfer",
+      "options": {},
+      "reward": 1,
+      "steps": [
+        {
+          "op": "submit",
+          "accepted": true,
+          "message_json": "{\"amount\":10,\"fee\":2,\"nonce\":0,\"recipient\":\"bob\",\"sender\":\"2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645\",\"signature\":\"339c7325048f2f7f03833cdfbff69a3ca9358633983b9765c1a7db3d12fb3de7472afef22c2175363bc1f4fe17b6cb181328b4784aff26711620291b2498942e\"}",
+          "balances": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 1000,
+            "bob": 50
+          },
+          "canonical": [],
+          "height": 0,
+          "nonces": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 0,
+            "bob": 0
+          },
+          "tip": ""
+        },
+        {
+          "op": "produce",
+          "accepted": true,
+          "producer": "alice",
+          "time": 1,
+          "balances": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 988,
+            "bob": 60,
+            "alice": 3
+          },
+          "canonical": [
+            "327cacab746efd22e7607aa90146c1c648926a02ef22201762bf02c5bc5f7be5"
+          ],
+          "height": 1,
+          "nonces": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 1,
+            "bob": 0,
+            "alice": 0
+          },
+          "tip": "327cacab746efd22e7607aa90146c1c648926a02ef22201762bf02c5bc5f7be5"
+        },
+        {
+          "op": "produce",
+          "accepted": true,
+          "producer": "alice",
+          "time": 2,
+          "balances": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 988,
+            "bob": 60,
+            "alice": 3
+          },
+          "canonical": [
+            "327cacab746efd22e7607aa90146c1c648926a02ef22201762bf02c5bc5f7be5",
+            "35a67111cf1d761a6a316ae9cf7a92e8fe25d2e2e6462354bcd8263e5b37da40"
+          ],
+          "height": 2,
+          "nonces": {
+            "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645": 1,
+            "bob": 0,
+            "alice": 0
+          },
+          "tip": "35a67111cf1d761a6a316ae9cf7a92e8fe25d2e2e6462354bcd8263e5b37da40"
+        }
+      ]
+    }
+  ],
+  "sender_aux": "0000000000000000000000000000000000000000000000000000000000000000",
+  "sender_pk": "2c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645",
+  "sender_sk": "c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721"
+}

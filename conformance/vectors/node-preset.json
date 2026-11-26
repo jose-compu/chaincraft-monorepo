@@ -1,0 +1,60 @@
+{
+  "feature": "node.preset",
+  "spec": "SPEC/features/node-preset.md",
+  "description": "Preset transfer node and config validation.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "valid_config": {
+    "authorities": [
+      "alice"
+    ],
+    "consensus": "poa",
+    "genesis": {
+      "alice": 100
+    },
+    "listen": "127.0.0.1:0",
+    "peers": [],
+    "protocol": "transfer",
+    "reward": 0,
+    "udp": false
+  },
+  "valid_listen_prefix": "127.0.0.1:",
+  "hand_built_block": {
+    "chain": "transfer",
+    "header": {
+      "height": 1,
+      "parent": "",
+      "producer": "alice",
+      "state_root": "def54c3663f65fc2c4f358416985baa156593e694db01e34f9c49cc866cd8faf",
+      "time": 1,
+      "tx_root": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "transactions": [],
+    "proof": {
+      "consensus": "poa",
+      "height": 1,
+      "parent": "",
+      "payload": "b1970e158b92f1576ede60424a90fdf230ced8d801d861a197918494c99072ac",
+      "proposer": "alice"
+    }
+  },
+  "rejections": [
+    {
+      "config": {
+        "protocol": "nope"
+      },
+      "error": "invalid protocol"
+    },
+    {
+      "config": {
+        "consensus": "poa",
+        "extra": 1,
+        "genesis": {
+          "alice": 100
+        },
+        "protocol": "transfer"
+      },
+      "error": "unknown config key"
+    }
+  ]
+}

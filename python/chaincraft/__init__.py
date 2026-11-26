@@ -27,7 +27,7 @@ from .memento import StateMemento
 from .object import SharedObject, frontier_digest, merkle_digest, wins_replacement
 from .pipeline import ApplyResult, ObjectRegistry
 
-__version__ = "1.11.0"
+__version__ = "1.12.0"
 WIRE_VERSION = PROTOCOL_VERSION
 IMPL = f"py-chaincraft/{__version__}"
 

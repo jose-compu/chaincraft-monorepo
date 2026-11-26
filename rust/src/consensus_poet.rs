@@ -32,6 +32,10 @@ impl ProofOfElapsedTime {
         })
     }
 
+    pub fn seed_bytes(&self) -> &[u8] {
+        &self.seed_bytes
+    }
+
     pub fn state(&self) -> (Vec<String>, Vec<String>, u32, String) {
         let (winner, wait) = self.winner();
         let canonical = if winner.is_empty() {

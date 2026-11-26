@@ -90,14 +90,15 @@ dispatched to coding agents automatically. See `ROADMAP.md` §4.
 Python, TypeScript and Rust all cover Level 0, Level 1, the Level 2
 registry, a BitTorrent swarm, address URIs, NAT traversal, Avalanche,
 and a last-write-wins CRDT:
-50 of 50 features each (TypeScript 49 implemented plus the UDP framing exemption).
-The spec release is 1.11.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
-Git tag [`v1.11.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.11.0).
-[PyPI `chaincraft` 1.11.0](https://pypi.org/project/chaincraft/1.11.0/),
-[crates.io `chaincraft` 1.11.0](https://crates.io/crates/chaincraft) and
-[npm `@chaincraft/core` 1.11.0](https://www.npmjs.com/package/@chaincraft/core).
-1.11.0 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
-Render the release banner locally: `python3 brand/render.py banner --version 1.11.0 --headline "Ouroboros slot leaders"`.
+53 of 53 features each (TypeScript 52 implemented plus the UDP framing exemption).
+The spec release is 1.12.0 (`SPEC/release.yaml`). The wire protocol number stays 1.
+Git tag [`v1.12.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.12.0).
+[PyPI `chaincraft` 1.12.0](https://pypi.org/project/chaincraft/1.12.0/),
+[crates.io `chaincraft` 1.12.0](https://crates.io/crates/chaincraft) and
+[npm `@chaincraft/core` 1.12.0](https://www.npmjs.com/package/@chaincraft/core).
+1.12.0 adds `chain.transfer` and `node.preset` (signed transfer chain and JSON
+node preset).
+Render the release banner locally: `python3 brand/render.py banner --version 1.12.0 --headline "Transfer chain and node preset"`.
 `@chaincraft/core/browser` fetches a PeerJS id and does not import the TCP mesh.
 The default broker is `https://dechess-org-peerjs.vercel.app`.
 The one exemption in the registry is `wire.framing-udp` for TypeScript, since browsers have no
@@ -247,6 +248,42 @@ python3 -m chaincraft.node
 python3 -m chaincraft.node 0.0.0.0:9736
 # then: {"cmd":"connect","addr":"203.0.113.10:9735"}
 ```
+
+## Two paths (transfer chain)
+
+**Library.** Construct a `TransferChain`, attach a consensus driver, and call
+`submit` and `produce` in process:
+
+```python
+from chaincraft.chain import TransferChain, sign_transfer
+from chaincraft.chain_driver import make_driver
+
+genesis = {"alice": 100}
+driver = make_driver("poa", authorities=["alice"])
+chain = TransferChain(genesis, reward=0, driver=driver)
+```
+
+**Preset.** One JSON object starts a mesh-backed transfer node (`SPEC/features/node-preset.md`):
+
+```python
+import json
+from chaincraft import preset
+
+cfg = {
+    "protocol": "transfer",
+    "consensus": "poa",
+    "authorities": ["alice"],
+    "genesis": {"alice": 100},
+    "listen": "127.0.0.1:0",
+}
+handle = preset.start(cfg)
+print(handle["listen_addr"])
+handle["produce"](1, "alice")
+handle["close"]()
+```
+
+Rust exposes `chaincraft::preset::start` and TypeScript `presetStart` with the
+same keys.
 
 ## Development
 

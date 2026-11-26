@@ -188,6 +188,25 @@ impl Ouroboros {
         self.epoch_nonce_for_slot(next_slot, self.blocks.get(tip))
     }
 
+    pub(crate) fn driver_epoch_nonce_for_slot(
+        &self,
+        slot: i64,
+        parent: Option<&str>,
+    ) -> (i64, String) {
+        let parent_record = parent.and_then(|p| self.blocks.get(p));
+        self.epoch_nonce_for_slot(slot, parent_record)
+    }
+
+    pub(crate) fn driver_vrf_message(
+        &self,
+        epoch: i64,
+        nonce: &str,
+        slot: i64,
+        leader: &str,
+    ) -> Option<Vec<u8>> {
+        self.vrf_message(epoch, nonce, slot, leader)
+    }
+
     fn epoch_nonce_for_slot(&self, slot: i64, parent: Option<&Stored>) -> (i64, String) {
         let epoch = epoch_of(slot, self.epoch_length);
         let pos = (slot - 1).rem_euclid(self.epoch_length);

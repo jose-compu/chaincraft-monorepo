@@ -623,3 +623,23 @@ features:
       python:     { state: implemented, since: "2026-10-30" }
       rust:       { state: implemented, since: "2026-10-30" }
       typescript: { state: implemented, since: "2026-10-30" }
+
+  - id: chain.transfer
+    level: 2
+    spec: SPEC/features/chain-transfer.md
+    summary: Pedagogical transfer chain with consensus drivers and signed transfers
+    vectors: conformance/vectors/chain-transfer.json
+    status:
+      python:     { state: implemented, since: "2026-11-26" }
+      rust:       { state: implemented, since: "2026-11-26" }
+      typescript: { state: implemented, since: "2026-11-26" }
+
+  - id: node.preset
+    level: 2
+    spec: SPEC/features/node-preset.md
+    summary: JSON preset starts transfer chain or existing protocol on a mesh
+    vectors: conformance/vectors/node-preset.json
+    status:
+      python:     { state: implemented, since: "2026-11-26" }
+      rust:       { state: implemented, since: "2026-11-26" }
+      typescript: { state: implemented, since: "2026-11-26" }

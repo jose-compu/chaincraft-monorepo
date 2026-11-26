@@ -1,9 +1,9 @@
 # chaincraft
 
 Reference implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.11.0](https://pypi.org/project/chaincraft/1.11.0/)** on PyPI.
-1.11.0 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
-48 of 48 registry features are implemented in Python.
+Release **[1.12.0](https://pypi.org/project/chaincraft/1.12.0/)** on PyPI.
+1.12.0 adds `chain.transfer` and `node.preset`.
+53 of 53 registry features are implemented in Python.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
 BitTorrent swarms, and content-addressed stores.

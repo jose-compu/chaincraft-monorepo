@@ -191,6 +191,14 @@ impl ProofOfTransfer {
         )
     }
 
+    pub(crate) fn driver_tip(&self) -> (String, i64) {
+        self.tip()
+    }
+
+    pub(crate) fn driver_elected_miner(&self, block_height: i64) -> Option<String> {
+        self.elected_miner(block_height)
+    }
+
     fn tip(&self) -> (String, i64) {
         let mut best = String::new();
         let mut best_height = 0;

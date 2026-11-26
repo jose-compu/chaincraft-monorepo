@@ -1399,6 +1399,63 @@ def test_channel_hybrid_transcript():
             raise AssertionError(step["op"])
 
 
+# --- Level 2 transfer chain -------------------------------------------------
+
+
+@cases("chain-transfer.json", "replay")
+def test_chain_transfer_replay(case):
+    from chaincraft.chain import TransferChain
+    from chaincraft.chain_driver import make_driver
+
+    genesis = load("chain-transfer.json")["genesis"]
+    driver = make_driver(case["consensus"], **case.get("options", {}))
+    chain = TransferChain(genesis, reward=case["reward"], driver=driver)
+    for index, step in enumerate(case["steps"]):
+        where = f"{case['name']} step {index}"
+        op = step["op"]
+        if op == "submit":
+            message = parse_json(step["message_json"])
+            accepted = chain.submit(message)
+            assert accepted is step["accepted"], where
+        elif op == "produce":
+            block = chain.produce(step["time"], step["producer"])
+            accepted = block is not None
+            assert accepted is step["accepted"], where
+        else:
+            raise AssertionError(f"unknown op {op}")
+        st = chain.state()
+        assert st["balances"] == step["balances"], where
+        assert st["nonces"] == step["nonces"], where
+        assert st["canonical"] == step["canonical"], where
+        assert st["height"] == step["height"], where
+        assert st["tip"] == step["tip"], where
+
+
+def test_node_preset_replay():
+    from chaincraft import preset
+    from chaincraft.chain import TransferChain
+    from chaincraft.chain_driver import make_driver
+
+    doc = load("node-preset.json")
+    handle = preset.start(doc["valid_config"])
+    assert handle["listen_addr"].startswith(doc["valid_listen_prefix"])
+    valid = doc["valid_config"]
+    driver = make_driver(valid["consensus"], authorities=valid["authorities"])
+    chain = TransferChain(valid["genesis"], reward=valid["reward"], driver=driver)
+    block = chain.produce(1, "alice")
+    assert canonical_json(block) == canonical_json(doc["hand_built_block"]), (
+        "hand-built block"
+    )
+    handle["close"]()
+    for item in doc["rejections"]:
+        try:
+            preset.start(item["config"])
+        except ValueError as err:
+            assert item["error"] in str(err), item["error"]
+        else:
+            raise AssertionError(f"expected preset error {item['error']!r}")
+
+
 # --- vector hygiene ---------------------------------------------------------
 
 

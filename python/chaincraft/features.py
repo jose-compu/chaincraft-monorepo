@@ -72,6 +72,8 @@ FEATURES = frozenset(
         "app.pubsub",
         "app.stream",
         "protocol.crdt-kv",
+        "chain.transfer",
+        "node.preset",
     }
 )
 

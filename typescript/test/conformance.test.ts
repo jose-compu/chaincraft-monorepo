@@ -76,6 +76,9 @@ import {
   verify,
   vrf,
   winsReplacement,
+  TransferChain,
+  makeDriver,
+  presetStart,
 } from '../src/index.ts';
 import { buildRegistry, snapshot } from './conformanceObjects.ts';
 
@@ -872,6 +875,80 @@ eachCase('ledger-utxo.json', 'replay', (c, doc) => {
   }
 });
 
+function jsonI64Map(value: unknown): Record<string, number> {
+  const obj = value as Record<string, number>;
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[k] = v;
+  }
+  return out;
+}
+
+function assertChainState(where: string, got: JsonValue, step: Case): void {
+  const state = got as Record<string, JsonValue>;
+  assert.deepEqual(jsonI64Map(state['balances']), jsonI64Map(step['balances']), `${where} balances`);
+  assert.deepEqual(jsonI64Map(state['nonces']), jsonI64Map(step['nonces']), `${where} nonces`);
+  assert.deepEqual(state['canonical'], step['canonical'], `${where} canonical`);
+  assert.equal(state['height'], step['height'], `${where} height`);
+  assert.equal(state['tip'], step['tip'], `${where} tip`);
+}
+
+test('chain-transfer.json replay', () => {
+  const doc = load('chain-transfer.json');
+  const genesis = jsonI64Map(doc['genesis']);
+  for (const case_ of doc['replay'] as Case[]) {
+    const name = String(case_['name']);
+    const driver = makeDriver(String(case_['consensus']), case_['options'] as JsonValue);
+    const chain = new TransferChain(genesis, case_['reward'] as number, driver);
+    for (const [index, step] of (case_['steps'] as Case[]).entries()) {
+      const where = `${name} step ${index}`;
+      if (step['op'] === 'submit') {
+        const message = parseJson(String(step['message_json']));
+        const accepted = chain.submit(message);
+        assert.equal(accepted, step['accepted'], where);
+        assertChainState(where, chain.state(), step);
+      } else if (step['op'] === 'produce') {
+        const block = chain.produce(step['time'] as number, String(step['producer']));
+        const accepted = block !== undefined;
+        assert.equal(accepted, step['accepted'], where);
+        assertChainState(where, chain.state(), step);
+      } else {
+        assert.fail(`${where} unknown op ${String(step['op'])}`);
+      }
+    }
+  }
+});
+
+test('node-preset.json', async () => {
+  const doc = load('node-preset.json');
+  const handle = await presetStart(doc['valid_config'] as JsonValue);
+  assert.ok(
+    handle.listenAddr.startsWith(String(doc['valid_listen_prefix'])),
+    'listen addr',
+  );
+  const validConfig = doc['valid_config'] as Case;
+  const authorities = { authorities: validConfig['authorities'] };
+  const chain = new TransferChain(
+    jsonI64Map(validConfig['genesis']),
+    0,
+    makeDriver(String(validConfig['consensus']), authorities as JsonValue),
+  );
+  const block = chain.produce(1, 'alice');
+  assert.ok(block !== undefined, 'produce block');
+  assert.equal(
+    canonicalJson(block),
+    canonicalJson(doc['hand_built_block'] as JsonValue),
+    'hand-built block',
+  );
+  for (const item of doc['rejections'] as Case[]) {
+    await assert.rejects(presetStart(item['config'] as JsonValue), (err: Error) => {
+      assert.ok(err.message.includes(String(item['error'])), `expected ${item['error']} got ${err.message}`);
+      return true;
+    });
+  }
+  handle.close();
+});
+
 eachCase('mempool-basic.json', 'sequence', (c) => {
   const pool = new Mempool(
     c['capacity'],
@@ -1293,6 +1370,8 @@ test('every vector file declares its feature', () => {
     'app-pubsub.json',
     'app-stream.json',
     'protocol-crdt-kv.json',
+    'chain-transfer.json',
+    'node-preset.json',
   ];
   for (const name of files) {
     const doc = load(name);

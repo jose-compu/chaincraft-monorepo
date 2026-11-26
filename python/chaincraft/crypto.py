@@ -194,10 +194,17 @@ def verify(alg: str, message32: bytes, signature: bytes, pubkey: bytes) -> bool:
         return False
 
 
-def sign(alg: str, message32: bytes, secret_key: bytes) -> Tuple[bytes, bytes]:
+def sign(
+    alg: str,
+    message32: bytes,
+    secret_key: bytes,
+    aux32: Optional[bytes] = None,
+) -> Tuple[bytes, bytes]:
     """Sign ``message32``. Returns ``(signature, public_key)``."""
     if alg == SCHNORR:
-        return _schnorr_sign(message32, secret_key), _schnorr_pubkey(secret_key)
+        return _schnorr_sign(message32, secret_key, aux32), _schnorr_pubkey(
+            secret_key
+        )
     if alg == ED25519:
         ed25519 = _ed25519_backend()
         key = ed25519.Ed25519PrivateKey.from_private_bytes(secret_key)
