@@ -69,6 +69,8 @@ export const FEATURES: readonly string[] = [
   'app.pubsub',
   'app.stream',
   'protocol.crdt-kv',
+  'chain.transfer',
+  'node.preset',
 ];
 
 export interface Manifest {

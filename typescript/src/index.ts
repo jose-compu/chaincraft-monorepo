@@ -115,6 +115,24 @@ export {
   MAX_STREAMS,
 } from './stream.ts';
 export { UtxoLedger, DEFAULT_ALLOCATIONS as UTXO_DEFAULT_ALLOCATIONS, transactionId } from './ledgerUtxo.ts';
+export {
+  TransferChain,
+  blockId as transferBlockId,
+  signTransfer,
+  transactionId as transferTransactionId,
+  transferSigningBytes,
+  verifyTransfer,
+  type ChainDriver,
+} from './chain.ts';
+export {
+  makeDriver,
+  ouroTable,
+  OURO_EPOCH,
+  OURO_NONCE,
+  POX_CYCLE,
+  POX_SEED,
+} from './chainDriver.ts';
+export { PresetHandle, start as presetStart } from './preset.ts';
 export { Mempool, transactionId as mempoolTransactionId } from './mempool.ts';
 export * as fees from './fees.ts';
 export { MessageStore, isValidId as isValidStoreId } from './storage.ts';
