@@ -1,5 +1,10 @@
 # @chaincraft/core
 
+[![CI](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@chaincraft/core?style=flat-square)](https://www.npmjs.com/package/@chaincraft/core)
+[![npm downloads](https://img.shields.io/npm/dm/@chaincraft/core?style=flat-square)](https://www.npmjs.com/package/@chaincraft/core)
+[![License: MIT](https://img.shields.io/github/license/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/blob/main/LICENSE)
+
 TypeScript implementation of the Chaincraft wire protocol, object semantics, and
 Level 2 stack (consensus, ledgers, BitTorrent, channels). Same observable
 behaviour as the Python `chaincraft` package and the Rust `chaincraft` crate.

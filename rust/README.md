@@ -1,5 +1,11 @@
 # chaincraft
 
+[![CI](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/chaincraft?style=flat-square)](https://crates.io/crates/chaincraft)
+[![crates downloads](https://img.shields.io/crates/d/chaincraft?style=flat-square)](https://crates.io/crates/chaincraft)
+[![docs.rs](https://docs.rs/chaincraft/badge.svg)](https://docs.rs/chaincraft)
+[![License: MIT](https://img.shields.io/github/license/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/blob/main/LICENSE)
+
 Rust implementation of the Chaincraft wire protocol and object semantics.
 Release **[1.12.0](https://crates.io/crates/chaincraft/1.12.0)** on crates.io.
 1.12.0 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
