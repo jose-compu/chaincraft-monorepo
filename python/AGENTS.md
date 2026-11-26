@@ -30,6 +30,7 @@ chaincraft/
   consensus_pow.py   Prototype PoW object
   consensus_poa.py   Prototype PoA object
   consensus_pox.py   Prototype Proof of Transfer object
+  consensus_ouroboros.py  Prototype Ouroboros slot-leader object
   consensus_poet.py  Prototype PoET object
   consensus_beacon.py  Prototype randomness beacon
   consensus_pos.py   Prototype PoS object

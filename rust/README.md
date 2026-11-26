@@ -1,8 +1,8 @@
 # chaincraft
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.10.0](https://crates.io/crates/chaincraft/1.10.0)** on crates.io.
-1.10.0 adds `consensus.pox` (pedagogical Proof of Transfer).
+Release **[1.11.0](https://crates.io/crates/chaincraft/1.11.0)** on crates.io.
+1.11.0 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
 48 of 48 registry features.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
@@ -24,7 +24,7 @@ gossips `app.hello`.
 
 ```toml
 [dependencies]
-chaincraft = "1.10.0"
+chaincraft = "1.11.0"
 ```
 
 ```rust

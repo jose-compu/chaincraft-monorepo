@@ -83,6 +83,12 @@ export { PBFT, DEFAULT_REPLICAS as PBFT_DEFAULT_REPLICAS } from './consensusPbft
 export { ProofOfStake, DEFAULT_SEED, DEFAULT_VALIDATORS, proposerFor } from './consensusPos.ts';
 export { ProofOfAuthority, blockId as poaBlockId, proposerFor as poaProposerFor } from './consensusPoa.ts';
 export {
+  Ouroboros,
+  blockId as ouroborosBlockId,
+  eligible as ouroborosEligible,
+  epochOf as ouroborosEpochOf,
+} from './consensusOuroboros.ts';
+export {
   ProofOfTransfer,
   stackId as poxStackId,
   bidId as poxBidId,

@@ -43,6 +43,7 @@ src/
   consensusPow.ts    Prototype PoW object
   consensusPoa.ts    Prototype PoA object
   consensusPox.ts    Prototype Proof of Transfer object
+  consensusOuroboros.ts  Prototype Ouroboros slot-leader object
   consensusPoet.ts   Prototype PoET object
   consensusBeacon.ts Prototype randomness beacon
   consensusPos.ts    Prototype PoS object

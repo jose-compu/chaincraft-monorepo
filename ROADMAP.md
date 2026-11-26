@@ -6,11 +6,11 @@ store. Consensus, ledgers, and sync are a feature class in the same library.
 
 Open-source toolkit for peer-to-peer protocols like blockchains. Three
 implementations — Python, Rust, TypeScript — are held at **100% feature
-parity**. Spec release **1.10.0** (`SPEC/release.yaml`). Wire protocol **v1**.
-Tagged [`v1.10.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.10.0).
-Published: [crates.io `chaincraft` 1.10.0](https://crates.io/crates/chaincraft),
-[npm `@chaincraft/core` 1.10.0](https://www.npmjs.com/package/@chaincraft/core).
-PyPI serves `chaincraft` 1.10.0.
+parity**. Spec release **1.11.0** (`SPEC/release.yaml`). Wire protocol **v1**.
+Tagged [`v1.11.0`](https://github.com/jose-compu/chaincraft-monorepo/releases/tag/v1.11.0).
+Published: [crates.io `chaincraft` 1.11.0](https://crates.io/crates/chaincraft),
+[npm `@chaincraft/core` 1.11.0](https://www.npmjs.com/package/@chaincraft/core).
+PyPI serves `chaincraft` 1.11.0.
 
 This document defines what that commitment means, why it is achievable, and the
 machinery that enforces it. The enforcement is automated: parity is a CI gate, not a
@@ -412,6 +412,12 @@ Ships in 1.10.0. Closes issue #3. `SPEC/features/discovery-ban.md`. A
 process-local strike list, mesh `allow_peer` gossip gate, and
 `classify_inbound` for unsolicited control traffic.
 
+### Stage 27 — Ouroboros slot leaders
+
+Ships in 1.11.0. Closes issue #19. `SPEC/features/consensus-ouroboros.md`.
+Stake-weighted VRF slot election, epoch nonce evolution, and longest-chain
+canonical choice with lowest-id tip ties.
+
 ### Stage 21 — Optional message index
 
 Done in 1.5.0. Issue #4. `SPEC/features/storage-index.md`. The legacy package indexed chosen fields with
@@ -447,14 +453,14 @@ Full parity implies **lockstep releases**. All three packages and `SPEC/release.
 carry the same version:
 
 ```
-chaincraft (PyPI)    1.10.0
-chaincraft (crates)  1.10.0
-@chaincraft/core (npm)     1.10.0
-SPEC/release.yaml         1.10.0
+chaincraft (PyPI)    1.11.0
+chaincraft (crates)  1.11.0
+@chaincraft/core (npm)     1.11.0
+SPEC/release.yaml         1.11.0
 ```
 
-That is the current release. The git tag is `v1.10.0`. PyPI, crates.io and npm
-serve 1.10.0.
+That is the current release. The git tag is `v1.11.0`. PyPI, crates.io and npm
+serve 1.11.0.
 A later minor version still ships all three together. A language cannot ship a
 minor version alone, because a minor version means a new feature, and a new
 feature means all three have it.

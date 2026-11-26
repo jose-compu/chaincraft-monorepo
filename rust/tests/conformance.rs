@@ -15,6 +15,7 @@ use chaincraft::channel::{self, LoopBus, LoopChannel};
 use chaincraft::cli::NodeSession;
 use chaincraft::consensus_avalanche::Avalanche;
 use chaincraft::consensus_beacon::{pulse_id, RandomnessBeacon, GENESIS_PREVIOUS};
+use chaincraft::consensus_ouroboros::Ouroboros;
 use chaincraft::consensus_pbft::Pbft;
 use chaincraft::consensus_poa::ProofOfAuthority;
 use chaincraft::consensus_poet::ProofOfElapsedTime;
@@ -1084,6 +1085,75 @@ fn discovery_local_sequence() {
                 other => panic!("unknown op {other}"),
             }
             assert_book(&book, step, &where_);
+        }
+    }
+}
+
+#[test]
+fn consensus_ouroboros_replay() {
+    let doc = load("consensus-ouroboros.json");
+    let nonce = doc["nonce"].as_str().unwrap();
+    let epoch_length = doc["epoch_length"].as_i64().unwrap();
+    let stakeholders: Vec<(String, i64, String)> = doc["stakeholders"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| {
+            (
+                entry["id"].as_str().unwrap().to_owned(),
+                entry["stake"].as_i64().unwrap(),
+                entry["pk"].as_str().unwrap().to_owned(),
+            )
+        })
+        .collect();
+    for case in doc["replay"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let mut obj = Ouroboros::new(nonce, epoch_length, &stakeholders).unwrap();
+        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+            let where_ = format!("{name} step {index}");
+            let message = parse_json(step["message_json"].as_str().unwrap()).unwrap();
+            let accepted = obj.is_valid(&message);
+            assert_eq!(accepted, step["accepted"].as_bool().unwrap(), "{where_}");
+            if accepted {
+                obj.add_message(&message, None);
+            }
+            let (slot, tip, canonical, blocks, epoch, chain_nonce) = obj.state();
+            assert_eq!(blocks, json_strings(&step["blocks"]), "{where_} blocks");
+            assert_eq!(
+                canonical,
+                json_strings(&step["canonical"]),
+                "{where_} canonical"
+            );
+            assert_eq!(slot, step["slot"].as_i64().unwrap(), "{where_} slot");
+            assert_eq!(tip, step["tip"].as_str().unwrap(), "{where_} tip");
+            assert_eq!(epoch, step["epoch"].as_i64().unwrap(), "{where_} epoch");
+            assert_eq!(
+                chain_nonce,
+                step["nonce"].as_str().unwrap(),
+                "{where_} nonce"
+            );
+        }
+        if case.get("reorg_count").is_some() {
+            let reorgs: Vec<&Value> = case["steps"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|step| step.get("reorg").and_then(Value::as_bool) == Some(true))
+                .collect();
+            assert_eq!(
+                reorgs.len() as i64,
+                case["reorg_count"].as_i64().unwrap(),
+                "{name}"
+            );
+            let min_depth = reorgs
+                .iter()
+                .map(|step| step["reorg_depth"].as_i64().unwrap())
+                .min()
+                .unwrap();
+            assert!(
+                min_depth >= case["min_reorg_depth"].as_i64().unwrap(),
+                "{name}"
+            );
         }
     }
 }
@@ -2603,6 +2673,7 @@ fn vector_files_declare_feature() {
         "discovery-peer.json",
         "discovery-ban.json",
         "discovery-local.json",
+        "consensus-ouroboros.json",
         "consensus-poa.json",
         "consensus-poet.json",
         "consensus-pox.json",
