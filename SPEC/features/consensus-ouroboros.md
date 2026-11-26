@@ -31,7 +31,7 @@ stakes must not exceed the safe-integer maximum.
 {"consensus":"ouroboros","slot":1,"parent":"","payload":"one","leader":"alice","pk":"<66 hex>","proof":"<128 hex>","output":"<64 hex>"}
 ```
 
-Block id is `sha256_hex(canonical_json({"leader","output","parent","payload","pk","proof","slot"}))`.
+Block id is `merkle_digest({"leader","output","parent","payload","pk","proof","slot"})`.
 Extra keys are ignored. A caller-supplied `id` is ignored.
 
 ### Validation
