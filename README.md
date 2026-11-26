@@ -5,6 +5,23 @@ BitTorrent swarms, and content-addressed stores. Three languages — Python, Rus
 and TypeScript — held at **100% feature parity** by a specification, shared
 conformance vectors, and a CI gate that fails on drift.
 
+[![CI](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/stargazers)
+[![release](https://img.shields.io/github/v/release/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/releases/latest)
+[![website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&style=flat-square&up_color=blue&up_message=online&url=https://chaincraft.network)](https://chaincraft.network/)
+[![npm version](https://img.shields.io/npm/v/@chaincraft/core?style=flat-square)](https://www.npmjs.com/package/@chaincraft/core)
+[![npm downloads](https://img.shields.io/npm/dm/@chaincraft/core?style=flat-square)](https://www.npmjs.com/package/@chaincraft/core)
+[![crates.io](https://img.shields.io/crates/v/chaincraft?style=flat-square)](https://crates.io/crates/chaincraft)
+[![crates downloads](https://img.shields.io/crates/d/chaincraft?style=flat-square)](https://crates.io/crates/chaincraft)
+[![PyPI](https://img.shields.io/pypi/v/chaincraft?style=flat-square)](https://pypi.org/project/chaincraft/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/chaincraft?style=flat-square)](https://pypi.org/project/chaincraft/)
+[![PyPI total downloads](https://img.shields.io/pepy/dt/chaincraft?style=flat-square)](https://pepy.tech/project/chaincraft)
+[![python versions](https://img.shields.io/pypi/pyversions/chaincraft?style=flat-square)](https://pypi.org/project/chaincraft/)
+[![docs.rs](https://docs.rs/chaincraft/badge.svg)](https://docs.rs/chaincraft)
+[![Rust](https://img.shields.io/badge/Rust-stable-orange?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-ESM-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
 The ordinary object is local: a chat room, a publish-subscribe topic, a
 BitTorrent swarm, or a content-addressed store. A node applies the messages it
 has. A gap after a disconnect is allowed.

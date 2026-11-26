@@ -1,5 +1,12 @@
 # chaincraft
 
+[![CI](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jose-compu/chaincraft-monorepo/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/chaincraft?style=flat-square)](https://pypi.org/project/chaincraft/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/chaincraft?style=flat-square)](https://pypi.org/project/chaincraft/)
+[![PyPI total downloads](https://img.shields.io/pepy/dt/chaincraft?style=flat-square)](https://pepy.tech/project/chaincraft)
+[![python versions](https://img.shields.io/pypi/pyversions/chaincraft?style=flat-square)](https://pypi.org/project/chaincraft/)
+[![License: MIT](https://img.shields.io/github/license/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/blob/main/LICENSE)
+
 Reference implementation of the Chaincraft wire protocol and object semantics.
 Release **[1.12.0](https://pypi.org/project/chaincraft/1.12.0/)** on PyPI.
 1.12.0 adds `chain.transfer` and `node.preset`.
