@@ -470,7 +470,6 @@ impl PoetDriver {
             canonical: Vec::new(),
         }
     }
-
 }
 
 impl ChainDriver for PoetDriver {

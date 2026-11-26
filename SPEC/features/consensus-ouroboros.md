@@ -1,6 +1,6 @@
 # consensus.ouroboros
 
-**Release:** 1.11.0
+**Release:** 1.12.0
 
 Pedagogical Cardano Ouroboros–shaped slot lottery. Each slot, stakeholders
 produce a VRF proof over the epoch nonce; stake-weighted threshold election picks

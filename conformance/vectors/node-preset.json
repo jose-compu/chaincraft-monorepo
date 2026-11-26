@@ -1,7 +1,24 @@
 {
-  "description": "Preset transfer node and config validation.",
   "feature": "node.preset",
-  "generator": "agent-bootstrap",
+  "spec": "SPEC/features/node-preset.md",
+  "description": "Preset transfer node and config validation.",
+  "generator": "conformance/generate_vectors.py",
+  "wire_version": 1,
+  "valid_config": {
+    "authorities": [
+      "alice"
+    ],
+    "consensus": "poa",
+    "genesis": {
+      "alice": 100
+    },
+    "listen": "127.0.0.1:0",
+    "peers": [],
+    "protocol": "transfer",
+    "reward": 0,
+    "udp": false
+  },
+  "valid_listen_prefix": "127.0.0.1:",
   "hand_built_block": {
     "chain": "transfer",
     "header": {
@@ -12,14 +29,14 @@
       "time": 1,
       "tx_root": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
     },
+    "transactions": [],
     "proof": {
       "consensus": "poa",
       "height": 1,
       "parent": "",
       "payload": "b1970e158b92f1576ede60424a90fdf230ced8d801d861a197918494c99072ac",
       "proposer": "alice"
-    },
-    "transactions": []
+    }
   },
   "rejections": [
     {
@@ -39,22 +56,5 @@
       },
       "error": "unknown config key"
     }
-  ],
-  "spec": "SPEC/features/node-preset.md",
-  "valid_config": {
-    "authorities": [
-      "alice"
-    ],
-    "consensus": "poa",
-    "genesis": {
-      "alice": 100
-    },
-    "listen": "127.0.0.1:0",
-    "peers": [],
-    "protocol": "transfer",
-    "reward": 0,
-    "udp": false
-  },
-  "valid_listen_prefix": "127.0.0.1:",
-  "wire_version": 1
+  ]
 }

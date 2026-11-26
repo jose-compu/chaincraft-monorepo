@@ -11,7 +11,7 @@
 #   - every markdown file under SPEC/ is listed here
 #   - every listed file contains **Release:** <release>
 
-release: "1.11.0"
+release: "1.12.0"
 wire_protocol: 1
 status: current
 since: "2026-11-26"
@@ -23,6 +23,7 @@ documents:
   - SPEC/features/channel-adapters.md
   - SPEC/features/channel-hybrid.md
   - SPEC/features/channel-peer.md
+  - SPEC/features/chain-transfer.md
   - SPEC/features/cli-node.md
   - SPEC/features/consensus-avalanche.md
   - SPEC/features/consensus-beacon.md
@@ -44,6 +45,7 @@ documents:
   - SPEC/features/ledger-balance.md
   - SPEC/features/ledger-utxo.md
   - SPEC/features/mempool-basic.md
+  - SPEC/features/node-preset.md
   - SPEC/features/protocol-crdt-kv.md
   - SPEC/features/storage-index.md
   - SPEC/features/storage-persistent.md

@@ -8,7 +8,7 @@
  * Add an ID here only when the feature is implemented and its vectors pass.
  */
 
-export const VERSION = '1.11.0';
+export const VERSION = '1.12.0';
 export const WIRE_VERSION = 1;
 export const IMPL = `ts-chaincraft/${VERSION}`;
 export const LANGUAGE = 'typescript';
