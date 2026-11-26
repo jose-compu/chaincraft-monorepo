@@ -33,13 +33,40 @@ rejected. Invalid config raises `ValueError` / `RangeError` / `Result` error.
 | `authorities` | Required for `poa` transfer preset |
 | `listen` | Default `127.0.0.1:0`, passed to mesh start |
 | `peers` | List of addresses for `connect` |
-| `udp` | When true, binds UDP in Python and Rust; TypeScript rejects `true` |
+| `udp` | When true, binds the optional UDP listener on Python, Rust, and TypeScript (Node). Default `false` |
+
+When `protocol` is `transfer`, `authorities` is allowed only for `consensus`
+`poa` and is required there (non-empty list).
+
+When `protocol` is one of the nine consensus names (`pow` through `ouroboros`),
+only `protocol`, `listen`, `peers`, and `udp` are always allowed. Additional
+keys are rejected unless they configure that object:
+
+| Protocol | Optional keys | Defaults |
+|---|---|---|
+| `pow` | `difficulty` | `2` for preset; transfer `make_driver` uses `1` |
+| `poa` | `authorities` | `["alice"]` |
+| `pbft` | `replicas` | implementation default replica set |
+| `poet` | `seed` | `chaincraft-poet-genesis` |
+| `pox` | `seed`, `cycle_length`, `stackers` | 64 ASCII `0` digits, `3`, `[{locker:"alice",amount:100}]` |
+| `avalanche` | — | `slush` profile in the preset constructor |
+| `beacon`, `pos`, `ouroboros` | — | constructor defaults from each feature spec |
+
+For `balance` and `utxo`, `genesis` defaults to `{"alice": 100}` when omitted.
 
 ## Return value
 
 `listen_addr`, `state()`, `submit(message)`, `connect(addr)`, `close()`.
-`submit` applies locally and broadcasts `app.<protocol>`. Transfer nodes also
-expose `produce(time)`.
+Inbound mesh messages on `app.<protocol>` are applied when valid. `submit`
+applies locally and broadcasts the same envelope type.
+
+For `protocol` `transfer`, `submit` accepts a signed transaction or a full
+`chain.transfer` block (`chain` field `transfer`); both paths broadcast
+`app.transfer`. Transfer handles also expose `produce(time, producer)`; default
+producer in the reference helper is `alice` when omitted.
+
+The browser package entry does not expose `start`; TCP presets are Node and
+Python/Rust CLI flows only.
 
 The core CLI remains `connect` / `send` / `ids` / `quit`. No new binary. The
 browser entry does not start a TCP mesh.
