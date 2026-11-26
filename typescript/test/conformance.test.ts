@@ -912,6 +912,11 @@ test('chain-transfer.json replay', () => {
         const accepted = block !== undefined;
         assert.equal(accepted, step['accepted'], where);
         assertChainState(where, chain.state(), step);
+      } else if (step['op'] === 'accept_block') {
+        const block = parseJson(String(step['block_json']));
+        const accepted = chain.acceptBlock(block);
+        assert.equal(accepted, step['accepted'], where);
+        assertChainState(where, chain.state(), step);
       } else {
         assert.fail(`${where} unknown op ${String(step['op'])}`);
       }

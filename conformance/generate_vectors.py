@@ -4608,6 +4608,18 @@ def _chain_transfer_step_state(chain: Any) -> Dict[str, Any]:
     }
 
 
+def _chain_transfer_producer(consensus: str, driver: Any, height: int) -> str:
+    from chaincraft.consensus_poa import proposer_for as poa_proposer_for
+
+    if consensus == "pox":
+        return driver._pox_elected(height)
+    if consensus == "poa":
+        return poa_proposer_for(height, driver.authorities)
+    if consensus == "pos":
+        return driver.pos.proposer(height)
+    return "alice"
+
+
 def _chain_transfer_replay_case(
     name: str,
     consensus: str,
@@ -4623,23 +4635,23 @@ def _chain_transfer_replay_case(
     chain = TransferChain(genesis, reward=reward, driver=driver)
     steps: List[Dict[str, Any]] = []
     message = parse_json(message_json)
-    accepted = chain.submit(message)
     steps.append(
         {
             "op": "submit",
-            "accepted": accepted,
+            "accepted": chain.submit(message),
             "message_json": message_json,
             **_chain_transfer_step_state(chain),
         }
     )
-    for time, producer in ((1, "alice"), (2, "alice")):
-        block = chain.produce(time, producer)
+    for height in (1, 2):
+        producer = _chain_transfer_producer(consensus, driver, height)
+        block = chain.produce(height, producer)
         steps.append(
             {
                 "op": "produce",
                 "accepted": block is not None,
                 "producer": producer,
-                "time": time,
+                "time": height,
                 **_chain_transfer_step_state(chain),
             }
         )
@@ -4652,12 +4664,182 @@ def _chain_transfer_replay_case(
     }
 
 
+def _chain_transfer_rejection_replay(
+    genesis: Dict[str, int], good_json: str, bad_steps: List[tuple]
+) -> Dict[str, Any]:
+    from chaincraft.chain import TransferChain
+    from chaincraft.chain_driver import make_driver
+
+    opts = {"authorities": ["alice"]}
+    chain = TransferChain(genesis, reward=1, driver=make_driver("poa", **opts))
+    steps: List[Dict[str, Any]] = []
+    steps.append(
+        {
+            "op": "submit",
+            "accepted": chain.submit(parse_json(good_json)),
+            "message_json": good_json,
+            **_chain_transfer_step_state(chain),
+        }
+    )
+    for _label, op, payload, extra in bad_steps:
+        if op == "submit":
+            accepted = chain.submit(parse_json(payload))
+            steps.append(
+                {
+                    "op": "submit",
+                    "accepted": accepted,
+                    "message_json": payload,
+                    **_chain_transfer_step_state(chain),
+                }
+            )
+        elif op == "produce":
+            accepted = chain.produce(extra["time"], extra["producer"]) is not None
+            steps.append(
+                {
+                    "op": "produce",
+                    "accepted": accepted,
+                    "producer": extra["producer"],
+                    "time": extra["time"],
+                    **_chain_transfer_step_state(chain),
+                }
+            )
+        elif op == "accept_block":
+            accepted = chain.accept_block(parse_json(payload))
+            steps.append(
+                {
+                    "op": "accept_block",
+                    "accepted": accepted,
+                    "block_json": payload,
+                    **_chain_transfer_step_state(chain),
+                }
+            )
+    return {
+        "consensus": "poa",
+        "name": "rejection matrix",
+        "options": opts,
+        "reward": 1,
+        "steps": steps,
+    }
+
+
+def _chain_transfer_poa_reorg(genesis: Dict[str, int], message_json: str) -> Dict[str, Any]:
+    from chaincraft.chain import TransferChain
+    from chaincraft.chain_driver import make_driver
+
+    opts = {"authorities": ["alice", "bob"]}
+
+    def fresh() -> TransferChain:
+        c = TransferChain(genesis, reward=1, driver=make_driver("poa", **opts))
+        c.submit(parse_json(message_json))
+        return c
+
+    side = fresh()
+    side.produce(1, "alice")
+    side.produce(2, "bob")
+    sb3 = side.produce(3, "alice")
+    sb4 = side.produce(4, "bob")
+
+    chain = fresh()
+    steps = [
+        {
+            "op": "submit",
+            "accepted": True,
+            "message_json": message_json,
+            **_chain_transfer_step_state(chain),
+        }
+    ]
+    for height in (1, 2):
+        producer = _chain_transfer_producer("poa", chain.driver, height)
+        block = chain.produce(height, producer)
+        steps.append(
+            {
+                "op": "produce",
+                "accepted": block is not None,
+                "producer": producer,
+                "time": height,
+                **_chain_transfer_step_state(chain),
+            }
+        )
+    for blk in (sb3, sb4):
+        steps.append(
+            {
+                "op": "accept_block",
+                "accepted": chain.accept_block(blk),
+                "block_json": canonical_json(blk),
+                **_chain_transfer_step_state(chain),
+            }
+        )
+    return {
+        "consensus": "poa",
+        "name": "poa reorg longer side chain",
+        "options": opts,
+        "reward": 1,
+        "steps": steps,
+    }
+
+
+def _chain_transfer_pow_reorg(genesis: Dict[str, int], message_json: str) -> Dict[str, Any]:
+    from chaincraft.chain import TransferChain
+    from chaincraft.chain_driver import make_driver
+
+    def fresh() -> TransferChain:
+        return TransferChain(genesis, reward=1, driver=make_driver("pow"))
+
+    def grow(times: List[int]) -> List[Dict[str, Any]]:
+        c = fresh()
+        c.submit(parse_json(message_json))
+        return [c.produce(t, "alice") for t in times]
+
+    side_extra = grow([1, 2, 3, 4, 5])[3:]
+
+    chain = fresh()
+    chain.submit(parse_json(message_json))
+    steps = [
+        {
+            "op": "submit",
+            "accepted": True,
+            "message_json": message_json,
+            **_chain_transfer_step_state(chain),
+        }
+    ]
+    for t in (1, 2):
+        block = chain.produce(t, "alice")
+        steps.append(
+            {
+                "op": "produce",
+                "accepted": block is not None,
+                "producer": "alice",
+                "time": t,
+                **_chain_transfer_step_state(chain),
+            }
+        )
+    for blk in side_extra:
+        if blk is None:
+            continue
+        steps.append(
+            {
+                "op": "accept_block",
+                "accepted": chain.accept_block(blk),
+                "block_json": canonical_json(blk),
+                **_chain_transfer_step_state(chain),
+            }
+        )
+    return {
+        "consensus": "pow",
+        "name": "pow reorg longer side chain",
+        "options": {},
+        "reward": 1,
+        "steps": steps,
+    }
+
+
 def chain_transfer_vectors() -> Dict[str, Any]:
-    from chaincraft.chain import sign_transfer
+    from chaincraft.chain import TransferChain, sign_transfer
+    from chaincraft.chain_driver import make_driver
 
     sender_pk = crypto.public_key(crypto.SCHNORR, SECKEY_B).hex()
     genesis = {sender_pk: 1000, "bob": 50}
-    tx = sign_transfer(
+    good_tx = sign_transfer(
         {
             "amount": 10,
             "fee": 2,
@@ -4668,7 +4850,76 @@ def chain_transfer_vectors() -> Dict[str, Any]:
         SECKEY_B,
         AUX,
     )
-    message_json = canonical_json(tx)
+    good_json = canonical_json(good_tx)
+    bad_sig = dict(good_tx)
+    bad_sig["signature"] = "0" * 128
+    bad_nonce = sign_transfer(
+        {
+            "amount": 10,
+            "fee": 2,
+            "nonce": 1,
+            "recipient": "bob",
+            "sender": sender_pk,
+        },
+        SECKEY_B,
+        AUX,
+    )
+    poor_tx = sign_transfer(
+        {
+            "amount": 5000,
+            "fee": 2,
+            "nonce": 0,
+            "recipient": "bob",
+            "sender": sender_pk,
+        },
+        SECKEY_B,
+        AUX,
+    )
+    driver = make_driver("poa", authorities=["alice"])
+    chain = TransferChain(genesis, 1, driver)
+    chain.submit(good_tx)
+    valid_block = chain.produce(1, "alice")
+    gap_block = parse_json(canonical_json(valid_block))
+    gap_block["header"]["parent"] = "deadbeef" * 8
+    gap_block["header"]["height"] = 3
+    tx_root_bad = parse_json(canonical_json(valid_block))
+    tx_root_bad["header"]["tx_root"] = "f" * 64
+    state_root_bad = parse_json(canonical_json(valid_block))
+    state_root_bad["header"]["state_root"] = "a" * 64
+
+    replay = [
+        _chain_transfer_replay_case(
+            f"{c} two blocks with transfer", c, o, 1, genesis, good_json
+        )
+        for c, o in [
+            ("pow", {}),
+            ("poa", {"authorities": ["alice"]}),
+            ("pos", {}),
+            ("pbft", {"replicas": ["alice"]}),
+            ("poet", {}),
+            ("avalanche", {}),
+            ("beacon", {"name": "alice", "sk": SECKEY_B.hex()}),
+            ("pox", {}),
+            ("ouroboros", {}),
+        ]
+    ]
+    replay.append(
+        _chain_transfer_rejection_replay(
+            genesis,
+            good_json,
+            [
+                ("bad signature", "submit", canonical_json(bad_sig), {}),
+                ("wrong nonce", "submit", canonical_json(bad_nonce), {}),
+                ("insufficient balance", "submit", canonical_json(poor_tx), {}),
+                ("wrong producer", "produce", "", {"time": 1, "producer": "carol"}),
+                ("parent gap", "accept_block", canonical_json(gap_block), {}),
+                ("tx-root mismatch", "accept_block", canonical_json(tx_root_bad), {}),
+                ("state-root mismatch", "accept_block", canonical_json(state_root_bad), {}),
+            ],
+        )
+    )
+    replay.append(_chain_transfer_poa_reorg(genesis, good_json))
+    replay.append(_chain_transfer_pow_reorg(genesis, good_json))
     return {
         **header(
             "chain.transfer",
@@ -4676,24 +4927,7 @@ def chain_transfer_vectors() -> Dict[str, Any]:
             "Account transfer chain with consensus drivers.",
         ),
         "genesis": genesis,
-        "replay": [
-            _chain_transfer_replay_case(
-                "poa two blocks with transfer",
-                "poa",
-                {"authorities": ["alice"]},
-                1,
-                genesis,
-                message_json,
-            ),
-            _chain_transfer_replay_case(
-                "pow two blocks with transfer",
-                "pow",
-                {},
-                1,
-                genesis,
-                message_json,
-            ),
-        ],
+        "replay": replay,
         "sender_aux": AUX.hex(),
         "sender_pk": sender_pk,
         "sender_sk": SECKEY_B.hex(),

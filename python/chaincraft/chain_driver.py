@@ -14,7 +14,7 @@ from .consensus_poa import ProofOfAuthority, block_id as poa_block_id, proposer_
 from .consensus_poet import ProofOfElapsedTime, ticket_id as poet_ticket_id
 from .consensus_pos import ProofOfStake, proposer_for as pos_proposer_for
 from .consensus_pow import ProofOfWork, block_id as pow_block_id, meets_work
-from .consensus_pox import ProofOfTransfer
+from .consensus_pox import ProofOfTransfer, sortition_score
 from .object import merkle_digest
 
 
@@ -36,11 +36,14 @@ def make_driver(consensus: str, **options: Any) -> Any:
     if name == "avalanche":
         return AvalancheDriver()
     if name == "beacon":
-        return BeaconDriver(options.get("name", "alice"), options.get("sk"))
+        sk = options.get("sk")
+        if isinstance(sk, str):
+            sk = bytes.fromhex(sk)
+        return BeaconDriver(options.get("name", "alice"), sk)
     if name == "pox":
-        return PoxDriver(options.get("stackers"), options.get("cycle_length", 1000))
+        return PoxDriver()
     if name == "ouroboros":
-        return OuroborosDriver(options.get("stakeholders"))
+        return OuroborosDriver()
     raise ValueError(f"unknown consensus: {consensus}")
 
 
@@ -454,12 +457,21 @@ class PoxDriver(_BaseDriver):
         self.pox = ProofOfTransfer(_POX_SEED, _POX_CYCLE, _POX_STACKERS)
         self._chain_ids: List[str] = []
 
+    def _pox_elected(self, height: int) -> str:
+        miners = (("alice", 5), ("bob", 6), ("carol", 4))
+        best_miner = "alice"
+        best_score = ""
+        for miner, btc in miners:
+            score = sortition_score(_POX_SEED, miner, btc, height)
+            if not best_score or score < best_score:
+                best_miner = miner
+                best_score = score
+        return best_miner
+
     def build_proof(self, block: Dict[str, Any]) -> Dict[str, Any]:
         header = block["header"]
         h = header["height"]
-        elected = self.pox._elected_miner(h)  # noqa: SLF001
-        if elected is None:
-            elected = header["producer"]
+        elected = self._pox_elected(h)
         tip, _ = self.pox._tip()  # noqa: SLF001
         prev = "" if h == 1 else tip
         bids = [
@@ -485,10 +497,17 @@ class PoxDriver(_BaseDriver):
         if not isinstance(proof, dict) or proof.get("consensus") != "pox":
             return False
         header = block["header"]
+        messages = proof.get("messages") or []
+        bids = [m for m in messages if m.get("kind") == "bid"]
+        tenures = [m for m in messages if m.get("kind") == "tenure"]
+        for msg in bids:
+            if not self.pox.is_valid(msg):
+                return False
+            self.pox.add_message(msg)
         elected = self.pox._elected_miner(header["height"])  # noqa: SLF001
-        if elected and header["producer"] != elected:
+        if elected is None or header["producer"] != elected:
             return False
-        for msg in proof.get("messages") or []:
+        for msg in tenures:
             if not self.pox.is_valid(msg):
                 return False
             self.pox.add_message(msg)

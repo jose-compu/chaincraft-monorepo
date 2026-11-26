@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chaincraft"
-version = "1.12.0"
+version = "1.12.1"
 description = "A platform for decentralized protocols — wire, objects, and pedagogical consensus"
 readme = "README.md"
 license = "MIT"

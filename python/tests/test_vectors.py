@@ -1421,6 +1421,10 @@ def test_chain_transfer_replay(case):
             block = chain.produce(step["time"], step["producer"])
             accepted = block is not None
             assert accepted is step["accepted"], where
+        elif op == "accept_block":
+            block = parse_json(step["block_json"])
+            accepted = chain.accept_block(block)
+            assert accepted is step["accepted"], where
         else:
             raise AssertionError(f"unknown op {op}")
         st = chain.state()

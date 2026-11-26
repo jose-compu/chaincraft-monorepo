@@ -1,6 +1,6 @@
 # node.preset
 
-**Release:** 1.12.0
+**Release:** 1.12.1
 
 One JSON configuration object, with the same keys in all three languages, that
 starts a `chain.transfer` node on a mesh or constructs an existing protocol

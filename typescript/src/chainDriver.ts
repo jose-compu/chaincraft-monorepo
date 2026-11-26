@@ -11,7 +11,7 @@ import { ProofOfAuthority, blockId as poaBlockId, proposerFor as poaProposerFor 
 import { ProofOfElapsedTime } from './consensusPoet.ts';
 import { ProofOfStake, proposerFor as posProposerFor } from './consensusPos.ts';
 import { ProofOfWork, blockId as powBlockId, meetsWork } from './consensusPow.ts';
-import { ProofOfTransfer } from './consensusPox.ts';
+import { ProofOfTransfer, sortitionScore } from './consensusPox.ts';
 import { merkleDigest } from './object.ts';
 import * as vdf from './vdf.ts';
 import * as vrf from './vrf.ts';
@@ -608,12 +608,29 @@ class PoxDriver implements ChainDriver {
   );
   private readonly chainIds: string[] = [];
 
+  private poxElected(height: number): string {
+    const miners: [string, number][] = [
+      ['alice', 5],
+      ['bob', 6],
+      ['carol', 4],
+    ];
+    let bestMiner = 'alice';
+    let bestScore = '';
+    for (const [miner, btc] of miners) {
+      const score = sortitionScore(POX_SEED, miner, btc, height);
+      if (!bestScore || score < bestScore) {
+        bestMiner = miner;
+        bestScore = score;
+      }
+    }
+    return bestMiner;
+  }
+
   buildProof(block: JsonValue): JsonValue {
     const header = headerFromBlock(block);
     const h = header['height'];
     if (!isInt(h)) throw new Error('header');
-    const elected =
-      (this.pox as unknown as PoxInternals).electedMiner(h) ?? String(header['producer'] ?? '');
+    const elected = this.poxElected(h);
     const tipId = this.pox.state().tip;
     const prev = h === 1 ? '' : tipId;
     const bids: JsonValue[] = [
@@ -637,17 +654,26 @@ class PoxDriver implements ChainDriver {
     const header = headerFromBlockOpt(block);
     if (header === undefined) return false;
     const height = header['height'];
-    if (isInt(height)) {
-      const elected = (this.pox as unknown as PoxInternals).electedMiner(height);
-      const producer = header['producer'];
-      if (elected !== undefined && producer !== elected) return false;
-    }
+  if (!isInt(height)) return false;
     const messages = obj['messages'];
-    if (Array.isArray(messages)) {
-      for (const msg of messages) {
-        if (!this.pox.isValid(msg)) return false;
-        this.pox.addMessage(msg);
-      }
+    if (!Array.isArray(messages)) return false;
+    const bids: JsonValue[] = [];
+    const tenures: JsonValue[] = [];
+    for (const msg of messages) {
+      const rec = asRecord(msg);
+      if (rec?.['kind'] === 'bid') bids.push(msg);
+      else if (rec?.['kind'] === 'tenure') tenures.push(msg);
+      else return false;
+    }
+    for (const msg of bids) {
+      if (!this.pox.isValid(msg)) return false;
+      this.pox.addMessage(msg);
+    }
+    const elected = (this.pox as unknown as PoxInternals).electedMiner(height);
+    if (elected === undefined || header['producer'] !== elected) return false;
+    for (const msg of tenures) {
+      if (!this.pox.isValid(msg)) return false;
+      this.pox.addMessage(msg);
     }
     try {
       if (header !== undefined) this.chainIds.push(blockId(header));

@@ -1,6 +1,6 @@
 # chain.transfer
 
-**Release:** 1.12.0
+**Release:** 1.12.1
 
 Pedagogical account chain: signed transfers, a chain-local fee-ordered
 mempool, block headers with state and transaction roots, and fork choice
