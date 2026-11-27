@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import threading
-from typing import Any, Callable, Dict, List, Mapping, Optional, Set
+from typing import Any, Callable, Dict, List, Mapping, Optional, Set, Tuple
 
 from .chain import TransferChain
 from .chain_driver import make_driver
@@ -29,11 +29,106 @@ _CONSENSUS = {
 }
 _PROTOCOLS = {"transfer", "balance", "utxo", "crdt", "pubsub"} | _CONSENSUS
 
+_CONSENSUS_EXTRA: Dict[str, Set[str]] = {
+    "pow": {"difficulty"},
+    "poa": {"authorities"},
+    "pbft": {"replicas"},
+    "poet": {"seed"},
+    "pox": {"seed", "cycle_length", "stackers"},
+}
+
+
+def _is_wire_int(value: Any) -> bool:
+    return isinstance(value, int) and value is not True and value is not False
+
+
+def _consensus_allowed(protocol: str) -> Set[str]:
+    return {"protocol", "listen", "peers", "udp"} | _CONSENSUS_EXTRA.get(
+        protocol, set()
+    )
+
 
 def _reject_unknown(config: Mapping[str, Any], allowed: Set[str]) -> None:
     for key in config:
         if key not in allowed:
             raise ValueError(f"unknown config key: {key}")
+
+
+def _string_list(value: Any) -> List[str]:
+    if not isinstance(value, list):
+        raise ValueError("invalid list")
+    out: List[str] = []
+    for item in value:
+        if not isinstance(item, str) or not item:
+            raise ValueError("invalid list entry")
+        out.append(item)
+    return out
+
+
+def _parse_stackers(value: Any) -> List[Tuple[str, int]]:
+    if not isinstance(value, list) or not value:
+        raise ValueError("stackers must be non-empty")
+    out: List[Tuple[str, int]] = []
+    for item in value:
+        if isinstance(item, (list, tuple)):
+            raise ValueError("stackers entry must be an object")
+        if not isinstance(item, dict):
+            raise ValueError("stackers entry must be an object")
+        locker = item.get("locker")
+        amount = item.get("amount")
+        if not isinstance(locker, str) or not locker:
+            raise ValueError("each locker must be a non-empty string")
+        if not _is_wire_int(amount) or amount < 1:
+            raise ValueError("each amount must be an integer >= 1")
+        out.append((locker, amount))
+    return out
+
+
+def _validate_consensus_config(protocol: str, config: Mapping[str, Any]) -> None:
+    _reject_unknown(config, _consensus_allowed(protocol))
+    if protocol == "pow" and "difficulty" in config:
+        difficulty = config["difficulty"]
+        if not _is_wire_int(difficulty) or not (1 <= difficulty <= 64):
+            raise ValueError("difficulty must be in 1..64")
+    if protocol == "poa" and "authorities" in config:
+        authorities = config["authorities"]
+        if not isinstance(authorities, list):
+            raise ValueError("authorities must be non-empty")
+        if not authorities:
+            raise ValueError("authorities must be non-empty")
+        seen: set[str] = set()
+        for authority in authorities:
+            if not isinstance(authority, str) or not authority:
+                raise ValueError("each authority must be a non-empty string")
+            if authority in seen:
+                raise ValueError("authorities must be distinct")
+            seen.add(authority)
+    if protocol == "pbft" and "replicas" in config:
+        replicas = config["replicas"]
+        if not isinstance(replicas, list):
+            raise ValueError("replicas must be unique non-empty ids")
+        names = _string_list(replicas)
+        if not names or len(set(names)) != len(names):
+            raise ValueError("replicas must be unique non-empty ids")
+    if protocol == "poet" and "seed" in config:
+        seed = config["seed"]
+        if not isinstance(seed, str) or not seed:
+            raise ValueError("seed must be a non-empty string")
+    if protocol == "pox":
+        if "seed" in config:
+            seed = config["seed"]
+            if not isinstance(seed, str):
+                raise ValueError("seed must be 64 lowercase hex characters")
+            import re
+
+            if not re.match(r"^[0-9a-f]{64}$", seed):
+                raise ValueError("seed must be 64 lowercase hex characters")
+        if "cycle_length" in config:
+            cycle = config["cycle_length"]
+            if not _is_wire_int(cycle) or cycle < 1:
+                raise ValueError("cycle_length must be an integer >= 1")
+        if "stackers" in config:
+            _parse_stackers(config["stackers"])
 
 
 def start(config: Mapping[str, Any]) -> Dict[str, Any]:
@@ -98,8 +193,7 @@ def start(config: Mapping[str, Any]) -> Dict[str, Any]:
         obj = PubSub()
         mesh = _mesh_for(obj, protocol, listen, peers, udp)
         return _object_handle(mesh, obj, protocol)
-  # consensus-only presets attach the consensus object
-    _reject_unknown(config, {"protocol", "listen", "peers", "udp"})
+    _validate_consensus_config(protocol, config)
     obj = _consensus_object(protocol, config)
     mesh = _mesh_for(obj, protocol, listen, peers, udp)
     return _object_handle(mesh, obj, protocol)
@@ -138,10 +232,15 @@ def _consensus_object(protocol: str, config: Mapping[str, Any]) -> Any:
     if protocol == "pox":
         from .consensus_pox import ProofOfTransfer
 
+        stackers_raw = config.get("stackers")
+        if stackers_raw is None:
+            stackers: List[Tuple[str, int]] = [("alice", 100)]
+        else:
+            stackers = _parse_stackers(stackers_raw)
         return ProofOfTransfer(
             config.get("seed", "0" * 64),
             config.get("cycle_length", 3),
-            config.get("stackers", [("alice", 100)]),
+            stackers,
         )
     if protocol == "ouroboros":
         from .chain_driver import _ouro_table, _OURO_EPOCH, _OURO_NONCE

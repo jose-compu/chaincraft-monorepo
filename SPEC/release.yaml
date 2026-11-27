@@ -11,10 +11,10 @@
 #   - every markdown file under SPEC/ is listed here
 #   - every listed file contains **Release:** <release>
 
-release: "1.12.1"
+release: "1.12.2"
 wire_protocol: 1
 status: current
-since: "2026-11-26"
+since: "2026-11-27"
 
 documents:
   - SPEC/features/app-pubsub.md

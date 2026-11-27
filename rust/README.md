@@ -7,8 +7,8 @@
 [![License: MIT](https://img.shields.io/github/license/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/blob/main/LICENSE)
 
 Rust implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.12.0](https://crates.io/crates/chaincraft/1.12.0)** on crates.io.
-1.12.0 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
+Release **[1.12.2](https://crates.io/crates/chaincraft/1.12.2)** on crates.io.
+1.12.2 adds `consensus.ouroboros` (stake-weighted VRF slot leaders).
 48 of 48 registry features.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,
@@ -30,7 +30,7 @@ gossips `app.hello`.
 
 ```toml
 [dependencies]
-chaincraft = "1.12.0"
+chaincraft = "1.12.2"
 ```
 
 ```rust

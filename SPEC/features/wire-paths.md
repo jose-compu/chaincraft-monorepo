@@ -1,6 +1,6 @@
 # wire.paths
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 Two delivery paths, for every protocol. The path is the envelope `type`
 prefix. Envelope `v` stays 1 and no field is added.

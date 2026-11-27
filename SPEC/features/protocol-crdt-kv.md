@@ -1,6 +1,6 @@
 # protocol.crdt-kv
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 Last-write-wins key-value store. Each key is one register. Merge is
 deterministic. There is no wall clock: `ts` is an integer the caller

@@ -1,6 +1,6 @@
 # discovery.ban
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 Process-local strike list that bans a peer and stops relay of that peer's gossip.
 The set is not gossiped, not written to disk, and not part of the core node CLI.

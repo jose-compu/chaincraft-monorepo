@@ -1,6 +1,6 @@
 # storage.persistent
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 Prototype content-addressed message store. It specifies the *semantics*
 of persistence: keys, insertion order, capacity, dump and load.

@@ -1859,6 +1859,33 @@ fn node_preset_replay() {
         }
     }
     handle.close();
+    if let Some(states) = doc.get("states").and_then(|v| v.as_array()) {
+        for item in states {
+            let name = item["name"].as_str().unwrap();
+            let cfg = as_core_json(&item["config"]);
+            let state_handle = preset::start(&cfg).expect("state preset");
+            let got = state_handle.state();
+            let expected = parse_json(&item["state"].to_string()).unwrap();
+            assert_eq!(
+                serde_json::to_string(&chaincraft::mesh::json_to_serde(&got)).unwrap(),
+                serde_json::to_string(&chaincraft::mesh::json_to_serde(&expected)).unwrap(),
+                "{name} state"
+            );
+            state_handle.close();
+        }
+    }
+    if let Some(probes) = doc.get("probes").and_then(|v| v.as_array()) {
+        for item in probes {
+            let name = item["name"].as_str().unwrap();
+            let cfg = as_core_json(&item["config"]);
+            let probe = preset::start(&cfg).expect("probe preset");
+            let message = parse_json(&item["message"].to_string()).unwrap();
+            let accepted = probe.submit(&message);
+            assert_eq!(accepted, item["accepted"].as_bool().unwrap(), "{name}");
+            probe.close();
+        }
+    }
+    handle.close();
 }
 
 #[test]

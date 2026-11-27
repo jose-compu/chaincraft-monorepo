@@ -8,8 +8,8 @@
 [![License: MIT](https://img.shields.io/github/license/jose-compu/chaincraft-monorepo?style=flat-square)](https://github.com/jose-compu/chaincraft-monorepo/blob/main/LICENSE)
 
 Reference implementation of the Chaincraft wire protocol and object semantics.
-Release **[1.12.0](https://pypi.org/project/chaincraft/1.12.0/)** on PyPI.
-1.12.0 adds `chain.transfer` and `node.preset`.
+Release **[1.12.2](https://pypi.org/project/chaincraft/1.12.2/)** on PyPI.
+1.12.2 adds `chain.transfer` and `node.preset`.
 53 of 53 registry features are implemented in Python.
 
 Open-source toolkit for peer-to-peer protocols like blockchains, chat rooms,

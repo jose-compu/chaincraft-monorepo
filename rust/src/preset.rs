@@ -51,6 +51,171 @@ enum PresetObject {
 }
 
 impl PresetObject {
+    fn state_value(&self) -> JsonValue {
+        match self {
+            Self::Balance(o) => {
+                let (balances, burned, nonces, supply) = o.state();
+                JsonValue::object([
+                    (
+                        "balances".into(),
+                        JsonValue::object(
+                            balances
+                                .iter()
+                                .map(|(k, v)| (k.clone(), JsonValue::Number(*v))),
+                        ),
+                    ),
+                    ("burned".into(), JsonValue::Number(burned)),
+                    (
+                        "nonces".into(),
+                        JsonValue::object(
+                            nonces
+                                .iter()
+                                .map(|(k, v)| (k.clone(), JsonValue::Number(*v))),
+                        ),
+                    ),
+                    ("supply".into(), JsonValue::Number(supply)),
+                ])
+            }
+            Self::Utxo(_) => JsonValue::Object(BTreeMap::new()),
+            Self::Crdt(o) => o.state_value(),
+            Self::PubSub(o) => o.state_value(),
+            Self::Pow(o) => {
+                let (blocks, canonical, height, tip) = o.state();
+                JsonValue::object([
+                    (
+                        "blocks".into(),
+                        JsonValue::Array(blocks.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    (
+                        "canonical".into(),
+                        JsonValue::Array(canonical.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    ("height".into(), JsonValue::Number(height)),
+                    ("tip".into(), JsonValue::String(tip)),
+                ])
+            }
+            Self::Poa(o) => {
+                let (blocks, canonical, height, tip) = o.state();
+                JsonValue::object([
+                    (
+                        "blocks".into(),
+                        JsonValue::Array(blocks.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    (
+                        "canonical".into(),
+                        JsonValue::Array(canonical.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    ("height".into(), JsonValue::Number(height)),
+                    ("tip".into(), JsonValue::String(tip)),
+                ])
+            }
+            Self::Pos(o) => {
+                let (head, last, slot) = o.state();
+                JsonValue::object([
+                    ("head".into(), JsonValue::String(head)),
+                    ("last_proposer".into(), JsonValue::String(last)),
+                    ("slot".into(), JsonValue::Number(slot)),
+                ])
+            }
+            Self::Pbft(o) => {
+                let (view, sequence, prepares, commits, executed) = o.state();
+                JsonValue::object([
+                    ("view".into(), JsonValue::Number(view)),
+                    ("sequence".into(), JsonValue::Number(sequence)),
+                    ("prepares".into(), JsonValue::Number(prepares as i64)),
+                    ("commits".into(), JsonValue::Number(commits as i64)),
+                    (
+                        "executed".into(),
+                        JsonValue::Array(
+                            executed
+                                .into_iter()
+                                .map(|(digest, seq)| {
+                                    JsonValue::object([
+                                        ("digest".into(), JsonValue::String(digest)),
+                                        ("seq".into(), JsonValue::Number(seq)),
+                                    ])
+                                })
+                                .collect(),
+                        ),
+                    ),
+                ])
+            }
+            Self::Poet(o) => {
+                let (tickets, canonical, wait, winner) = o.state();
+                JsonValue::object([
+                    (
+                        "tickets".into(),
+                        JsonValue::Array(tickets.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    (
+                        "canonical".into(),
+                        JsonValue::Array(canonical.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    ("wait".into(), JsonValue::Number(wait as i64)),
+                    ("winner".into(), JsonValue::String(winner)),
+                ])
+            }
+            Self::Avalanche(o) => o.state_value(),
+            Self::Beacon(o) => {
+                let (pulses, height, output) = o.state();
+                JsonValue::object([
+                    (
+                        "pulses".into(),
+                        JsonValue::Array(pulses.iter().cloned().map(JsonValue::String).collect()),
+                    ),
+                    ("height".into(), JsonValue::Number(height)),
+                    ("output".into(), JsonValue::String(output)),
+                    (
+                        "canonical".into(),
+                        JsonValue::Array(pulses.into_iter().map(JsonValue::String).collect()),
+                    ),
+                ])
+            }
+            Self::Pox(o) => {
+                let state = o.state();
+                JsonValue::object([
+                    ("height".into(), JsonValue::Number(state.0)),
+                    ("tip".into(), JsonValue::String(state.1.clone())),
+                    ("open_height".into(), JsonValue::Number(state.2)),
+                    ("cycle".into(), JsonValue::Number(state.3)),
+                    (
+                        "canonical".into(),
+                        JsonValue::Array(state.4.iter().cloned().map(JsonValue::String).collect()),
+                    ),
+                    (
+                        "tenures".into(),
+                        JsonValue::Array(state.5.iter().cloned().map(JsonValue::String).collect()),
+                    ),
+                    (
+                        "bids".into(),
+                        JsonValue::Array(state.6.iter().cloned().map(JsonValue::String).collect()),
+                    ),
+                    (
+                        "stacks".into(),
+                        JsonValue::Array(state.7.iter().cloned().map(JsonValue::String).collect()),
+                    ),
+                ])
+            }
+            Self::Ouroboros(o) => {
+                let (slot, tip, canonical, blocks, epoch, nonce) = o.state();
+                JsonValue::object([
+                    ("slot".into(), JsonValue::Number(slot)),
+                    ("tip".into(), JsonValue::String(tip)),
+                    (
+                        "canonical".into(),
+                        JsonValue::Array(canonical.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    (
+                        "blocks".into(),
+                        JsonValue::Array(blocks.into_iter().map(JsonValue::String).collect()),
+                    ),
+                    ("epoch".into(), JsonValue::Number(epoch)),
+                    ("nonce".into(), JsonValue::String(nonce)),
+                ])
+            }
+        }
+    }
+
     fn is_valid(&self, message: &JsonValue) -> bool {
         match self {
             Self::Balance(o) => o.is_valid(message),
@@ -127,6 +292,9 @@ impl PresetHandle {
         if let Some(chain) = &self.chain {
             let guard = chain.lock().expect("lock");
             guard.state()
+        } else if let Some(object) = &self.object {
+            let guard = object.lock().expect("lock");
+            guard.state_value()
         } else {
             JsonValue::Object(BTreeMap::new())
         }
@@ -154,11 +322,18 @@ impl PresetHandle {
             return false;
         }
         let obj = self.object.as_ref().expect("object");
-        let mut guard = obj.lock().expect("lock");
-        if !guard.is_valid(message) {
+        let accepted = {
+            let mut guard = obj.lock().expect("lock");
+            if !guard.is_valid(message) {
+                false
+            } else {
+                guard.add_message(message);
+                true
+            }
+        };
+        if !accepted {
             return false;
         }
-        guard.add_message(message);
         let app = format!("app.{}", self.protocol);
         let _ = Mesh::broadcast(&self.mesh, &app, message.clone());
         true
@@ -195,6 +370,145 @@ fn reject_unknown(
         if !allowed.contains(key.as_str()) {
             return Err(format!("unknown config key: {key}"));
         }
+    }
+    Ok(())
+}
+
+fn consensus_allowed(protocol: &str) -> BTreeSet<&'static str> {
+    let mut set: BTreeSet<&'static str> =
+        ["protocol", "listen", "peers", "udp"].into_iter().collect();
+    let extra: &[&str] = match protocol {
+        "pow" => &["difficulty"],
+        "poa" => &["authorities"],
+        "pbft" => &["replicas"],
+        "poet" => &["seed"],
+        "pox" => &["seed", "cycle_length", "stackers"],
+        _ => &[],
+    };
+    for key in extra {
+        set.insert(key);
+    }
+    set
+}
+
+fn wire_int(value: &JsonValue) -> Option<i64> {
+    match value {
+        JsonValue::Number(n) => Some(*n),
+        _ => None,
+    }
+}
+
+fn parse_stackers(value: &JsonValue) -> Result<Vec<(String, i64)>, String> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| "stackers must be non-empty".to_string())?;
+    if items.is_empty() {
+        return Err("stackers must be non-empty".into());
+    }
+    let mut out = Vec::new();
+    for item in items {
+        if item.as_array().is_some() {
+            return Err("stackers entry must be an object".into());
+        }
+        let obj = item
+            .as_object()
+            .ok_or_else(|| "stackers entry must be an object".to_string())?;
+        let locker = obj
+            .get("locker")
+            .and_then(JsonValue::as_str)
+            .filter(|s| !s.is_empty())
+            .ok_or_else(|| "each locker must be a non-empty string".to_string())?;
+        let amount = obj
+            .get("amount")
+            .and_then(wire_int)
+            .filter(|n| *n >= 1)
+            .ok_or_else(|| "each amount must be an integer >= 1".to_string())?;
+        out.push((locker.to_owned(), amount));
+    }
+    Ok(out)
+}
+
+fn validate_consensus_config(
+    protocol: &str,
+    map: &BTreeMap<String, JsonValue>,
+) -> Result<(), String> {
+    reject_unknown(map, &consensus_allowed(protocol))?;
+    match protocol {
+        "pow" => {
+            if let Some(difficulty) = map.get("difficulty") {
+                let d = wire_int(difficulty).filter(|n| (1..=64).contains(n));
+                if d.is_none() {
+                    return Err("difficulty must be in 1..64".into());
+                }
+            }
+        }
+        "poa" => {
+            if let Some(authorities) = map.get("authorities") {
+                let list = authorities
+                    .as_array()
+                    .ok_or("authorities must be non-empty")?;
+                if list.is_empty() {
+                    return Err("authorities must be non-empty".into());
+                }
+                let mut seen = BTreeSet::new();
+                for item in list {
+                    let name = item
+                        .as_str()
+                        .filter(|s| !s.is_empty())
+                        .ok_or_else(|| "each authority must be a non-empty string".to_string())?;
+                    if !seen.insert(name) {
+                        return Err("authorities must be distinct".into());
+                    }
+                }
+            }
+        }
+        "pbft" => {
+            if let Some(replicas) = map.get("replicas") {
+                let list = replicas
+                    .as_array()
+                    .ok_or_else(|| "replicas must be unique non-empty ids".to_string())?;
+                let mut names = Vec::new();
+                for item in list {
+                    let name = item
+                        .as_str()
+                        .filter(|s| !s.is_empty())
+                        .ok_or_else(|| "replicas must be unique non-empty ids".to_string())?;
+                    names.push(name);
+                }
+                if names.is_empty() || names.iter().collect::<BTreeSet<_>>().len() != names.len() {
+                    return Err("replicas must be unique non-empty ids".into());
+                }
+            }
+        }
+        "poet" => {
+            if let Some(seed) = map.get("seed") {
+                let text = seed.as_str().filter(|s| !s.is_empty());
+                if text.is_none() {
+                    return Err("seed must be a non-empty string".into());
+                }
+            }
+        }
+        "pox" => {
+            if let Some(seed) = map.get("seed") {
+                let text = seed
+                    .as_str()
+                    .ok_or("seed must be 64 lowercase hex characters")?;
+                if text.len() != 64 || !text.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+                {
+                    return Err("seed must be 64 lowercase hex characters".into());
+                }
+            }
+            if let Some(cycle) = map.get("cycle_length") {
+                let n = wire_int(cycle).filter(|v| *v >= 1);
+                if n.is_none() {
+                    return Err("cycle_length must be an integer >= 1".into());
+                }
+            }
+            if let Some(stackers) = map.get("stackers") {
+                parse_stackers(stackers)?;
+            }
+        }
+        _ => {}
     }
     Ok(())
 }
@@ -340,8 +654,7 @@ pub fn start(config: &JsonValue) -> Result<PresetHandle, String> {
         );
     }
 
-    let allowed: BTreeSet<&str> = ["protocol", "listen", "peers", "udp"].into_iter().collect();
-    reject_unknown(map, &allowed)?;
+    validate_consensus_config(protocol, map)?;
     let obj = consensus_object(protocol, map)?;
     object_handle(obj, protocol, listen, &peers, udp)
 }
@@ -417,19 +730,10 @@ fn consensus_object(
                 .get("cycle_length")
                 .and_then(JsonValue::as_i64)
                 .unwrap_or(3);
-            let stackers: Vec<(String, i64)> = config
-                .get("stackers")
-                .and_then(JsonValue::as_array)
-                .map(|items| {
-                    items
-                        .iter()
-                        .filter_map(|v| {
-                            let arr = v.as_array()?;
-                            Some((arr.first()?.as_str()?.to_owned(), arr.get(1)?.as_i64()?))
-                        })
-                        .collect()
-                })
-                .unwrap_or_else(|| vec![("alice".to_owned(), 100)]);
+            let stackers: Vec<(String, i64)> = match config.get("stackers") {
+                Some(value) => parse_stackers(value)?,
+                None => vec![("alice".to_owned(), 100)],
+            };
             Ok(PresetObject::Pox(ProofOfTransfer::new(
                 seed, cycle, &stackers,
             )?))

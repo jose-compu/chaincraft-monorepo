@@ -1,6 +1,6 @@
 # discovery.local
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 Policy for filling the address book from a neighbor's current peer list.
 
