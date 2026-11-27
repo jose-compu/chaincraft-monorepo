@@ -1,6 +1,6 @@
 # node.preset
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 One JSON configuration object, with the same keys in all three languages, that
 starts a `chain.transfer` node on a mesh or constructs an existing protocol
@@ -57,6 +57,20 @@ For `balance` and `utxo`, `genesis` defaults to `{"alice": 100}` when omitted.
 ## Return value
 
 `listen_addr`, `state()`, `submit(message)`, `connect(addr)`, `close()`.
+
+`state()` returns the attached object's state document, with the same keys as
+that object's `state()`. Transfer presets return the chain document
+(`balances`, `nonces`, `canonical`, `height`, `tip`). Consensus and ledger
+presets return their object's initial state; an empty object is not used in
+place of a non-transfer object's state.
+
+For consensus presets, optional keys in the table above are accepted when
+present. An absent key keeps its default. A present key with the wrong JSON
+type is rejected before the listen socket binds (`true` is not an integer).
+PoX `stackers` are a non-empty list of `{locker, amount}` objects (`locker`
+non-empty string, `amount` integer `>= 1`, distinct lockers). A
+`[locker, amount]` pair is rejected.
+
 Inbound mesh messages on `app.<protocol>` are applied when valid. `submit`
 applies locally and broadcasts the same envelope type.
 
@@ -72,4 +86,5 @@ The core CLI remains `connect` / `send` / `ids` / `quit`. No new binary. The
 browser entry does not start a TCP mesh.
 
 `conformance/vectors/node-preset.json` pins the transfer config against a
-hand-built chain and rejection of unknown protocol and unknown keys.
+hand-built chain, rejection of unknown protocol and keys, preset `state()`
+documents, and submit probes for PoA, PoX, and PoW difficulty.

@@ -1,6 +1,6 @@
 # storage.index
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 Optional local equality index on chosen payload fields inside stored
 message bodies. It sits on `storage.persistent` and does not change

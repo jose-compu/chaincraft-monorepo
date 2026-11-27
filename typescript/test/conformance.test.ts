@@ -951,6 +951,21 @@ test('node-preset.json', async () => {
       return true;
     });
   }
+  for (const item of (doc['states'] as Case[] | undefined) ?? []) {
+    const stateHandle = await presetStart(item['config'] as JsonValue);
+    assert.equal(
+      canonicalJson(stateHandle.state()),
+      canonicalJson(item['state'] as JsonValue),
+      String(item['name']),
+    );
+    stateHandle.close();
+  }
+  for (const item of (doc['probes'] as Case[] | undefined) ?? []) {
+    const probe = await presetStart(item['config'] as JsonValue);
+    const accepted = probe.submit(item['message'] as JsonValue);
+    assert.equal(accepted, item['accepted'], String(item['name']));
+    probe.close();
+  }
   handle.close();
 });
 

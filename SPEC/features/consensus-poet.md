@@ -1,6 +1,6 @@
 # consensus.poet
 
-**Release:** 1.12.1
+**Release:** 1.12.2
 
 Prototype Proof of Elapsed Time. Peers submit wait tickets backed by a Sloth
 VDF proof over a shared seed. The shortest verified wait wins; an equal wait

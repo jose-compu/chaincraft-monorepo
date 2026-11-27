@@ -55,6 +55,283 @@
         "protocol": "transfer"
       },
       "error": "unknown config key"
+    },
+    {
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pow",
+        "difficulty": 0
+      },
+      "error": "difficulty must be in 1..64"
+    },
+    {
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pow",
+        "difficulty": true
+      },
+      "error": "difficulty must be in 1..64"
+    },
+    {
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pow",
+        "authorities": [
+          "alice"
+        ]
+      },
+      "error": "unknown config key"
+    },
+    {
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "poa",
+        "authorities": []
+      },
+      "error": "authorities must be non-empty"
+    },
+    {
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "poet",
+        "seed": ""
+      },
+      "error": "seed must be a non-empty string"
+    },
+    {
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pox",
+        "stackers": [
+          [
+            "bob",
+            50
+          ]
+        ]
+      },
+      "error": "stackers"
+    },
+    {
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pos",
+        "difficulty": 1
+      },
+      "error": "unknown config key"
+    }
+  ],
+  "states": [
+    {
+      "name": "balance",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "balance",
+        "genesis": {
+          "carol": 7
+        }
+      },
+      "state": {
+        "balances": {
+          "carol": 7
+        },
+        "burned": 0,
+        "nonces": {
+          "carol": 0
+        },
+        "supply": 7
+      }
+    },
+    {
+      "name": "crdt",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "crdt"
+      },
+      "state": {
+        "keys": []
+      }
+    },
+    {
+      "name": "pos",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pos"
+      },
+      "state": {
+        "head": "",
+        "last_proposer": "",
+        "slot": 0
+      }
+    },
+    {
+      "name": "pbft",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pbft"
+      },
+      "state": {
+        "commits": 0,
+        "executed": [],
+        "prepares": 0,
+        "sequence": 1,
+        "view": 0
+      }
+    },
+    {
+      "name": "pow",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pow"
+      },
+      "state": {
+        "blocks": [],
+        "canonical": [],
+        "height": 0,
+        "tip": ""
+      }
+    }
+  ],
+  "probes": [
+    {
+      "name": "poa_bob_authorities",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "poa",
+        "authorities": [
+          "bob"
+        ]
+      },
+      "message": {
+        "consensus": "poa",
+        "height": 1,
+        "parent": "",
+        "payload": "x",
+        "proposer": "bob"
+      },
+      "accepted": true
+    },
+    {
+      "name": "poa_default_alice",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "poa"
+      },
+      "message": {
+        "consensus": "poa",
+        "height": 1,
+        "parent": "",
+        "payload": "x",
+        "proposer": "bob"
+      },
+      "accepted": false
+    },
+    {
+      "name": "pox_bob_stacker",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pox",
+        "stackers": [
+          {
+            "locker": "bob",
+            "amount": 50
+          }
+        ]
+      },
+      "message": {
+        "consensus": "pox",
+        "kind": "bid",
+        "miner": "bob",
+        "btc_out": 1,
+        "block_height": 1
+      },
+      "accepted": true
+    },
+    {
+      "name": "pox_default_alice",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pox"
+      },
+      "message": {
+        "consensus": "pox",
+        "kind": "bid",
+        "miner": "bob",
+        "btc_out": 1,
+        "block_height": 1
+      },
+      "accepted": false
+    },
+    {
+      "name": "pow_difficulty_1",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pow",
+        "difficulty": 1
+      },
+      "message": {
+        "consensus": "pow",
+        "height": 1,
+        "miner": "alice",
+        "nonce": 24,
+        "parent": "",
+        "payload": "probe",
+        "id": "0968bba2218f61c0241997718295652024eaac30de4801c1730d97a108e1e130"
+      },
+      "accepted": true
+    },
+    {
+      "name": "pow_difficulty_2",
+      "config": {
+        "listen": "127.0.0.1:0",
+        "peers": [],
+        "udp": false,
+        "protocol": "pow",
+        "difficulty": 2
+      },
+      "message": {
+        "consensus": "pow",
+        "height": 1,
+        "miner": "alice",
+        "nonce": 24,
+        "parent": "",
+        "payload": "probe",
+        "id": "0968bba2218f61c0241997718295652024eaac30de4801c1730d97a108e1e130"
+      },
+      "accepted": false
     }
   ]
 }

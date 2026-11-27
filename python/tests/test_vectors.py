@@ -1458,6 +1458,17 @@ def test_node_preset_replay():
             assert item["error"] in str(err), item["error"]
         else:
             raise AssertionError(f"expected preset error {item['error']!r}")
+    for item in doc.get("states", []):
+        state_handle = preset.start(item["config"])
+        assert canonical_json(state_handle["state"]()) == canonical_json(
+            item["state"]
+        ), item["name"]
+        state_handle["close"]()
+    for item in doc.get("probes", []):
+        probe = preset.start(item["config"])
+        accepted = probe["submit"](item["message"])
+        assert accepted == item["accepted"], item["name"]
+        probe["close"]()
 
 
 # --- vector hygiene ---------------------------------------------------------

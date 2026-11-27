@@ -4937,7 +4937,10 @@ def chain_transfer_vectors() -> Dict[str, Any]:
 def node_preset_vectors() -> Dict[str, Any]:
     from chaincraft.chain import TransferChain
     from chaincraft.chain_driver import make_driver
+    from chaincraft.consensus_pow import mine
     from chaincraft import preset
+
+    preset_base = {"listen": "127.0.0.1:0", "peers": [], "udp": False}
 
     valid_config = {
         "authorities": ["alice"],
@@ -4954,6 +4957,81 @@ def node_preset_vectors() -> Dict[str, Any]:
     chain = TransferChain(valid_config["genesis"], reward=0, driver=driver)
     block = chain.produce(1, "alice")
     handle["close"]()
+
+    states: List[Dict[str, Any]] = []
+    state_cases = [
+        (
+            "balance",
+            {**preset_base, "protocol": "balance", "genesis": {"carol": 7}},
+        ),
+        ("crdt", {**preset_base, "protocol": "crdt"}),
+        ("pos", {**preset_base, "protocol": "pos"}),
+        ("pbft", {**preset_base, "protocol": "pbft"}),
+        ("pow", {**preset_base, "protocol": "pow"}),
+    ]
+    for name, cfg in state_cases:
+        h = preset.start(dict(cfg))
+        states.append({"name": name, "config": cfg, "state": h["state"]()})
+        h["close"]()
+
+    poa_msg = {
+        "consensus": "poa",
+        "height": 1,
+        "parent": "",
+        "payload": "x",
+        "proposer": "bob",
+    }
+    pox_bid = {
+        "consensus": "pox",
+        "kind": "bid",
+        "miner": "bob",
+        "btc_out": 1,
+        "block_height": 1,
+    }
+    pow_block = mine("", 1, "alice", "probe", 1)
+    probes: List[Dict[str, Any]] = [
+        {
+            "name": "poa_bob_authorities",
+            "config": {**preset_base, "protocol": "poa", "authorities": ["bob"]},
+            "message": poa_msg,
+            "accepted": True,
+        },
+        {
+            "name": "poa_default_alice",
+            "config": {**preset_base, "protocol": "poa"},
+            "message": poa_msg,
+            "accepted": False,
+        },
+        {
+            "name": "pox_bob_stacker",
+            "config": {
+                **preset_base,
+                "protocol": "pox",
+                "stackers": [{"locker": "bob", "amount": 50}],
+            },
+            "message": pox_bid,
+            "accepted": True,
+        },
+        {
+            "name": "pox_default_alice",
+            "config": {**preset_base, "protocol": "pox"},
+            "message": pox_bid,
+            "accepted": False,
+        },
+        {
+            "name": "pow_difficulty_1",
+            "config": {**preset_base, "protocol": "pow", "difficulty": 1},
+            "message": pow_block,
+            "accepted": True,
+        },
+        {
+            "name": "pow_difficulty_2",
+            "config": {**preset_base, "protocol": "pow", "difficulty": 2},
+            "message": pow_block,
+            "accepted": False,
+        },
+    ]
+
     return {
         **header(
             "node.preset",
@@ -4974,7 +5052,28 @@ def node_preset_vectors() -> Dict[str, Any]:
                 },
                 "error": "unknown config key",
             },
+            {"config": {**preset_base, "protocol": "pow", "difficulty": 0}, "error": "difficulty must be in 1..64"},
+            {"config": {**preset_base, "protocol": "pow", "difficulty": True}, "error": "difficulty must be in 1..64"},
+            {
+                "config": {**preset_base, "protocol": "pow", "authorities": ["alice"]},
+                "error": "unknown config key",
+            },
+            {
+                "config": {**preset_base, "protocol": "poa", "authorities": []},
+                "error": "authorities must be non-empty",
+            },
+            {"config": {**preset_base, "protocol": "poet", "seed": ""}, "error": "seed must be a non-empty string"},
+            {
+                "config": {**preset_base, "protocol": "pox", "stackers": [["bob", 50]]},
+                "error": "stackers",
+            },
+            {
+                "config": {**preset_base, "protocol": "pos", "difficulty": 1},
+                "error": "unknown config key",
+            },
         ],
+        "states": states,
+        "probes": probes,
     }
 
 

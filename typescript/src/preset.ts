@@ -32,6 +32,27 @@ const CONSENSUS = new Set([
 
 const PROTOCOLS = new Set(['transfer', 'balance', 'utxo', 'crdt', 'pubsub', ...CONSENSUS]);
 
+const CONSENSUS_EXTRA: Record<string, ReadonlySet<string>> = {
+  pow: new Set(['difficulty']),
+  poa: new Set(['authorities']),
+  pbft: new Set(['replicas']),
+  poet: new Set(['seed']),
+  pox: new Set(['seed', 'cycle_length', 'stackers']),
+};
+
+function isWireInt(value: JsonValue | undefined): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value);
+}
+
+function consensusAllowed(protocol: string): Set<string> {
+  const base = new Set(['protocol', 'listen', 'peers', 'udp']);
+  const extra = CONSENSUS_EXTRA[protocol];
+  if (extra !== undefined) {
+    for (const key of extra) base.add(key);
+  }
+  return base;
+}
+
 type PresetObject =
   | BalanceLedger
   | UtxoLedger
@@ -115,7 +136,10 @@ function consensusObject(protocol: string, config: Record<string, JsonValue>): P
         typeof config['cycle_length'] === 'number' && Number.isSafeInteger(config['cycle_length'])
           ? config['cycle_length']
           : 3;
-      const stackers = parseStackers(config['stackers']) ?? [{ locker: 'alice', amount: 100 }];
+      const stackers =
+        config['stackers'] === undefined
+          ? [{ locker: 'alice', amount: 100 }]
+          : parseStackers(config['stackers']);
       return new ProofOfTransfer(seed, cycle, stackers);
     }
     case 'ouroboros':
@@ -135,21 +159,82 @@ function stringList(value: JsonValue | undefined): string[] | undefined {
   return out;
 }
 
-function parseStackers(
-  value: JsonValue | undefined,
-): { locker: string; amount: number }[] | undefined {
-  if (!Array.isArray(value)) return undefined;
+function parseStackers(value: JsonValue | undefined): { locker: string; amount: number }[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new RangeError('stackers must be non-empty');
+  }
   const out: { locker: string; amount: number }[] = [];
   for (const item of value) {
-    if (!Array.isArray(item) || item.length < 2) return undefined;
-    const locker = item[0];
-    const amount = item[1];
-    if (typeof locker !== 'string' || typeof amount !== 'number' || !Number.isSafeInteger(amount)) {
-      return undefined;
+    if (Array.isArray(item)) {
+      throw new RangeError('stackers entry must be an object');
+    }
+    if (item === null || typeof item !== 'object') {
+      throw new RangeError('stackers entry must be an object');
+    }
+    const locker = (item as Record<string, JsonValue>)['locker'];
+    const amount = (item as Record<string, JsonValue>)['amount'];
+    if (typeof locker !== 'string' || locker.length === 0) {
+      throw new RangeError('each locker must be a non-empty string');
+    }
+    if (!isWireInt(amount) || amount < 1) {
+      throw new RangeError('each amount must be an integer >= 1');
     }
     out.push({ locker, amount });
   }
   return out;
+}
+
+function validateConsensusConfig(protocol: string, config: Record<string, JsonValue>): void {
+  rejectUnknown(config, consensusAllowed(protocol));
+  if (protocol === 'pow' && config['difficulty'] !== undefined) {
+    const difficulty = config['difficulty'];
+    if (!isWireInt(difficulty) || difficulty < 1 || difficulty > 64) {
+      throw new RangeError('difficulty must be in 1..64');
+    }
+  }
+  if (protocol === 'poa' && config['authorities'] !== undefined) {
+    const authorities = config['authorities'];
+    if (!Array.isArray(authorities) || authorities.length === 0) {
+      throw new RangeError('authorities must be non-empty');
+    }
+    const seen = new Set<string>();
+    for (const authority of authorities) {
+      if (typeof authority !== 'string' || authority.length === 0) {
+        throw new RangeError('each authority must be a non-empty string');
+      }
+      if (seen.has(authority)) throw new RangeError('authorities must be distinct');
+      seen.add(authority);
+    }
+  }
+  if (protocol === 'pbft' && config['replicas'] !== undefined) {
+    const replicas = stringList(config['replicas']);
+    if (replicas === undefined || replicas.length === 0 || new Set(replicas).size !== replicas.length) {
+      throw new RangeError('replicas must be unique non-empty ids');
+    }
+  }
+  if (protocol === 'poet' && config['seed'] !== undefined) {
+    const seed = config['seed'];
+    if (typeof seed !== 'string' || seed.length === 0) {
+      throw new RangeError('seed must be a non-empty string');
+    }
+  }
+  if (protocol === 'pox') {
+    if (config['seed'] !== undefined) {
+      const seed = config['seed'];
+      if (typeof seed !== 'string' || !/^[0-9a-f]{64}$/.test(seed)) {
+        throw new RangeError('seed must be 64 lowercase hex characters');
+      }
+    }
+    if (config['cycle_length'] !== undefined) {
+      const cycle = config['cycle_length'];
+      if (!isWireInt(cycle) || cycle < 1) {
+        throw new RangeError('cycle_length must be an integer >= 1');
+      }
+    }
+    if (config['stackers'] !== undefined) {
+      parseStackers(config['stackers']);
+    }
+  }
 }
 
 export class PresetHandle {
@@ -175,6 +260,9 @@ export class PresetHandle {
 
   state(): JsonValue {
     if (this.chain !== undefined) return this.chain.state();
+    if (this.object !== undefined && 'state' in this.object) {
+      return (this.object as { state(): JsonValue }).state();
+    }
     return {};
   }
 
@@ -356,6 +444,6 @@ export async function start(config: JsonValue): Promise<PresetHandle> {
     return objectHandle(new PubSub(), protocol, listen, peers, udp);
   }
 
-  rejectUnknown(map, new Set(['protocol', 'listen', 'peers', 'udp']));
+  validateConsensusConfig(protocol, map);
   return objectHandle(consensusObject(protocol, map), protocol, listen, peers, udp);
 }
